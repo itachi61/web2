@@ -6,21 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.transition = 'opacity 0.3s ease-in';
         document.body.style.opacity = '1';
     }, 10);
-
-    // Smooth transitions for internal links
-    const links = document.querySelectorAll('a[href^="/techsmart/public"]');
-    links.forEach(link => {
-        link.addEventListener('click', (e) => {
-            const href = link.getAttribute('href');
-            if (href && !href.includes('#')) {
-                e.preventDefault();
-                document.body.style.opacity = '0';
-                setTimeout(() => {
-                    window.location.href = href;
-                }, 300);
-            }
-        });
-    });
 });
 
 // ===== TOAST NOTIFICATION SYSTEM =====

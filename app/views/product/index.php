@@ -16,9 +16,21 @@
 
 <div class="product-grid">
   <?php foreach ($products as $product): ?>
-    <div class="product-card" data-category="<?= htmlspecialchars($product['category']) ?>">
-      <img src="<?= $product['image'] ?>" alt="<?= htmlspecialchars($product['name']) ?>">
-      <span class="category-badge"><?= htmlspecialchars($product['category']) ?></span>
+    <?php
+      // Get image path
+      $imagePath = $product['images'] ?? '/assets/img/logo.png';
+      // If image path doesn't start with http or /, prepend BASE_URL
+      if (!str_starts_with($imagePath, 'http') && !str_starts_with($imagePath, '/')) {
+        $imagePath = BASE_URL . '/' . $imagePath;
+      } elseif (str_starts_with($imagePath, '/assets')) {
+        $imagePath = BASE_URL . $imagePath;
+      }
+      
+      $categoryName = $product['category_name'] ?? 'Khác';
+    ?>
+    <div class="product-card" data-category="<?= htmlspecialchars($categoryName) ?>">
+      <img src="<?= htmlspecialchars($imagePath) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
+      <span class="category-badge"><?= htmlspecialchars($categoryName) ?></span>
       <h3><?= htmlspecialchars($product['name']) ?></h3>
       <p class="price"><?= number_format($product['price']) ?>đ</p>
       <p class="stock-info">

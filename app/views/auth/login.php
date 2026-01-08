@@ -3,10 +3,10 @@
     <h1>Đăng nhập</h1>
     <p class="auth-subtitle">Chào mừng bạn quay lại TechSmart</p>
     
-    <form class="auth-form" method="POST">
+    <form class="auth-form" method="POST" action="<?= BASE_URL ?>/login">
       <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" placeholder="example@email.com" required>
+        <label for="username">Tên đăng nhập hoặc Email</label>
+        <input type="text" id="username" name="username" placeholder="Nhập tài khoản của bạn" required>
       </div>
       
       <div class="form-group">
