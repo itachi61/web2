@@ -1,0 +1,180 @@
+/* public/css/admin.css */
+
+/* --- 1. CẤU TRÚC CHUNG (LAYOUT) --- */
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f0f2f5; /* Màu nền sáng sủa hơn */
+    color: #333;
+    overflow-x: hidden;
+}
+
+/* --- SIDEBAR (THANH MENU TRÁI) - ĐỒNG BỘ MÀU XANH --- */
+.sidebar {
+    min-width: 260px;
+    max-width: 260px;
+    /* Dùng màu Gradient giống Header trang chủ */
+    background: linear-gradient(180deg, #00c6ff 0%, #0072ff 100%);
+    color: #fff;
+    min-height: 100vh;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 4px 0 10px rgba(0, 114, 255, 0.2);
+    position: relative;
+    z-index: 100;
+}
+
+.sidebar-header {
+    padding: 25px 20px;
+    /* Làm tối nhẹ phần logo để nổi bật */
+    background: rgba(0, 0, 0, 0.1); 
+    text-align: center;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 1.2rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.sidebar-header a {
+    color: white !important;
+}
+
+.sidebar-menu {
+    padding: 15px 10px;
+    flex-grow: 1;
+}
+
+/* Style cho từng link menu */
+.sidebar-menu a {
+    padding: 12px 20px;
+    display: block;
+    color: rgba(255, 255, 255, 0.9); /* Màu trắng hơi mờ */
+    text-decoration: none;
+    transition: 0.3s;
+    border-radius: 10px; /* Bo tròn các nút menu */
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.sidebar-menu a:hover, 
+.sidebar-menu a.active {
+    /* Hiệu ứng kính mờ (Glassmorphism) khi hover */
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transform: translateX(5px); /* Đẩy nhẹ sang phải */
+}
+
+.sidebar-menu i {
+    width: 25px;
+    text-align: center;
+    margin-right: 10px;
+}
+
+/* Footer của Sidebar (Nút Đăng xuất/Xem web) */
+.sidebar-footer {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* --- CONTENT (NỘI DUNG PHẢI) --- */
+.main-content {
+    width: 100%;
+    padding: 25px;
+    background-color: #f8f9fa;
+}
+
+.top-navbar {
+    background: white;
+    padding: 15px 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+    border-radius: 15px; /* Bo tròn thanh topbar */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #eee;
+}
+
+/* --- 2. DASHBOARD (THỐNG KÊ) --- */
+
+/* Hiệu ứng thẻ Card thống kê */
+.stat-card {
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+    border-radius: 15px; /* Bo tròn thẻ */
+}
+
+.stat-card:hover {
+    transform: translateY(-8px); /* Nổi cao hơn */
+    box-shadow: 0 15px 30px rgba(0, 114, 255, 0.2) !important;
+}
+
+/* Màu riêng cho từng thẻ card để đẹp hơn */
+.bg-gradient-primary {
+    background: linear-gradient(45deg, #00c6ff, #0072ff);
+}
+.bg-gradient-success {
+    background: linear-gradient(45deg, #11998e, #38ef7d);
+}
+.bg-gradient-warning {
+    background: linear-gradient(45deg, #f7971e, #ffd200);
+}
+
+/* Icon mờ phía sau */
+.stat-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%) rotate(0deg);
+    font-size: 4.5rem;
+    opacity: 0.15;
+    transition: all 0.4s;
+    z-index: -1;
+}
+
+.stat-card:hover .stat-icon {
+    opacity: 0.3;
+    transform: translateY(-50%) rotate(15deg) scale(1.1); /* Xoay và phóng to icon */
+}
+
+/* Link ở footer card */
+.card-footer-link {
+    color: rgba(255,255,255,0.9);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: 0.3s;
+    display: block;
+    font-weight: 500;
+}
+
+.card-footer-link:hover {
+    color: #fff;
+    padding-left: 8px;
+}
+
+/* Bảng dữ liệu */
+.table {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+}
+
+.table thead {
+    background-color: #f1f4f8;
+    color: #555;
+    font-weight: 600;
+}
+
+.table-hover tbody tr {
+    transition: 0.2s;
+}
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 198, 255, 0.05); /* Hover màu xanh nhạt */
+}
