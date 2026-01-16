@@ -2,29 +2,32 @@
 // Sửa lại đường dẫn require cho chuẩn (tránh lỗi No such file)
 require_once dirname(__DIR__) . '/core/Controller.php';
 
-class ProductController extends Controller {
+class ProductController extends Controller
+{
 
     // --- TRANG DANH SÁCH TẤT CẢ SẢN PHẨM ---
-    public function index() {
+    public function index()
+    {
         $model = $this->model('ProductModel');
-        $products = $model->getAllProducts(); 
-        
+        $products = $model->getAllProducts();
+
         $this->view('layouts/header', ['title' => 'Danh sách sản phẩm']);
-        
+
         // LƯU Ý: Bạn đang dùng chung view 'products/category' cho cả trang chủ
         // Hãy chắc chắn file app/views/products/category.php ĐÃ TỒN TẠI
         $this->view('products/category', [
             'products' => $products,
             'title' => 'Tất cả sản phẩm' // Truyền thêm title để view hiển thị
         ]);
-        
+
         $this->view('layouts/footer');
     }
 
     // --- CHI TIẾT SẢN PHẨM ---
-    public function detail($id = null) {
+    public function detail($id = null)
+    {
         if (!$id) {
-            header('Location: ' . BASE_URL); 
+            header('Location: ' . BASE_URL);
             exit;
         }
 
@@ -39,21 +42,25 @@ class ProductController extends Controller {
         $reviews = $model->getReviews($id);
 
         $this->view('layouts/header', ['title' => $product['name']]);
+        $images = $model->getProductImages($id);
+
         $this->view('products/detail', [
             'product' => $product,
-            'reviews' => $reviews
+            'reviews' => $reviews,
+            'images'  => $images 
         ]);
         $this->view('layouts/footer');
     }
 
     // --- TÌM KIẾM ---
-    public function search() {
+    public function search()
+    {
         $keyword = $_GET['keyword'] ?? '';
         $model = $this->model('ProductModel');
         $products = $model->searchProduct($keyword);
 
         $this->view('layouts/header', ['title' => 'Tìm kiếm: ' . $keyword]);
-        
+
         // Bạn có thể tái sử dụng view category hoặc dùng view search riêng
         $this->view('products/category', [
             'products' => $products,
@@ -63,7 +70,8 @@ class ProductController extends Controller {
     }
 
     // --- GỬI ĐÁNH GIÁ ---
-    public function postReview() {
+    public function postReview()
+    {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (!isset($_SESSION['user_id'])) {
                 header('Location: ' . BASE_URL . 'auth/login');
@@ -85,7 +93,8 @@ class ProductController extends Controller {
     }
 
     // --- LỌC THEO DANH MỤC ---
-    public function category($id = null) {
+    public function category($id = null)
+    {
         if (!$id) {
             header('Location: ' . BASE_URL);
             exit;
@@ -94,7 +103,7 @@ class ProductController extends Controller {
         $products = $model->getProductsByCategory($id);
 
         // SỬA LỖI: Đổi tên hàm cho khớp với Model (getCategoryName)
-        $categoryName = $model->getCategoryName($id); 
+        $categoryName = $model->getCategoryName($id);
 
         $this->view('layouts/header', ['title' => $categoryName]);
 
@@ -105,7 +114,4 @@ class ProductController extends Controller {
 
         $this->view('layouts/footer');
     }
-
-    
 }
-?>

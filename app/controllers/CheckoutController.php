@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__DIR__) . '/core/Controller.php';
+require_once dirname(__DIR__) . '/core/Controller.php'; 
 
 class CheckoutController extends Controller {
     public function index() {

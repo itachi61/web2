@@ -41,10 +41,17 @@ CREATE TABLE product_images (
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
--- 6. Tạo bảng Orders (Đơn hàng)
+-- 6. Tạo bảng Orders (Đơn hàng) - Đã bổ sung thông tin nhận hàng
 CREATE TABLE orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
+    user_id INT, -- Người đặt hàng (có thể null nếu cho khách vãng lai mua)
+    
+    -- Thông tin người nhận (QUAN TRỌNG)
+    fullname VARCHAR(100) NOT NULL, 
+    phone VARCHAR(20) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    note TEXT, -- Ghi chú đơn hàng
+    
     total_money DECIMAL(10, 2),
     status ENUM('pending', 'processing', 'completed', 'cancelled') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
