@@ -32,7 +32,7 @@
             <div class="collapse navbar-collapse" id="navbarContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>">Trang chủ</a></li>
-                    
+
                     <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>product/category/1">Laptop</a></li>
                     <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>product/category/2">Điện thoại</a></li>
                     <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>product/category/3">Linh kiện</a></li>
@@ -40,10 +40,21 @@
 
                 <div class="d-flex align-items-center gap-3">
 
-                    <a href="<?= BASE_URL ?>cart" class="text-white position-relative fs-5">
-                        <i class="fa-solid fa-cart-shopping"></i>
+                    <form action="<?= BASE_URL ?>product/search" method="GET" class="d-flex mt-2 mt-md-0">
+                        <div class="input-group" style="width: 250px;">
+                            <input class="form-control rounded-start-pill border-end-0" type="search" name="keyword" placeholder="Bạn tìm gì..." aria-label="Search">
+
+                            <button class="btn border border-start-0 rounded-end-pill bg-white text-primary btn-search-anim" type="submit">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </button>
+                        </div>
+                    </form>
+
+                    <a href="<?= BASE_URL ?>cart" class="text-white position-relative fs-5 text-decoration-none cart-anim">
+                        <i class="fa-solid fa-cart-shopping me-1"></i>
                         <?php if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0): ?>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                            <span class="position-absolute top-0 start-0 translate-middle badge rounded-pill bg-danger"
+                                style="font-size: 0.6rem; left: 10px !important;">
                                 <?= count($_SESSION['cart']) ?>
                             </span>
                         <?php endif; ?>

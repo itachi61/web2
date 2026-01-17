@@ -47,7 +47,7 @@ class ProductController extends Controller
         $this->view('products/detail', [
             'product' => $product,
             'reviews' => $reviews,
-            'images'  => $images 
+            'images'  => $images
         ]);
         $this->view('layouts/footer');
     }
@@ -55,20 +55,29 @@ class ProductController extends Controller
     // --- TÌM KIẾM ---
     public function search()
     {
+        // 1. Lấy tất cả tham số từ URL (GET)
         $keyword = $_GET['keyword'] ?? '';
-        $model = $this->model('ProductModel');
-        $products = $model->searchProduct($keyword);
+        $categories = $_GET['cat'] ?? []; // Mảng danh mục (ví dụ: [1, 3])
+        $minPrice = $_GET['min_price'] ?? null;
+        $maxPrice = $_GET['max_price'] ?? null;
+        $sort = $_GET['sort'] ?? 'newest'; // Mặc định là mới nhất
 
+        // 2. Gọi Model xử lý
+        $model = $this->model('ProductModel');
+
+        // Hàm này sẽ viết ở bước dưới
+        $products = $model->searchProductAdvanced($keyword, $categories, $minPrice, $maxPrice, $sort);
+
+        // 3. Trả về View
         $this->view('layouts/header', ['title' => 'Tìm kiếm: ' . $keyword]);
 
-        // Bạn có thể tái sử dụng view category hoặc dùng view search riêng
-        $this->view('products/category', [
+        $this->view('products/search', [
             'products' => $products,
-            'title' => 'Kết quả tìm kiếm: "' . $keyword . '"'
+            'keyword' => $keyword // Truyền lại để view hiển thị tiêu đề
         ]);
+
         $this->view('layouts/footer');
     }
-
     // --- GỬI ĐÁNH GIÁ ---
     public function postReview()
     {

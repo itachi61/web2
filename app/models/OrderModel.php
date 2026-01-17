@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__DIR__) . '/app/core/Database.php';
+require_once dirname(__DIR__) . '/core/Database.php';
 
 class OrderModel extends Database {
     public function createOrder($userId, $total, $cartItems) {

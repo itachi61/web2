@@ -11,12 +11,6 @@
     <h3 class="fw-bold text-primary m-0">
         <i class="fa-solid fa-fire text-danger me-2"></i>Sản phẩm nổi bật
     </h3>
-    <form action="<?= BASE_URL ?>product/search" method="GET" class="d-flex mt-2 mt-md-0">
-        <input class="form-control me-2 rounded-pill" type="search" name="keyword" placeholder="Bạn tìm gì..." style="width: 250px;">
-        <button class="btn btn-outline-primary rounded-circle" type="submit">
-            <i class="fa-solid fa-magnifying-glass"></i>
-        </button>
-    </form>
 </div>
 
 <div class="row g-4">
