@@ -106,3 +106,24 @@ INSERT INTO products (category_id, name, price, image, description, stock) VALUE
 (1, 'Razer Blade 15', 65000000, 'razer-blade.jpg', 'Razer Blade 15 - Laptop gaming đẹp nhất thế giới, màn hình OLED 240Hz', 5),
 (1, 'Gigabyte Aero 16', 55000000, 'gigabyte-aero.jpg', 'Gigabyte Aero - Chuyên đồ họa, màn hình 4K OLED HDR', 7),
 (1, 'HP Envy x360', 26000000, 'hp-envy.jpg', 'HP Envy x360 - Xoay gập 360 độ, màn hình cảm ứng, bút Stylus đi kèm', 12);
+
+-- 11. Thêm sản phẩm Điện thoại mới
+INSERT INTO products (category_id, name, price, image, description, stock) VALUES 
+(2, 'iPhone 14', 19000000, 'iphone-14.png', 'iPhone 14 - Thiết kế sang trọng, camera sắc nét, hiệu năng mạnh mẽ', 20),
+(2, 'Samsung Galaxy Z Flip 5', 24000000, 'samsung-z-flip-5.png', 'Samsung Galaxy Z Flip 5 - Gập mở linh hoạt, màn hình phụ lớn', 15),
+(2, 'Xiaomi 13 Pro', 21000000, 'xiaomi-13-pro.png', 'Xiaomi 13 Pro - Camera Leica chuyên nghiệp, sạc siêu nhanh', 18),
+(2, 'Oppo Find N3 Flip', 22000000, 'oppo-find-n3-flip.png', 'Oppo Find N3 Flip - Thiết kế thời thượng, camera Hasselblad', 12),
+(2, 'Google Pixel 8 Pro', 23000000, 'pixel-8-pro.png', 'Google Pixel 8 Pro - Camera AI thông minh, Android thuần', 10),
+(2, 'Sony Xperia 1 V', 29000000, 'sony-xperia-1-v.png', 'Sony Xperia 1 V - Màn hình 4K HDR, chuyên gia quay phim', 8),
+(2, 'Asus ROG Phone 7', 26000000, 'rog-phone-7.png', 'Asus ROG Phone 7 - Hiệu năng gaming đỉnh cao, tản nhiệt tốt', 10);
+
+-- 12. Thêm sản phẩm Linh kiện mới
+INSERT INTO products (category_id, name, price, image, description, stock) VALUES 
+(3, 'Intel Core i9-14900K', 15000000, 'intel-i9-14900k.png', 'Intel Core i9-14900K - Vi xử lý mạnh mẽ nhất cho Desktop', 20),
+(3, 'AMD Ryzen 9 7950X', 14000000, 'amd-ryzen-9-7950x.png', 'AMD Ryzen 9 7950X - Hiệu năng đa nhân vượt trội', 20),
+(3, 'ASUS ROG Maximus Z790', 12000000, 'asus-z790.png', 'ASUS ROG Maximus Z790 - Mainboard cao cấp cho game thủ', 15),
+(3, 'Corsair Vengeance DDR5', 4000000, 'corsair-ddr5.png', 'Corsair Vengeance DDR5 - Kit RAM 32GB (2x16GB) bus 6000MHz', 30),
+(3, 'Samsung 990 PRO SSD', 3500000, 'samsung-990-pro.png', 'Samsung 990 PRO SSD 1TB - Tốc độ đọc ghi cực nhanh', 40),
+(3, 'Corsair RM1000e PSU', 4500000, 'corsair-psu-1000w.png', 'Corsair RM1000e 1000W - Nguồn máy tính chuẩn Gold, Full Modular', 25),
+(3, 'NZXT Kraken Elite 360', 6500000, 'nzxt-kraken-360.png', 'NZXT Kraken Elite 360 - Tản nhiệt nước AIO màn hình LCD', 15);
+
