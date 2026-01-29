@@ -1,48 +1,3 @@
-<<<<<<< HEAD
-<?php
-// FIX LỖI SESSION PERMISSION DENIED TRÊN XAMPP
-$sessDir = __DIR__ . '/sessions';
-if (!is_dir($sessDir)) {
-    @mkdir($sessDir, 0777, true);
-}
-session_save_path($sessDir);
-session_start();
-require 'config/db.php';
-require 'includes/functions.php';
-require 'includes/header.php';
-
-$page = $_GET['page'] ?? 'home';
-
-switch ($page) {
-    case 'home':
-        require 'views/home.php';
-        break;
-    case 'detail':
-        require 'views/detail.php';
-        break;
-    case 'cart':
-        require 'views/cart.php';
-        break;
-    case 'auth':
-        require 'views/auth.php';
-        break;
-    case 'admin_dashboard':
-        require 'views/admin/dashboard.php';
-        break;
-    case 'admin_products':
-        require 'views/admin/products.php';
-        break;
-    case 'admin_orders':
-        require 'views/admin/orders.php';
-        break;
-    default:
-        require 'views/home.php';
-        break;
-}
-
-require 'includes/footer.php';
-?>
-=======
 -- 1. Tạo Database tên là techsmart (nếu chưa có)
 CREATE DATABASE IF NOT EXISTS techsmart CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -78,7 +33,7 @@ CREATE TABLE products (
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
 );
 
---
+-- 5.1. Tạo bảng product_images (Ảnh phụ của sản phẩm)
 CREATE TABLE product_images (
     id INT AUTO_INCREMENT PRIMARY KEY,
     product_id INT NOT NULL,
@@ -130,9 +85,24 @@ CREATE TABLE reviews (
 INSERT INTO users (fullname, email, password, role) 
 VALUES ('Admin TechSmart', 'admin@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
 
--- 10. (TÙY CHỌN) Thêm vài sản phẩm mẫu
-INSERT INTO categories (name) VALUES ('Laptop'), ('Điện thoại'), ('Linh Kiện');
-INSERT INTO products (category_id, name, price, image, description) VALUES 
-(1, 'MacBook Air M1', 18000000, 'macbook.jpg', 'Chip M1 mạnh mẽ, pin trâu'),
-(2, 'iPhone 15 Pro Max', 32000000, 'iphone15.jpg', 'Titanium, chip A17 Pro');
->>>>>>> main
+-- 10. (TÙY CHỌN) Thêm danh mục và sản phẩm mẫu
+INSERT INTO categories (name) VALUES ('Laptop'), ('Điện thoại'), ('Linh Kiện'), ('Màn hình'), ('Bàn phím');
+
+INSERT INTO products (category_id, name, price, image, description, stock) VALUES 
+(1, 'MacBook Air M1', 18000000, 'macbook-air-m1.jpg', 'MacBook Air M1 - Chip M1 mạnh mẽ, pin trâu, thiết kế siêu mỏng nhẹ', 10),
+(2, 'iPhone 15 Pro Max', 32000000, 'iphone-15-pro-max.jpg', 'iPhone 15 Pro Max - Vỏ Titanium, chip A17 Pro, camera 48MP', 15),
+(1, 'Dell XPS 13', 25000000, 'dell-xps-13.jpg', 'Dell XPS 13 - Màn hình InfinityEdge, Core i7 Gen 12, SSD 512GB', 8),
+(2, 'Samsung Galaxy S24 Ultra', 28000000, 'samsung-s24-ultra.jpg', 'Samsung Galaxy S24 Ultra - S Pen tích hợp, màn hình AMOLED 120Hz', 12),
+(3, 'RTX 4090', 45000000, 'rtx-4090.jpg', 'NVIDIA GeForce RTX 4090 - Card đồ họa mạnh nhất thế giới', 5),
+(4, 'LG UltraGear 27"', 8000000, 'lg-ultragear-27.jpg', 'Màn hình gaming LG 27" - 144Hz, IPS, 1ms response time', 20),
+(5, 'Keychron K2', 2500000, 'keychron-k2.jpg', 'Bàn phím cơ Keychron K2 - Wireless, hot-swappable, RGB', 30),
+(1, 'ASUS ROG Strix', 35000000, 'asus-rog.jpg', 'Laptop Gaming ASUS ROG - Core i9, RTX 4070, Màn hình 240Hz', 10),
+(1, 'Lenovo ThinkPad X1', 42000000, 'lenovo-thinkpad.jpg', 'Lenovo ThinkPad X1 Carbon - Siêu bền, bàn phím trứ danh, bảo mật cao', 15),
+(1, 'HP Pavilion 15', 15000000, 'hp-pavilion.jpg', 'HP Pavilion 15 - Thiết kế thời trang, hiệu năng ổn định cho văn phòng', 20),
+(1, 'Acer Predator Helios', 38000000, 'acer-predator.jpg', 'Acer Predator Helios 300 - Chiến game đỉnh cao, tản nhiệt AeroBlade', 8),
+(1, 'MSI Gaming GF63', 22000000, 'msi-gaming.jpg', 'MSI Gaming GF63 - Mỏng nhẹ, hiệu năng cao với RTX 3050', 12),
+(1, 'Microsoft Surface Laptop 5', 29000000, 'surface-laptop.jpg', 'Surface Laptop 5 - Màn hình cảm ứng PixelSense, thiết kế kim loại nguyên khối', 10),
+(1, 'LG Gram 2024', 33000000, 'lg-gram.jpg', 'LG Gram - Siêu nhẹ chỉ 999g, pin trâu cả ngày dài', 10),
+(1, 'Razer Blade 15', 65000000, 'razer-blade.jpg', 'Razer Blade 15 - Laptop gaming đẹp nhất thế giới, màn hình OLED 240Hz', 5),
+(1, 'Gigabyte Aero 16', 55000000, 'gigabyte-aero.jpg', 'Gigabyte Aero - Chuyên đồ họa, màn hình 4K OLED HDR', 7),
+(1, 'HP Envy x360', 26000000, 'hp-envy.jpg', 'HP Envy x360 - Xoay gập 360 độ, màn hình cảm ứng, bút Stylus đi kèm', 12);
