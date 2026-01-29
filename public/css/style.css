@@ -1,0 +1,135 @@
+/* public/css/style.css */
+
+/* --- CẤU HÌNH CHUNG --- */
+body {
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    background-color: #f8f9fa; /* Màu nền xám nhạt cho web đỡ chói */
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+a { text-decoration: none; }
+
+/* --- HEADER (NAVBAR) --- */
+.navbar-custom {
+    /* Gradient Xanh Ngọc -> Xanh Dương Đậm (Giống Logo) */
+    background: linear-gradient(90deg, #00c6ff 0%, #005bea 100%);
+    box-shadow: 0 4px 10px rgba(0, 91, 234, 0.3);
+    padding: 15px 0;
+}
+
+.navbar-brand {
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 1.5rem;
+    color: #fff !important;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.navbar-custom .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+    margin: 0 10px;
+    transition: all 0.3s;
+}
+
+.navbar-custom .nav-link:hover {
+    color: #fff !important;
+    transform: translateY(-2px);
+    text-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+/* Nút Login trên Header */
+.btn-login-header {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 20px;
+    padding: 5px 20px;
+    transition: 0.3s;
+}
+.btn-login-header:hover {
+    background: white;
+    color: #005bea;
+}
+
+/* --- FOOTER --- */
+.footer-custom {
+    /* Màu nền giống Header nhưng tối hơn 1 chút để vững chân trang */
+    background: linear-gradient(90deg, #009ecb 0%, #0042a6 100%);
+    color: white;
+    margin-top: auto; /* Đẩy footer xuống đáy */
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+}
+
+.footer-custom h5 {
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.footer-custom a {
+    color: rgba(255,255,255,0.8);
+    transition: 0.3s;
+}
+.footer-custom a:hover {
+    color: #fff;
+    padding-left: 5px; /* Hiệu ứng đẩy chữ sang phải */
+}
+
+/* --- SẢN PHẨM (CARD) --- */
+.product-card {
+    border: none;
+    border-radius: 12px;
+    background: white;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.price-tag {
+    color: #ff4757; /* Màu đỏ nổi bật cho giá */
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.badge-discount {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #ff4757;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+.btn-search-anim i {
+    transition: transform 0.3s ease;
+}
+
+.btn-search-anim:hover i {
+    transform: scale(1.3) rotate(15deg); /* Phóng to và xoay nghiêng 15 độ */
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Hiệu ứng nảy */
+}
+
+@keyframes shakeCart {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
+    75% { transform: rotate(-10deg); }
+    100% { transform: rotate(0deg); }
+}
+
+.cart-anim:hover i {
+    animation: shakeCart 0.5s ease-in-out; /* Rung trong 0.5 giây */
+    color: #ffc107; /* (Tuỳ chọn) Đổi màu icon sang vàng khi hover */
+}
