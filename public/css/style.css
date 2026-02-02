@@ -3,14 +3,17 @@
 /* --- CẤU HÌNH CHUNG --- */
 body {
     font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-    background-color: #f8f9fa; /* Màu nền xám nhạt cho web đỡ chói */
+    background-color: #f8f9fa;
+    /* Màu nền xám nhạt cho web đỡ chói */
     color: #333;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
 }
 
-a { text-decoration: none; }
+a {
+    text-decoration: none;
+}
 
 /* --- HEADER (NAVBAR) --- */
 .navbar-custom {
@@ -25,7 +28,7 @@ a { text-decoration: none; }
     text-transform: uppercase;
     font-size: 1.5rem;
     color: #fff !important;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .navbar-custom .nav-link {
@@ -38,18 +41,19 @@ a { text-decoration: none; }
 .navbar-custom .nav-link:hover {
     color: #fff !important;
     transform: translateY(-2px);
-    text-shadow: 0 0 10px rgba(255,255,255,0.5);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 /* Nút Login trên Header */
 .btn-login-header {
-    background: rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.2);
     color: white;
-    border: 1px solid rgba(255,255,255,0.5);
+    border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 20px;
     padding: 5px 20px;
     transition: 0.3s;
 }
+
 .btn-login-header:hover {
     background: white;
     color: #005bea;
@@ -60,8 +64,9 @@ a { text-decoration: none; }
     /* Màu nền giống Header nhưng tối hơn 1 chút để vững chân trang */
     background: linear-gradient(90deg, #009ecb 0%, #0042a6 100%);
     color: white;
-    margin-top: auto; /* Đẩy footer xuống đáy */
-    box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+    margin-top: auto;
+    /* Đẩy footer xuống đáy */
+    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .footer-custom h5 {
@@ -72,12 +77,14 @@ a { text-decoration: none; }
 }
 
 .footer-custom a {
-    color: rgba(255,255,255,0.8);
+    color: rgba(255, 255, 255, 0.8);
     transition: 0.3s;
 }
+
 .footer-custom a:hover {
     color: #fff;
-    padding-left: 5px; /* Hiệu ứng đẩy chữ sang phải */
+    padding-left: 5px;
+    /* Hiệu ứng đẩy chữ sang phải */
 }
 
 /* --- SẢN PHẨM (CARD) --- */
@@ -91,11 +98,12 @@ a { text-decoration: none; }
 
 .product-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .price-tag {
-    color: #ff4757; /* Màu đỏ nổi bật cho giá */
+    color: #ff4757;
+    /* Màu đỏ nổi bật cho giá */
     font-weight: 700;
     font-size: 1.1rem;
 }
@@ -117,19 +125,236 @@ a { text-decoration: none; }
 }
 
 .btn-search-anim:hover i {
-    transform: scale(1.3) rotate(15deg); /* Phóng to và xoay nghiêng 15 độ */
-    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Hiệu ứng nảy */
+    transform: scale(1.3) rotate(15deg);
+    /* Phóng to và xoay nghiêng 15 độ */
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    /* Hiệu ứng nảy */
 }
 
 @keyframes shakeCart {
-    0% { transform: rotate(0deg); }
-    25% { transform: rotate(-10deg); }
-    50% { transform: rotate(10deg); }
-    75% { transform: rotate(-10deg); }
-    100% { transform: rotate(0deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(-10deg);
+    }
+
+    50% {
+        transform: rotate(10deg);
+    }
+
+    75% {
+        transform: rotate(-10deg);
+    }
+
+    100% {
+        transform: rotate(0deg);
+    }
 }
 
 .cart-anim:hover i {
-    animation: shakeCart 0.5s ease-in-out; /* Rung trong 0.5 giây */
-    color: #ffc107; /* (Tuỳ chọn) Đổi màu icon sang vàng khi hover */
+    animation: shakeCart 0.5s ease-in-out;
+    /* Rung trong 0.5 giây */
+    color: #ffc107;
+    /* (Tuỳ chọn) Đổi màu icon sang vàng khi hover */
+}
+
+/* ========== HOMEPAGE ENHANCEMENTS ========== */
+
+/* Category Cards */
+.category-card {
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+}
+
+.category-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.category-card .category-icon {
+    transition: all 0.4s ease;
+}
+
+.category-card:hover .category-icon {
+    transform: scale(1.2) rotateY(360deg);
+}
+
+/* USP Cards */
+.usp-card {
+    transition: all 0.3s ease;
+}
+
+.usp-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.usp-card:hover i {
+    transform: scale(1.2);
+}
+
+/* Testimonial Cards */
+.testimonial-card {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.testimonial-card::before {
+    content: '"';
+    position: absolute;
+    top: -20px;
+    right: 20px;
+    font-size: 120px;
+    font-family: Georgia, serif;
+    color: rgba(0, 0, 0, 0.05);
+    line-height: 1;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* News Cards */
+.news-card {
+    transition: all 0.3s ease;
+}
+
+.news-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.news-card .card-img-top {
+    transition: all 0.3s ease;
+}
+
+.news-card:hover .card-img-top {
+    filter: brightness(1.1);
+}
+
+.news-card:hover .card-img-top i {
+    transform: scale(1.1);
+}
+
+/* Brand Logos */
+.brand-logo {
+    transition: all 0.3s ease;
+    opacity: 0.6;
+    filter: grayscale(100%);
+}
+
+.brand-logo:hover {
+    opacity: 1;
+    filter: grayscale(0%);
+    transform: scale(1.1);
+}
+
+/* Flash Sale Progress Bar Animation */
+@keyframes progressPulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.progress-bar.bg-danger {
+    animation: progressPulse 2s infinite;
+}
+
+/* Carousel Enhancements */
+#heroCarousel .carousel-item {
+    transition: transform 0.8s ease-in-out;
+}
+
+#heroCarousel .carousel-indicators button {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin: 0 6px;
+}
+
+/* Smooth Scroll */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Card Hover Lift Effect */
+.card {
+    transition: all 0.3s ease;
+}
+
+/* Gradient Text */
+.gradient-text {
+    background: linear-gradient(90deg, #00c6ff, #0072ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Pulse Animation for Badges */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.badge-danger,
+.bg-danger {
+    animation: pulse 2s infinite;
+}
+
+/* Section Spacing */
+section {
+    padding: 60px 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    #heroCarousel .carousel-item>div {
+        min-height: 300px !important;
+        padding: 30px !important;
+    }
+
+    #heroCarousel h1 {
+        font-size: 1.8rem !important;
+    }
+
+    .category-card .card-body {
+        padding: 30px 15px !important;
+    }
+
+    .category-card i {
+        font-size: 2.5rem !important;
+    }
+
+    .usp-card .card-body {
+        padding: 20px 10px !important;
+    }
+
+    .usp-card i {
+        font-size: 1.5rem !important;
+    }
+
+    .testimonial-card::before {
+        font-size: 80px;
+    }
 }
