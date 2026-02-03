@@ -19,5 +19,36 @@ class HomeController extends Controller {
         
         $this->view('layouts/footer');
     }
+    
+    /**
+     * Set language and redirect back
+     */
+    public function setLanguage($lang = 'vi') {
+        // Validate language
+        $allowedLangs = ['vi', 'en'];
+        if (!in_array($lang, $allowedLangs)) {
+            $lang = 'vi';
+        }
+        
+        // Start session if not started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        // Set language in session
+        $_SESSION['lang'] = $lang;
+        
+        // Get redirect URL from query string
+        $redirect = isset($_GET['redirect']) ? urldecode($_GET['redirect']) : BASE_URL;
+        
+        // Validate redirect URL to prevent open redirect
+        if (strpos($redirect, '/') !== 0 && strpos($redirect, BASE_URL) !== 0) {
+            $redirect = BASE_URL;
+        }
+        
+        // Redirect back to the original page
+        header('Location: ' . $redirect);
+        exit;
+    }
 }
 ?>

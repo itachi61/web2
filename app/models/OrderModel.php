@@ -33,12 +33,25 @@ class OrderModel extends Database {
                 INSERT INTO order_items (order_id, product_id, quantity, price) 
                 VALUES (?, ?, ?, ?)
             ");
+            
+            // 3. Trừ số lượng tồn kho
+            $stmtStock = $this->conn->prepare("
+                UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?
+            ");
+            
             foreach ($cartItems as $item) {
                 $stmtDetail->execute([
                     $orderId, 
                     $item['id'], 
                     $item['quantity'], 
                     $item['price']
+                ]);
+                
+                // Trừ stock (chỉ trừ nếu stock >= quantity)
+                $stmtStock->execute([
+                    $item['quantity'],
+                    $item['id'],
+                    $item['quantity']
                 ]);
             }
 
@@ -104,8 +117,30 @@ class OrderModel extends Database {
         if (!in_array($status, $validStatuses)) {
             return false;
         }
+        
+        // Nếu hủy đơn hàng, hoàn lại stock
+        if ($status === 'cancelled') {
+            // Kiểm tra đơn hàng chưa bị hủy trước đó
+            $order = $this->getOrderById($orderId);
+            if ($order && $order['status'] !== 'cancelled') {
+                // Lấy các sản phẩm trong đơn hàng và hoàn lại stock
+                $items = $this->getOrderItems($orderId);
+                $stmtRestore = $this->conn->prepare("UPDATE products SET stock = stock + ? WHERE id = ?");
+                foreach ($items as $item) {
+                    $stmtRestore->execute([$item['quantity'], $item['product_id']]);
+                }
+            }
+        }
+        
         $stmt = $this->conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
         return $stmt->execute([$status, $orderId]);
+    }
+
+    /**
+     * Alias for admin controller
+     */
+    public function updateOrderStatus($orderId, $status) {
+        return $this->updateStatus($orderId, $status);
     }
 
     /**

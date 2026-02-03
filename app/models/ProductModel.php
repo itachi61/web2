@@ -241,4 +241,77 @@ class ProductModel extends Database
 
         return $result['total'] ?? 0;
     }
+
+    /**
+     * Lấy tất cả sản phẩm kèm danh mục (cho admin inventory)
+     */
+    public function getAllWithCategory() {
+        $stmt = $this->conn->query("
+            SELECT p.*, c.name as category_name 
+            FROM products p 
+            LEFT JOIN categories c ON p.category_id = c.id 
+            ORDER BY p.stock ASC, p.name ASC
+        ");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Cập nhật tồn kho và giá nhập (weighted average)
+     * Đồng thời cập nhật giá bán = giá nhập * (1 + margin/100)
+     */
+    public function updateStock($productId, $newStock, $newCostPrice) {
+        // Lấy profit_margin hiện tại
+        $stmt = $this->conn->prepare("SELECT profit_margin FROM products WHERE id = ?");
+        $stmt->execute([$productId]);
+        $product = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        $profitMargin = $product['profit_margin'] ?? 10; // Default 10%
+        $newPrice = $newCostPrice * (1 + $profitMargin / 100);
+        
+        $stmt = $this->conn->prepare("
+            UPDATE products 
+            SET stock = ?, cost_price = ?, price = ? 
+            WHERE id = ?
+        ");
+        return $stmt->execute([$newStock, $newCostPrice, $newPrice, $productId]);
+    }
+
+    /**
+     * Cập nhật tồn kho và tỷ lệ lợi nhuận (cho admin inventory)
+     * Đồng thời cập nhật giá bán = giá nhập * (1 + margin/100)
+     */
+    public function updateStockAndMargin($productId, $stock, $profitMargin) {
+        // Lấy giá nhập hiện tại
+        $stmt = $this->conn->prepare("SELECT cost_price, price FROM products WHERE id = ?");
+        $stmt->execute([$productId]);
+        $product = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$product) {
+            return false;
+        }
+        
+        // Tính giá bán mới từ cost_price + margin
+        // Nếu chưa có cost_price, dùng giá hiện tại * 0.8 làm ước tính
+        $costPrice = $product['cost_price'] ?? ($product['price'] * 0.8);
+        $newPrice = $costPrice * (1 + $profitMargin / 100);
+        
+        $stmt = $this->conn->prepare("
+            UPDATE products 
+            SET stock = ?, profit_margin = ?, price = ? 
+            WHERE id = ?
+        ");
+        return $stmt->execute([$stock, $profitMargin, $newPrice, $productId]);
+    }
+
+    /**
+     * Thêm sản phẩm (với stock và profit_margin)
+     */
+    public function insertProductFull($name, $cat_id, $price, $desc, $image, $stock = 0, $profitMargin = 10) {
+        $costPrice = $price / (1 + $profitMargin / 100);
+        $stmt = $this->conn->prepare("
+            INSERT INTO products (name, category_id, price, description, image, stock, cost_price, profit_margin) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+        return $stmt->execute([$name, $cat_id, $price, $desc, $image, $stock, $costPrice, $profitMargin]);
+    }
 }

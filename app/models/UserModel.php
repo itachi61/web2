@@ -94,5 +94,22 @@ class UserModel extends Database {
     public function resetPassword($id, $newPassword = '123456') {
         return $this->changePassword($id, $newPassword);
     }
+
+    /**
+     * Cập nhật trạng thái tài khoản (active/locked)
+     */
+    public function updateStatus($id, $status) {
+        $isLocked = ($status === 'locked') ? 1 : 0;
+        $stmt = $this->conn->prepare("UPDATE users SET is_locked = ? WHERE id = ?");
+        return $stmt->execute([$isLocked, $id]);
+    }
+
+    /**
+     * Cập nhật vai trò (user/admin)
+     */
+    public function updateRole($email, $role) {
+        $stmt = $this->conn->prepare("UPDATE users SET role = ? WHERE email = ?");
+        return $stmt->execute([$role, $email]);
+    }
 }
 ?>

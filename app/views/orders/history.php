@@ -46,7 +46,7 @@ $timeFilters = [
     <!-- Time Filter Buttons -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body py-3">
-            <div class="d-flex flex-wrap align-items-center gap-2">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
                 <span class="text-muted me-2">
                     <i class="fa-solid fa-filter me-1"></i><?= __('filter_time') ?>:
                 </span>
@@ -57,6 +57,24 @@ $timeFilters = [
                     </a>
                 <?php endforeach; ?>
             </div>
+            <!-- Custom Date Range -->
+            <form method="GET" action="<?= BASE_URL ?>orders/history" class="row g-2 align-items-end">
+                <div class="col-auto">
+                    <label class="form-label small text-muted mb-1"><?= __('date_from') ?></label>
+                    <input type="date" name="date_from" class="form-control form-control-sm" 
+                           value="<?= htmlspecialchars($data['date_from'] ?? '') ?>">
+                </div>
+                <div class="col-auto">
+                    <label class="form-label small text-muted mb-1"><?= __('date_to') ?></label>
+                    <input type="date" name="date_to" class="form-control form-control-sm" 
+                           value="<?= htmlspecialchars($data['date_to'] ?? '') ?>">
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-search me-1"></i><?= __('filter') ?>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

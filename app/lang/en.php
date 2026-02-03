@@ -140,4 +140,25 @@ return [
     'no' => 'No',
     'loading' => 'Loading...',
     'page' => 'Page',
+    
+    // Admin Panel
+    'dashboard' => 'Dashboard',
+    'management' => 'Management',
+    'orders' => 'Orders',
+    'users' => 'Users',
+    'categories' => 'Categories',
+    'inventory' => 'Inventory',
+    'imports' => 'Imports',
+    'stock' => 'Stock',
+    'view_store' => 'View Store',
+    'hello' => 'Hello',
+    'change_language' => 'Change Language',
+    'change_theme' => 'Change Theme',
+    'date_from' => 'From Date',
+    'date_to' => 'To Date',
+    'filter' => 'Filter',
+    'custom_date' => 'Custom Date',
+    'apply' => 'Apply',
+    'reset' => 'Reset',
 ];
+

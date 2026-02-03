@@ -106,9 +106,10 @@ $currentLang = $lang->getCurrentLang();
                                 <?php if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin'): ?>
                                     <li><a class="dropdown-item fw-bold text-primary" href="<?= BASE_URL ?>admin"><i class="fa-solid fa-gauge me-2"></i><?= __('admin_panel') ?></a></li>
                                     <li><hr class="dropdown-divider"></li>
+                                <?php else: ?>
+                                    <li><a class="dropdown-item" href="<?= BASE_URL ?>orders/history"><i class="fa-solid fa-clock-rotate-left me-2"></i><?= __('my_orders') ?></a></li>
+                                    <li><hr class="dropdown-divider"></li>
                                 <?php endif; ?>
-                                <li><a class="dropdown-item" href="<?= BASE_URL ?>orders/history"><i class="fa-solid fa-clock-rotate-left me-2"></i><?= __('my_orders') ?></a></li>
-                                <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-danger" href="<?= BASE_URL ?>auth/logout"><i class="fa-solid fa-right-from-bracket me-2"></i><?= __('logout') ?></a></li>
                             </ul>
                         </div>

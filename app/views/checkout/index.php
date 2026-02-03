@@ -257,7 +257,7 @@ foreach ($cart as $item) {
                             <?php foreach ($cart as $item): ?>
                                 <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
                                     <div class="position-relative me-3">
-                                        <img src="<?= BASE_URL ?>img/<?= $item['image'] ?>" 
+                                        <img src="<?= BASE_URL ?>public/images/<?= $item['image'] ?>" 
                                              class="rounded border" width="60" height="60" 
                                              style="object-fit: contain;"
                                              onerror="this.src='https://via.placeholder.com/60'">

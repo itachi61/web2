@@ -140,4 +140,25 @@ return [
     'no' => 'Không',
     'loading' => 'Đang tải...',
     'page' => 'Trang',
+    
+    // Admin Panel
+    'dashboard' => 'Bảng điều khiển',
+    'management' => 'Quản lý',
+    'orders' => 'Đơn hàng',
+    'users' => 'Người dùng',
+    'categories' => 'Danh mục',
+    'inventory' => 'Kho hàng',
+    'imports' => 'Nhập hàng',
+    'stock' => 'Tồn kho',
+    'view_store' => 'Xem cửa hàng',
+    'hello' => 'Xin chào',
+    'change_language' => 'Đổi ngôn ngữ',
+    'change_theme' => 'Đổi giao diện',
+    'date_from' => 'Từ ngày',
+    'date_to' => 'Đến ngày',
+    'filter' => 'Lọc',
+    'custom_date' => 'Tùy chọn ngày',
+    'apply' => 'Áp dụng',
+    'reset' => 'Đặt lại',
 ];
+

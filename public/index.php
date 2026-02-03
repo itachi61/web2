@@ -14,6 +14,7 @@ define('ROOT', dirname(__DIR__));
 require_once ROOT . '/app/config/config.php';   // Cấu hình
 require_once ROOT . '/app/core/Database.php';   // Database
 require_once ROOT . '/app/core/Controller.php'; // Controller cha
+require_once ROOT . '/app/core/Language.php';   // Language helper (__() function)
 require_once ROOT . '/app/core/App.php';        // Router (Điều hướng)
 
 // 4. Khởi chạy ứng dụng

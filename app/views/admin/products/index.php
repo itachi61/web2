@@ -57,8 +57,15 @@
                                         <i class="fa-solid fa-pen"></i>
                                     </a>
 
-                                    <form action="<?= BASE_URL ?>admin/deleteProduct/<?= $item['id'] ?>" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này không? Hành động này không thể hoàn tác!');">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <form action="<?= BASE_URL ?>admin/deleteProduct/<?= $item['id'] ?>" method="POST" class="d-inline delete-form">
+                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                data-confirm-form="true"
+                                                data-confirm="Xóa sản phẩm '<?= htmlspecialchars($item['name']) ?>'? Hành động này không thể hoàn tác!"
+                                                data-confirm-title="Xóa sản phẩm"
+                                                data-confirm-type="danger"
+                                                data-confirm-icon="fa-trash"
+                                                data-confirm-btn="Xóa"
+                                                data-confirm-btnicon="fa-trash">
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
                                     </form>

@@ -1,7 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/core/Controller.php';
 
-class OrderController extends Controller {
+class OrdersController extends Controller {
     
     /**
      * Kiểm tra đăng nhập
@@ -21,30 +21,47 @@ class OrderController extends Controller {
 
         // Get time filter
         $filter = $_GET['filter'] ?? 'all';
+        $customDateFrom = $_GET['date_from'] ?? '';
+        $customDateTo = $_GET['date_to'] ?? '';
         $dateFrom = null;
 
-        switch ($filter) {
-            case '7days':
-                $dateFrom = date('Y-m-d', strtotime('-7 days'));
-                break;
-            case '30days':
-                $dateFrom = date('Y-m-d', strtotime('-30 days'));
-                break;
-            case '3months':
-                $dateFrom = date('Y-m-d', strtotime('-3 months'));
-                break;
-            default:
-                $filter = 'all';
-                $dateFrom = null;
+        // Quick filter takes priority unless custom dates are set
+        if ($customDateFrom || $customDateTo) {
+            $filter = 'custom';
+        } else {
+            switch ($filter) {
+                case '7days':
+                    $dateFrom = date('Y-m-d', strtotime('-7 days'));
+                    break;
+                case '30days':
+                    $dateFrom = date('Y-m-d', strtotime('-30 days'));
+                    break;
+                case '3months':
+                    $dateFrom = date('Y-m-d', strtotime('-3 months'));
+                    break;
+                default:
+                    $filter = 'all';
+                    $dateFrom = null;
+            }
         }
 
         $orderModel = $this->model('OrderModel');
         $orders = $orderModel->getOrdersByUserId($_SESSION['user_id'], null, $dateFrom);
+        
+        // Apply custom date filters
+        if ($customDateFrom) {
+            $orders = array_filter($orders, fn($o) => date('Y-m-d', strtotime($o['created_at'])) >= $customDateFrom);
+        }
+        if ($customDateTo) {
+            $orders = array_filter($orders, fn($o) => date('Y-m-d', strtotime($o['created_at'])) <= $customDateTo);
+        }
 
         $this->view('layouts/header', ['title' => __('order_history')]);
         $this->view('orders/history', [
             'orders' => $orders,
-            'filter' => $filter
+            'filter' => $filter,
+            'date_from' => $customDateFrom,
+            'date_to' => $customDateTo
         ]);
         $this->view('layouts/footer');
     }
