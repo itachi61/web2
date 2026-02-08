@@ -33,10 +33,10 @@ $currentLang = $lang->getCurrentLang();
             </button>
 
             <div class="collapse navbar-collapse" id="navbarContent">
-                
+
                 <div class="dropdown me-lg-4 mb-3 mb-lg-0">
                     <button class="btn btn-category" type="button" id="catDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa-solid fa-bars"></i> 
+                        <i class="fa-solid fa-bars"></i>
                         <span class="fw-bold">Danh mục</span>
                     </button>
                     <ul class="dropdown-menu border-0 shadow-lg animate__animated animate__fadeIn" aria-labelledby="catDropdown">
@@ -55,10 +55,9 @@ $currentLang = $lang->getCurrentLang();
                                 <i class="fa-solid fa-microchip text-muted" style="width: 20px;"></i> <span>Linh kiện PC</span>
                             </a>
                         </li>
-                        <li><hr class="dropdown-divider"></li>
                         <li>
                             <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="<?= BASE_URL ?>product/category/4">
-                                <i class="fa-solid fa-tablet-screen-button text-muted" style="width: 20px;"></i> <span>Máy tính bảng</span>
+                                <i class="fa-solid fa-tablet-screen-button text-muted" style="width: 20px;"></i> <span>Màn hình</span>
                             </a>
                         </li>
                         <li>
@@ -66,7 +65,9 @@ $currentLang = $lang->getCurrentLang();
                                 <i class="fa-solid fa-headphones text-muted" style="width: 20px;"></i> <span>Phụ kiện & Âm thanh</span>
                             </a>
                         </li>
-                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
                         <li>
                             <a class="dropdown-item d-flex align-items-center gap-2 py-2 fw-bold text-primary" href="<?= BASE_URL ?>product">
                                 <i class="fa-solid fa-boxes-stacked" style="width: 20px;"></i> <span>Xem tất cả</span>
@@ -85,7 +86,7 @@ $currentLang = $lang->getCurrentLang();
                 </form>
 
                 <div class="d-flex align-items-center gap-2 justify-content-end">
-                    
+
                     <div class="dropdown">
                         <button class="btn btn-sm text-white border-0 fw-bold" type="button" data-bs-toggle="dropdown">
                             <?= $currentLang === 'vi' ? '🇻🇳 VN' : '🇺🇸 EN' ?>
@@ -118,7 +119,9 @@ $currentLang = $lang->getCurrentLang();
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
                                 <?php if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin'): ?>
                                     <li><a class="dropdown-item fw-bold text-primary" href="<?= BASE_URL ?>admin"><i class="fa-solid fa-gauge me-2"></i>Admin Panel</a></li>
-                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
                                 <?php endif; ?>
                                 <li><a class="dropdown-item" href="<?= BASE_URL ?>orders/history">Đơn hàng của tôi</a></li>
                                 <li><a class="dropdown-item text-danger" href="<?= BASE_URL ?>auth/logout">Đăng xuất</a></li>
@@ -129,7 +132,7 @@ $currentLang = $lang->getCurrentLang();
                             <i class="fa-regular fa-circle-user"></i> Đăng nhập
                         </a>
                     <?php endif; ?>
-                    
+
                 </div>
             </div>
         </div>
