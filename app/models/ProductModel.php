@@ -1,181 +1,122 @@
 <?php
-// LƯU Ý: Model chỉ được gọi Database, KHÔNG gọi Controller
 require_once dirname(__DIR__) . '/core/Database.php';
 
 class ProductModel extends Database
-{ 
-    /**
-     * Lấy tất cả sản phẩm (có phân trang)
-     */
-    public function getAllProducts($page = 1, $perPage = 12)
+{
+    // --- 1. LẤY TẤT CẢ SẢN PHẨM (CÓ PHÂN TRANG) ---
+    public function getAllProducts($page = 1, $limit = 12)
     {
-        $offset = ($page - 1) * $perPage;
-        $stmt = $this->conn->prepare("SELECT * FROM products ORDER BY id DESC LIMIT :limit OFFSET :offset");
-        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $offset = ($page - 1) * $limit;
+        
+        $sql = "SELECT * FROM products ORDER BY id DESC LIMIT :limit OFFSET :offset";
+        $stmt = $this->conn->prepare($sql);
+        
+        // PDO cần bind tham số limit/offset dưới dạng INT
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Đếm tổng số sản phẩm
-     */
+    // Đếm tổng số sản phẩm (Để tính số trang)
     public function countAllProducts()
     {
         $stmt = $this->conn->query("SELECT COUNT(*) as total FROM products");
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result['total'] ?? 0;
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row['total'];
     }
 
-    /**
-     * Lấy 1 sản phẩm theo ID
-     */
+    // --- 2. CHI TIẾT SẢN PHẨM & LIÊN QUAN ---
     public function getProductById($id)
     {
-        $stmt = $this->conn->prepare("SELECT * FROM products WHERE id = ?");
-        $stmt->execute([$id]);
+        $stmt = $this->conn->prepare("SELECT * FROM products WHERE id = :id");
+        $stmt->execute([':id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Lấy sản phẩm theo danh mục (có phân trang)
-     */
-    public function getProductsByCategory($categoryId, $page = 1, $perPage = 12)
+    public function getReviews($productId)
     {
-        $offset = ($page - 1) * $perPage;
-        $stmt = $this->conn->prepare("SELECT * FROM products WHERE category_id = :catId ORDER BY id DESC LIMIT :limit OFFSET :offset");
-        $stmt->bindValue(':catId', $categoryId, PDO::PARAM_INT);
-        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $sql = "SELECT r.*, u.fullname 
+                FROM reviews r 
+                JOIN users u ON r.user_id = u.id 
+                WHERE r.product_id = :id 
+                ORDER BY r.created_at DESC";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([':id' => $productId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getProductImages($productId)
+    {
+        $stmt = $this->conn->prepare("SELECT * FROM product_images WHERE product_id = :id");
+        $stmt->execute([':id' => $productId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // --- 3. LẤY SẢN PHẨM THEO DANH MỤC (CÓ PHÂN TRANG) ---
+    public function getProductsByCategory($categoryId, $page = 1, $limit = 12)
+    {
+        $offset = ($page - 1) * $limit;
+        
+        $sql = "SELECT * FROM products WHERE category_id = :cid ORDER BY id DESC LIMIT :limit OFFSET :offset";
+        $stmt = $this->conn->prepare($sql);
+        
+        $stmt->bindValue(':cid', $categoryId);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Đếm sản phẩm theo danh mục
-     */
     public function countProductsByCategory($categoryId)
     {
-        $stmt = $this->conn->prepare("SELECT COUNT(*) as total FROM products WHERE category_id = ?");
-        $stmt->execute([$categoryId]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result['total'] ?? 0;
+        $stmt = $this->conn->prepare("SELECT COUNT(*) as total FROM products WHERE category_id = :cid");
+        $stmt->execute([':cid' => $categoryId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row['total'];
     }
 
-    /**
-     * Lấy tên danh mục
-     */
-    public function getCategoryName($id) {
-        $stmt = $this->conn->prepare("SELECT name FROM categories WHERE id = ?");
-        $stmt->execute([$id]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ? $result['name'] : 'Danh mục';
+    public function getCategoryName($id)
+    {
+        $stmt = $this->conn->prepare("SELECT name FROM categories WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? $row['name'] : 'Danh mục';
     }
 
-    /**
-     * Lấy tất cả danh mục
-     */
-    public function getAllCategories() {
-        $stmt = $this->conn->query("SELECT * FROM categories ORDER BY id ASC");
+    public function getAllCategories()
+    {
+        $stmt = $this->conn->query("SELECT * FROM categories");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Tìm kiếm sản phẩm cơ bản (theo tên)
-     */
-    public function searchProduct($keyword)
+    // --- 4. TÌM KIẾM NÂNG CAO & LỌC (QUAN TRỌNG) ---
+    public function searchProductAdvanced($keyword, $categories = [], $minPrice = null, $maxPrice = null, $sort = 'newest', $page = 1, $limit = 12)
     {
-        $stmt = $this->conn->prepare("SELECT * FROM products WHERE name LIKE ?");
-        $stmt->execute(['%' . $keyword . '%']);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+        // Xây dựng câu SQL động với WHERE 1=1 để linh hoạt
+        $sql = "SELECT * FROM products WHERE 1=1";
+        $params = [];
 
-    /**
-     * Lấy đánh giá sản phẩm
-     */
-    public function getReviews($productId)
-    {
-        $stmt = $this->conn->prepare("SELECT r.*, u.fullname FROM reviews r JOIN users u ON r.user_id = u.id WHERE product_id = ? ORDER BY r.created_at DESC");
-        $stmt->execute([$productId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * Thêm đánh giá
-     */
-    public function addReview($userId, $productId, $rating, $comment)
-    {
-        $stmt = $this->conn->prepare("INSERT INTO reviews (user_id, product_id, rating, comment) VALUES (?, ?, ?, ?)");
-        return $stmt->execute([$userId, $productId, $rating, $comment]);
-    }
-
-    /**
-     * Thêm sản phẩm
-     */
-    public function insertProduct($name, $cat_id, $price, $desc, $image)
-    {
-        $stmt = $this->conn->prepare("INSERT INTO products (name, category_id, price, description, image) VALUES (?, ?, ?, ?, ?)");
-        return $stmt->execute([$name, $cat_id, $price, $desc, $image]);
-    }
-
-    /**
-     * Xóa sản phẩm
-     */
-    public function deleteProduct($id)
-    {
-        $stmt = $this->conn->prepare("DELETE FROM products WHERE id = ?");
-        return $stmt->execute([$id]);
-    }
-
-    /**
-     * Thêm ảnh phụ cho sản phẩm
-     */
-    public function addProductImage($productId, $imagePath) {
-        $stmt = $this->conn->prepare("INSERT INTO product_images (product_id, image_path) VALUES (?, ?)");
-        return $stmt->execute([$productId, $imagePath]);
-    }
-
-    /**
-     * Lấy danh sách ảnh phụ của sản phẩm
-     */
-    public function getProductImages($productId) {
-        $stmt = $this->conn->prepare("SELECT * FROM product_images WHERE product_id = ?");
-        $stmt->execute([$productId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-    
-    /**
-     * Lấy ID vừa insert
-     */
-    public function getLastId() {
-        return $this->conn->lastInsertId();
-    }
-
-    /**
-     * Tìm kiếm nâng cao (có phân trang)
-     */
-    public function searchProductAdvanced($keyword, $categories = [], $minPrice = null, $maxPrice = null, $sort = 'newest', $page = 1, $perPage = 12) {
-        
-        $offset = ($page - 1) * $perPage;
-        
-        // 1. Khởi tạo câu SQL
-        $sql = "SELECT * FROM products WHERE name LIKE :keyword";
-        
-        // Mảng chứa giá trị để bind vào câu SQL
-        $params = [':keyword' => "%$keyword%"];
-
-        // 2. Xử lý danh mục (WHERE IN)
-        if (!empty($categories)) {
-            $placeholders = [];
-            foreach ($categories as $key => $catId) {
-                $ph = ":cat_$key"; 
-                $placeholders[] = $ph;
-                $params[$ph] = $catId;
-            }
-            $sql .= " AND category_id IN (" . implode(', ', $placeholders) . ")";
+        // A. Lọc từ khóa
+        if (!empty($keyword)) {
+            $sql .= " AND name LIKE :keyword";
+            $params[':keyword'] = "%$keyword%";
         }
 
-        // 3. Xử lý khoảng giá
+        // B. Lọc danh mục (WHERE IN)
+        if (!empty($categories) && is_array($categories)) {
+            $placeholders = [];
+            foreach ($categories as $k => $v) {
+                $key = ":cat$k";
+                $placeholders[] = $key;
+                $params[$key] = $v;
+            }
+            $sql .= " AND category_id IN (" . implode(',', $placeholders) . ")";
+        }
+
+        // C. Lọc giá
         if (!empty($minPrice)) {
             $sql .= " AND price >= :minPrice";
             $params[':minPrice'] = $minPrice;
@@ -185,7 +126,7 @@ class ProductModel extends Database
             $params[':maxPrice'] = $maxPrice;
         }
 
-        // 4. Xử lý sắp xếp
+        // D. Sắp xếp
         switch ($sort) {
             case 'price_asc':
                 $sql .= " ORDER BY price ASC";
@@ -194,36 +135,49 @@ class ProductModel extends Database
                 $sql .= " ORDER BY price DESC";
                 break;
             default: // newest
-                $sql .= " ORDER BY created_at DESC";
+                $sql .= " ORDER BY created_at DESC"; 
                 break;
         }
 
-        // 5. Thêm LIMIT và OFFSET
-        $sql .= " LIMIT $perPage OFFSET $offset";
+        // E. Phân trang
+        $offset = ($page - 1) * $limit;
+        $sql .= " LIMIT :limit OFFSET :offset";
 
-        // 6. Thực thi
+        // Thực thi
         $stmt = $this->conn->prepare($sql);
-        $stmt->execute($params);
 
+        // Bind các tham số lọc
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        
+        // Bind tham số phân trang
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+
+        $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Đếm kết quả tìm kiếm nâng cao
-     */
-    public function countSearchResults($keyword, $categories = [], $minPrice = null, $maxPrice = null) {
-        
-        $sql = "SELECT COUNT(*) as total FROM products WHERE name LIKE :keyword";
-        $params = [':keyword' => "%$keyword%"];
+    // Đếm kết quả tìm kiếm (Để tính số trang khi đang search)
+    public function countSearchResults($keyword, $categories = [], $minPrice = null, $maxPrice = null)
+    {
+        $sql = "SELECT COUNT(*) as total FROM products WHERE 1=1";
+        $params = [];
 
-        if (!empty($categories)) {
+        if (!empty($keyword)) {
+            $sql .= " AND name LIKE :keyword";
+            $params[':keyword'] = "%$keyword%";
+        }
+
+        if (!empty($categories) && is_array($categories)) {
             $placeholders = [];
-            foreach ($categories as $key => $catId) {
-                $ph = ":cat_$key"; 
-                $placeholders[] = $ph;
-                $params[$ph] = $catId;
+            foreach ($categories as $k => $v) {
+                $key = ":cat$k";
+                $placeholders[] = $key;
+                $params[$key] = $v;
             }
-            $sql .= " AND category_id IN (" . implode(', ', $placeholders) . ")";
+            $sql .= " AND category_id IN (" . implode(',', $placeholders) . ")";
         }
 
         if (!empty($minPrice)) {
@@ -237,14 +191,26 @@ class ProductModel extends Database
 
         $stmt = $this->conn->prepare($sql);
         $stmt->execute($params);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        return $result['total'] ?? 0;
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row['total'];
     }
 
-    /**
-     * Lấy tất cả sản phẩm kèm danh mục (cho admin inventory)
-     */
+    // --- 5. CHỨC NĂNG KHÁC ---
+    public function addReview($userId, $productId, $rating, $comment)
+    {
+        $sql = "INSERT INTO reviews (user_id, product_id, rating, comment, created_at) VALUES (:uid, :pid, :rating, :comment, NOW())";
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute([
+            ':uid' => $userId,
+            ':pid' => $productId,
+            ':rating' => $rating,
+            ':comment' => $comment
+        ]);
+    }
+
+    // --- 6. QUẢN LÝ KHO (INVENTORY) & ADMIN ---
+    
+    // Lấy tất cả sản phẩm kèm tên danh mục (cho admin)
     public function getAllWithCategory() {
         $stmt = $this->conn->query("
             SELECT p.*, c.name as category_name 
@@ -255,17 +221,13 @@ class ProductModel extends Database
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Cập nhật tồn kho và giá nhập (weighted average)
-     * Đồng thời cập nhật giá bán = giá nhập * (1 + margin/100)
-     */
+    // Cập nhật tồn kho và giá nhập
     public function updateStock($productId, $newStock, $newCostPrice) {
-        // Lấy profit_margin hiện tại
         $stmt = $this->conn->prepare("SELECT profit_margin FROM products WHERE id = ?");
         $stmt->execute([$productId]);
         $product = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        $profitMargin = $product['profit_margin'] ?? 10; // Default 10%
+        $profitMargin = $product['profit_margin'] ?? 10;
         $newPrice = $newCostPrice * (1 + $profitMargin / 100);
         
         $stmt = $this->conn->prepare("
@@ -276,22 +238,14 @@ class ProductModel extends Database
         return $stmt->execute([$newStock, $newCostPrice, $newPrice, $productId]);
     }
 
-    /**
-     * Cập nhật tồn kho và tỷ lệ lợi nhuận (cho admin inventory)
-     * Đồng thời cập nhật giá bán = giá nhập * (1 + margin/100)
-     */
+    // Cập nhật tồn kho và tỷ lệ lợi nhuận
     public function updateStockAndMargin($productId, $stock, $profitMargin) {
-        // Lấy giá nhập hiện tại
         $stmt = $this->conn->prepare("SELECT cost_price, price FROM products WHERE id = ?");
         $stmt->execute([$productId]);
         $product = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        if (!$product) {
-            return false;
-        }
+        if (!$product) return false;
         
-        // Tính giá bán mới từ cost_price + margin
-        // Nếu chưa có cost_price, dùng giá hiện tại * 0.8 làm ước tính
         $costPrice = $product['cost_price'] ?? ($product['price'] * 0.8);
         $newPrice = $costPrice * (1 + $profitMargin / 100);
         
@@ -303,9 +257,7 @@ class ProductModel extends Database
         return $stmt->execute([$stock, $profitMargin, $newPrice, $productId]);
     }
 
-    /**
-     * Thêm sản phẩm (với stock và profit_margin)
-     */
+    // Thêm sản phẩm đầy đủ (Admin)
     public function insertProductFull($name, $cat_id, $price, $desc, $image, $stock = 0, $profitMargin = 10) {
         $costPrice = $price / (1 + $profitMargin / 100);
         $stmt = $this->conn->prepare("
@@ -313,5 +265,24 @@ class ProductModel extends Database
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
         return $stmt->execute([$name, $cat_id, $price, $desc, $image, $stock, $costPrice, $profitMargin]);
+    }
+    
+    // Hàm thêm sản phẩm cơ bản (để tương thích code cũ nếu có)
+    public function insertProduct($name, $cat_id, $price, $desc, $image) {
+        return $this->insertProductFull($name, $cat_id, $price, $desc, $image, 0, 10);
+    }
+
+    public function deleteProduct($id) {
+        $stmt = $this->conn->prepare("DELETE FROM products WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+
+    public function addProductImage($productId, $imagePath) {
+        $stmt = $this->conn->prepare("INSERT INTO product_images (product_id, image_path) VALUES (?, ?)");
+        return $stmt->execute([$productId, $imagePath]);
+    }
+    
+    public function getLastId() {
+        return $this->conn->lastInsertId();
     }
 }
