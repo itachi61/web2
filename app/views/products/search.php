@@ -120,8 +120,6 @@ $queryString = $data['queryString'] ?? '';
                                         <img src="<?= BASE_URL ?>public/images/<?= $item['image'] ?>" 
                                              class="img-fluid h-100" 
                                              style="object-fit: contain; transition: transform 0.3s;"
-                                             onmouseover="this.style.transform='scale(1.08)'"
-                                             onmouseout="this.style.transform='scale(1)'"
                                              onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'">
                                     </a>
                                 </div>

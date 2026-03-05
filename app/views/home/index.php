@@ -226,8 +226,6 @@
                                  class="img-fluid h-100" 
                                  style="object-fit: contain; transition: transform 0.3s;" 
                                  alt="<?= htmlspecialchars($product['name']) ?>"
-                                 onmouseover="this.style.transform='scale(1.05)'"
-                                 onmouseout="this.style.transform='scale(1)'"
                                  onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
                         </a>
                     </div>

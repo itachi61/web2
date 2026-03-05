@@ -49,8 +49,6 @@ $baseUrl = $data['baseUrl'] ?? BASE_URL . 'product';
                                      class="img-fluid h-100" 
                                      style="object-fit: contain; transition: transform 0.3s;" 
                                      alt="<?= htmlspecialchars($product['name']) ?>"
-                                     onmouseover="this.style.transform='scale(1.1)'"
-                                     onmouseout="this.style.transform='scale(1)'"
                                      onerror="this.src='https://via.placeholder.com/300?text=TechSmart'">
                             </a>
                         </div>

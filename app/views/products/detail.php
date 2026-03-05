@@ -93,7 +93,6 @@
                 <label class="fw-bold mb-2 small">Phiên bản</label>
                 <div class="d-flex gap-2 flex-wrap">
                     <button class="btn btn-option active">Tiêu chuẩn</button>
-                    <button class="btn btn-option">Cao cấp</button>
                 </div>
             </div>
 
