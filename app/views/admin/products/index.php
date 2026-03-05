@@ -1,3 +1,30 @@
+<?php if (isset($_SESSION['success_msg'])): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-circle me-2"></i><?= $_SESSION['success_msg'] ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <?php unset($_SESSION['success_msg']); ?>
+<?php endif; ?>
+
+<?php if (isset($_SESSION['delete_warning'])): 
+    $warn = $_SESSION['delete_warning'];
+    unset($_SESSION['delete_warning']);
+?>
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>
+        <strong>Cảnh báo!</strong> Sản phẩm "<strong><?= htmlspecialchars($warn['product_name']) ?></strong>" 
+        còn <strong><?= $warn['stock'] ?></strong> sản phẩm tồn kho.
+        <br>
+        <form action="<?= BASE_URL ?>admin/deleteProduct/<?= $warn['product_id'] ?>" method="POST" class="d-inline mt-2">
+            <input type="hidden" name="force_delete" value="1">
+            <button type="submit" class="btn btn-danger btn-sm mt-2">
+                <i class="fa-solid fa-trash me-1"></i>Xác nhận xóa
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm mt-2" data-bs-dismiss="alert">Hủy</button>
+        </form>
+    </div>
+<?php endif; ?>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold text-primary"><i class="fa-solid fa-box-open me-2"></i>Quản lý Sản phẩm</h2>
     <a href="<?= BASE_URL ?>admin/addProduct" class="btn btn-primary shadow-sm">
@@ -13,10 +40,11 @@
                     <tr>
                         <th class="ps-4" width="5%">#</th>
                         <th width="10%">Hình ảnh</th>
-                        <th width="30%">Tên sản phẩm</th>
+                        <th width="25%">Tên sản phẩm</th>
                         <th width="15%">Giá tiền</th>
+                        <th width="10%">Đã bán</th>
                         <th width="15%">Trạng thái</th>
-                        <th class="text-end pe-4" width="25%">Hành động</th>
+                        <th class="text-end pe-4" width="20%">Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -27,7 +55,7 @@
                                 <td>
                                     <a href="<?= BASE_URL ?>product/detail/<?= $item['id'] ?>">
 
-                                        <img src="<?= BASE_URL ?>public/images/<?= $item['image'] ?>"
+                                        <img src="<?= BASE_URL ?>images/<?= $item['image'] ?>"
                                             class="img-fluid rounded border shadow-sm"
                                             style="width: 60px; height: 60px; object-fit: cover;"
                                             alt="<?= $item['name'] ?>"
@@ -36,10 +64,14 @@
                                 </td>
                                 <td>
                                     <span class="fw-bold text-dark d-block"><?= $item['name'] ?></span>
-                                    <small class="text-muted">Danh mục: Laptop</small>
                                 </td>
                                 <td class="fw-bold text-primary">
                                     <?= number_format($item['price'], 0, ',', '.') ?>đ
+                                </td>
+                                <td>
+                                    <span class="badge bg-info-subtle text-info border border-info px-2 rounded-pill">
+                                        <?= $item['sold_count'] ?? 0 ?>
+                                    </span>
                                 </td>
                                 <td>
                                     <?php if ($item['stock'] > 0): ?>
@@ -57,7 +89,7 @@
                                         <i class="fa-solid fa-pen"></i>
                                     </a>
 
-                                    <form action="<?= BASE_URL ?>admin/deleteProduct/<?= $item['id'] ?>" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này không? Hành động này không thể hoàn tác!');">
+                                    <form action="<?= BASE_URL ?>admin/deleteProduct/<?= $item['id'] ?>" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?');">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
@@ -67,7 +99,7 @@
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="6" class="text-center py-5">
+                            <td colspan="7" class="text-center py-5">
                                 <img src="https://cdni.iconscout.com/illustration/premium/thumb/empty-cart-2130356-1800917.png" alt="Empty" width="100">
                                 <p class="text-muted mt-2">Chưa có sản phẩm nào trong kho.</p>
                             </td>

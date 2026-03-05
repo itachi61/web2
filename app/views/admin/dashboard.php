@@ -37,6 +37,10 @@
                 <a href="<?= BASE_URL ?>admin/users" class="<?= (isset($data['active']) && $data['active'] == 'users') ? 'active' : '' ?>">
                     <i class="fa-solid fa-users"></i> Khách hàng
                 </a>
+
+                <a href="<?= BASE_URL ?>admin/statistics" class="<?= (isset($data['active']) && $data['active'] == 'statistics') ? 'active' : '' ?>">
+                    <i class="fa-solid fa-chart-line"></i> Thống kê
+                </a>
             </div>
 
             <div class="p-3 border-top border-secondary">
@@ -56,6 +60,9 @@
                     if (isset($data['active'])) {
                         if ($data['active'] == 'dashboard') echo 'Tổng quan hệ thống';
                         elseif ($data['active'] == 'products') echo 'Danh sách sản phẩm';
+                        elseif ($data['active'] == 'orders') echo 'Quản lý đơn hàng';
+                        elseif ($data['active'] == 'users') echo 'Quản lý khách hàng';
+                        elseif ($data['active'] == 'statistics') echo 'Thống kê & Báo cáo';
                         else echo 'Quản trị viên';
                     }
                     ?>

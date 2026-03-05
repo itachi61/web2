@@ -16,8 +16,37 @@ class AdminController extends Controller
     public function index()
     {
         $this->view('admin/dashboard', [
-            'view' => 'admin/dashboard', // Load file view con
+            'view' => 'admin/dashboard_content',
             'active' => 'dashboard'
+        ]);
+    }
+
+    // Trang quản lý đơn hàng
+    public function orders()
+    {
+        // Lấy đơn hàng từ DB
+        try {
+            $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $stmt = $db->prepare("SELECT o.*, u.fullname, u.email FROM orders o LEFT JOIN users u ON o.user_id = u.id ORDER BY o.id DESC");
+            $stmt->execute();
+            $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            $orders = [];
+        }
+
+        $this->view('admin/dashboard', [
+            'view' => 'admin/orders',
+            'active' => 'orders',
+            'orders' => $orders
+        ]);
+    }
+    // Trang thống kê báo cáo
+    public function statistics()
+    {
+        $this->view('admin/dashboard', [
+            'view' => 'admin/statistics',
+            'active' => 'statistics'
         ]);
     }
 
@@ -37,15 +66,13 @@ class AdminController extends Controller
     // Trang hiển thị Form thêm sản phẩm (GET)
     public function addProduct()
     {
-        // Bạn nên lấy danh sách danh mục để hiển thị ra thẻ <select>
-        // Nếu chưa có CategoryModel thì bạn có thể bỏ qua dòng này và fix cứng trong view tạm thời
-        // $categoryModel = $this->model('CategoryModel');
-        // $categories = $categoryModel->getAllCategories();
+        $model = $this->model('ProductModel');
+        $categories = $model->getAllCategories();
 
         $this->view('admin/dashboard', [
             'view' => 'admin/products/add',
             'active' => 'products',
-            // 'categories' => $categories // Truyền biến này nếu có
+            'categories' => $categories
         ]);
     }
 
@@ -58,40 +85,30 @@ class AdminController extends Controller
             $category_id = $_POST['category_id'];
             $price = $_POST['price'];
             $desc = $_POST['description'];
+            $discount = isset($_POST['discount']) ? intval($_POST['discount']) : 0;
+            $cost_price = isset($_POST['cost_price']) ? floatval($_POST['cost_price']) : 0;
 
             // 2. TẠO FOLDER RIÊNG CHO SẢN PHẨM
-            // Tạo slug từ tên sản phẩm (Ví dụ: "iPhone 15 Pro" -> "iphone-15-pro")
             $folderName = $this->createSlug($name);
-
-            // Đường dẫn thực tế trên máy tính 
-            // dirname(__DIR__, 2) lùi về 2 cấp (từ app/controllers -> app -> root) để vào public
             $targetDir = dirname(__DIR__, 2) . '/public/images/' . $folderName . '/';
 
-            // Kiểm tra nếu folder chưa tồn tại thì tạo mới
             if (!file_exists($targetDir)) {
-                // 0777 là quyền ghi, true là cho phép tạo thư mục con
                 mkdir($targetDir, 0777, true);
             }
 
             // 3. XỬ LÝ ẢNH ĐẠI DIỆN (MAIN IMAGE)
-            $dbImageName = ''; // Biến để lưu vào DB
+            $dbImageName = '';
 
             if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-                // Đặt tên file kèm time() để tránh trùng tên
                 $fileName = time() . '_main_' . $_FILES['image']['name'];
-
-                // Upload file vào folder vừa tạo
                 move_uploaded_file($_FILES['image']['tmp_name'], $targetDir . $fileName);
-
-                // Lưu đường dẫn dạng "folder/anh.jpg" vào DB
                 $dbImageName = $folderName . '/' . $fileName;
             }
 
             // 4. LƯU SẢN PHẨM VÀO DATABASE
             $model = $this->model('ProductModel');
-            $model->insertProduct($name, $category_id, $price, $desc, $dbImageName);
+            $model->insertProduct($name, $category_id, $price, $desc, $dbImageName, $discount, $cost_price);
 
-            // Lấy ID sản phẩm vừa tạo để gán cho ảnh phụ
             $newProductId = $model->getLastId();
 
             // 5. XỬ LÝ ẢNH PHỤ (EXTRA IMAGES)
@@ -99,38 +116,193 @@ class AdminController extends Controller
                 $totalFiles = count($_FILES['extra_images']['name']);
 
                 for ($i = 0; $i < $totalFiles; $i++) {
-                    // Kiểm tra từng file xem có lỗi không
                     if ($_FILES['extra_images']['error'][$i] == 0) {
-
                         $extraFileName = time() . '_' . $i . '_' . $_FILES['extra_images']['name'][$i];
-
-                        // Upload vào cùng folder đó
                         move_uploaded_file($_FILES['extra_images']['tmp_name'][$i], $targetDir . $extraFileName);
-
-                        // Đường dẫn lưu DB
                         $dbExtraPath = $folderName . '/' . $extraFileName;
-
-                        // Gọi Model lưu vào bảng product_images
                         $model->addProductImage($newProductId, $dbExtraPath);
                     }
                 }
             }
 
-            // Xử lý xong thì quay về trang danh sách
             header('Location: ' . BASE_URL . 'admin/products');
             exit;
         }
     }
 
-    // Hàm xóa sản phẩm
+    // === Bug 3: Trang chỉnh sửa sản phẩm (GET) ===
+    public function editProduct($id = null)
+    {
+        if (!$id) {
+            header('Location: ' . BASE_URL . 'admin/products');
+            exit;
+        }
+
+        $model = $this->model('ProductModel');
+        $product = $model->getProductById($id);
+        $categories = $model->getAllCategories();
+        $images = $model->getProductImages($id);
+
+        if (!$product) {
+            header('Location: ' . BASE_URL . 'admin/products');
+            exit;
+        }
+
+        $this->view('admin/dashboard', [
+            'view' => 'admin/products/edit',
+            'active' => 'products',
+            'product' => $product,
+            'categories' => $categories,
+            'images' => $images
+        ]);
+    }
+
+    // === Bug 3: Xử lý cập nhật sản phẩm (POST) ===
+    public function updateProduct($id = null)
+    {
+        if (!$id || $_SERVER['REQUEST_METHOD'] != 'POST') {
+            header('Location: ' . BASE_URL . 'admin/products');
+            exit;
+        }
+
+        $name = $_POST['name'];
+        $category_id = $_POST['category_id'];
+        $price = $_POST['price'];
+        $desc = $_POST['description'];
+        $discount = isset($_POST['discount']) ? intval($_POST['discount']) : 0;
+        $cost_price = isset($_POST['cost_price']) ? floatval($_POST['cost_price']) : 0;
+
+        $model = $this->model('ProductModel');
+        $product = $model->getProductById($id);
+        
+        $dbImageName = null;
+
+        // Xử lý ảnh mới (nếu có upload)
+        if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
+            $folderName = $this->createSlug($name);
+            $targetDir = dirname(__DIR__, 2) . '/public/images/' . $folderName . '/';
+
+            if (!file_exists($targetDir)) {
+                mkdir($targetDir, 0777, true);
+            }
+
+            $fileName = time() . '_main_' . $_FILES['image']['name'];
+            move_uploaded_file($_FILES['image']['tmp_name'], $targetDir . $fileName);
+            $dbImageName = $folderName . '/' . $fileName;
+        }
+
+        $model->updateProduct($id, $name, $category_id, $price, $desc, $dbImageName, $discount, $cost_price);
+
+        // Xử lý ảnh phụ mới (nếu có)
+        if (isset($_FILES['extra_images'])) {
+            $folderName = $this->createSlug($name);
+            $targetDir = dirname(__DIR__, 2) . '/public/images/' . $folderName . '/';
+            
+            if (!file_exists($targetDir)) {
+                mkdir($targetDir, 0777, true);
+            }
+
+            $totalFiles = count($_FILES['extra_images']['name']);
+            for ($i = 0; $i < $totalFiles; $i++) {
+                if ($_FILES['extra_images']['error'][$i] == 0) {
+                    $extraFileName = time() . '_' . $i . '_' . $_FILES['extra_images']['name'][$i];
+                    move_uploaded_file($_FILES['extra_images']['tmp_name'][$i], $targetDir . $extraFileName);
+                    $dbExtraPath = $folderName . '/' . $extraFileName;
+                    $model->addProductImage($id, $dbExtraPath);
+                }
+            }
+        }
+
+        header('Location: ' . BASE_URL . 'admin/products');
+        exit;
+    }
+
+    // === Bug 4: Hàm xóa sản phẩm (cải tiến với cảnh báo stock) ===
     public function deleteProduct($id)
     {
-        $model = $this->model('ProductModel');
-        
-        // (Nâng cao: Nếu muốn xóa sạch, bạn cần viết thêm code xóa ảnh và folder trên server tại đây trước khi xóa DB)
-        
-        $model->deleteProduct($id);
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $model = $this->model('ProductModel');
+            $product = $model->getProductById($id);
+
+            if (!$product) {
+                header('Location: ' . BASE_URL . 'admin/products');
+                exit;
+            }
+
+            // Kiểm tra nếu có param force_delete hoặc stock = 0 thì xóa
+            $forceDelete = isset($_POST['force_delete']) && $_POST['force_delete'] == '1';
+
+            if ($product['stock'] > 0 && !$forceDelete) {
+                // Hiển thị cảnh báo - truyền thông tin stock qua session
+                $_SESSION['delete_warning'] = [
+                    'product_id' => $id,
+                    'product_name' => $product['name'],
+                    'stock' => $product['stock']
+                ];
+                header('Location: ' . BASE_URL . 'admin/products');
+                exit;
+            }
+
+            // Xóa ảnh và folder trên server
+            if ($product['image']) {
+                $imgPath = dirname(__DIR__, 2) . '/public/images/' . $product['image'];
+                if (file_exists($imgPath)) {
+                    unlink($imgPath);
+                }
+            }
+
+            $model->deleteProduct($id);
+            $_SESSION['success_msg'] = 'Đã xóa sản phẩm "' . $product['name'] . '" thành công!';
+            header('Location: ' . BASE_URL . 'admin/products');
+            exit;
+        }
+
         header('Location: ' . BASE_URL . 'admin/products');
+    }
+
+    // === Bug 5: Trang quản lý khách hàng ===
+    public function users()
+    {
+        $model = $this->model('UserModel');
+        $users = $model->getAllUsers();
+
+        $this->view('admin/dashboard', [
+            'view' => 'admin/users',
+            'active' => 'users',
+            'users' => $users
+        ]);
+    }
+
+    // === Bug 5: Khóa/Mở khóa tài khoản ===
+    public function lockUser($id = null)
+    {
+        if (!$id) {
+            header('Location: ' . BASE_URL . 'admin/users');
+            exit;
+        }
+
+        $model = $this->model('UserModel');
+        $user = $model->getUserById($id);
+
+        if (!$user) {
+            header('Location: ' . BASE_URL . 'admin/users');
+            exit;
+        }
+
+        // Không cho phép khóa chính mình
+        if ($user['id'] == $_SESSION['user_id']) {
+            $_SESSION['error_msg'] = 'Không thể khóa tài khoản của chính bạn!';
+            header('Location: ' . BASE_URL . 'admin/users');
+            exit;
+        }
+
+        $model->toggleUserStatus($id);
+        
+        $newStatus = ($user['status'] ?? 'active') == 'active' ? 'khóa' : 'mở khóa';
+        $_SESSION['success_msg'] = 'Đã ' . $newStatus . ' tài khoản "' . $user['fullname'] . '"!';
+        
+        header('Location: ' . BASE_URL . 'admin/users');
+        exit;
     }
 
     // Hàm hỗ trợ tạo tên folder (Slug)

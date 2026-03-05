@@ -51,6 +51,12 @@
             <?= number_format($product['price'], 0, ',', '.') ?>đ
         </h3>
 
+        <?php if (isset($product['sold_count']) && $product['sold_count'] > 0): ?>
+            <span class="badge bg-warning-subtle text-warning border border-warning mb-3">
+                <i class="fa-solid fa-fire-flame-curved me-1"></i>Đã bán <?= $product['sold_count'] ?>
+            </span>
+        <?php endif; ?>
+
         <p class="text-muted">
             <?= nl2br($product['description']) ?>
         </p>
@@ -58,7 +64,7 @@
         <hr>
 
         <div class="d-flex align-items-center gap-3">
-            <a href="<?= BASE_URL ?>cart/add/<?= $product['id'] ?>" class="btn btn-primary btn-lg px-4">
+            <a href="<?= BASE_URL ?>cart/add/<?= $product['id'] ?>" class="btn btn-primary btn-lg px-4 btn-add-cart" data-product-id="<?= $product['id'] ?>" data-base-url="<?= BASE_URL ?>">
                 <i class="fa-solid fa-cart-shopping me-2"></i> Thêm vào giỏ
             </a>
             <button class="btn btn-outline-secondary btn-lg"><i class="fa-regular fa-heart"></i></button>

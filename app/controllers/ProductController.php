@@ -8,16 +8,29 @@ class ProductController extends Controller
     // --- TRANG DANH SÁCH TẤT CẢ SẢN PHẨM ---
     public function index()
     {
+        // Lấy số trang từ URL
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $page = max(1, $page);
+        $perPage = 8;
+        $sort = $_GET['sort'] ?? 'newest';
+
         $model = $this->model('ProductModel');
-        $products = $model->getAllProducts();
+        $products = $model->getAllProductsPaginated($page, $perPage, $sort);
+        
+        // Tính toán phân trang
+        $totalProducts = $model->getTotalProductsCount();
+        $totalPages = ceil($totalProducts / $perPage);
 
         $this->view('layouts/header', ['title' => 'Danh sách sản phẩm']);
 
-        // LƯU Ý: Bạn đang dùng chung view 'products/category' cho cả trang chủ
-        // Hãy chắc chắn file app/views/products/category.php ĐÃ TỒN TẠI
         $this->view('products/category', [
             'products' => $products,
-            'title' => 'Tất cả sản phẩm' // Truyền thêm title để view hiển thị
+            'title' => 'Tất cả sản phẩm',
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+            'totalProducts' => $totalProducts,
+            'baseUrl' => BASE_URL . 'product/index',
+            'sort' => $sort
         ]);
 
         $this->view('layouts/footer');
@@ -80,47 +93,62 @@ class ProductController extends Controller
     }
     // --- GỬI ĐÁNH GIÁ ---
     public function postReview()
-    {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            if (!isset($_SESSION['user_id'])) {
-                header('Location: ' . BASE_URL . 'auth/login');
-                exit;
-            }
-
-            $product_id = $_POST['product_id'];
-            $rating = $_POST['rating'];
-            $comment = $_POST['comment'];
-            $user_id = $_SESSION['user_id'];
-
-            $model = $this->model('ProductModel');
-            $model->addReview($user_id, $product_id, $rating, $comment);
-
-            // SỬA LỖI: Chuyển 'products' thành 'product' (số ít) để đúng với Router
-            header('Location: ' . BASE_URL . 'product/detail/' . $product_id);
+{
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: ' . BASE_URL . 'auth/login');
             exit;
         }
-    }
 
-    // --- LỌC THEO DANH MỤC ---
-    public function category($id = null)
-    {
-        if (!$id) {
-            header('Location: ' . BASE_URL);
-            exit;
-        }
+        $product_id = $_POST['product_id'];
+        $rating = $_POST['rating'];
+        $comment = $_POST['comment'];
+        $user_id = $_SESSION['user_id'];
+
         $model = $this->model('ProductModel');
-        $products = $model->getProductsByCategory($id);
+        $model->addReview($user_id, $product_id, $rating, $comment);
 
-        // SỬA LỖI: Đổi tên hàm cho khớp với Model (getCategoryName)
-        $categoryName = $model->getCategoryName($id);
-
-        $this->view('layouts/header', ['title' => $categoryName]);
-
-        $this->view('products/category', [
-            'products' => $products,
-            'title' => $categoryName
-        ]);
-
-        $this->view('layouts/footer');
+        header('Location: ' . BASE_URL . 'product/detail/' . $product_id);
+        exit;
     }
+
+    header('Location: ' . BASE_URL);
+    exit;
+}
+
+// --- LỌC THEO DANH MỤC ---
+public function category($id = null)
+{
+    if (!$id) {
+        header('Location: ' . BASE_URL);
+        exit;
+    }
+
+    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+    $page = max(1, $page);
+    $perPage = 8;
+    $sort = $_GET['sort'] ?? 'newest';
+
+    $model = $this->model('ProductModel');
+    $products = $model->getProductsByCategoryPaginated($id, $page, $perPage, $sort);
+
+    $totalProducts = $model->getTotalProductsByCategoryCount($id);
+    $totalPages = (int)ceil($totalProducts / $perPage);
+
+    $categoryName = $model->getCategoryName($id);
+
+    $this->view('layouts/header', ['title' => $categoryName]);
+
+    $this->view('products/category', [
+        'products' => $products,
+        'title' => $categoryName,
+        'currentPage' => $page,
+        'totalPages' => $totalPages,
+        'totalProducts' => $totalProducts,
+        'baseUrl' => BASE_URL . 'product/category/' . $id,
+        'sort' => $sort
+    ]);
+
+    $this->view('layouts/footer');
+ }
 }
