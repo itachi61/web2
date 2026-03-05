@@ -117,9 +117,6 @@
                         <strong class="text-uppercase">MUA NGAY</strong>
                         <small style="font-size: 10px; font-weight: normal;">(Giao tận nơi ngay)</small>
                     </a>
-                    <button class="btn btn-outline-danger py-2 rounded-3 d-flex align-items-center justify-content-center" style="width: 50px;">
-                        <i class="fa-regular fa-heart fs-5"></i>
-                    </button>
                 </div>
             </div>
         </div>
