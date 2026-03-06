@@ -16,7 +16,7 @@ class ProductController extends Controller
 
         $model = $this->model('ProductModel');
         $products = $model->getAllProductsPaginated($page, $perPage, $sort);
-        
+
         // Tính toán phân trang
         $totalProducts = $model->getTotalProductsCount();
         $totalPages = ceil($totalProducts / $perPage);
@@ -52,16 +52,27 @@ class ProductController extends Controller
             return;
         }
 
+        // =============================================================
+        // Lấy thêm Tên Danh Mục cho thanh Breadcrumb một cách an toàn
+        // =============================================================
+        if (!empty($product['category_id'])) {
+            $categoryName = $model->getCategoryName($product['category_id']);
+            $product['category_name'] = $categoryName ? $categoryName : 'Sản phẩm';
+        } else {
+             $product['category_name'] = 'Sản phẩm';
+        }
+
         $reviews = $model->getReviews($id);
+        $images = $model->getProductImages($id);
 
         $this->view('layouts/header', ['title' => $product['name']]);
-        $images = $model->getProductImages($id);
 
         $this->view('products/detail', [
             'product' => $product,
             'reviews' => $reviews,
             'images'  => $images
         ]);
+        
         $this->view('layouts/footer');
     }
 
@@ -91,64 +102,65 @@ class ProductController extends Controller
 
         $this->view('layouts/footer');
     }
+
     // --- GỬI ĐÁNH GIÁ ---
     public function postReview()
-{
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: ' . BASE_URL . 'auth/login');
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            if (!isset($_SESSION['user_id'])) {
+                header('Location: ' . BASE_URL . 'auth/login');
+                exit;
+            }
+
+            $product_id = $_POST['product_id'];
+            $rating = $_POST['rating'];
+            $comment = $_POST['comment'];
+            $user_id = $_SESSION['user_id'];
+
+            $model = $this->model('ProductModel');
+            $model->addReview($user_id, $product_id, $rating, $comment);
+
+            header('Location: ' . BASE_URL . 'product/detail/' . $product_id);
             exit;
         }
 
-        $product_id = $_POST['product_id'];
-        $rating = $_POST['rating'];
-        $comment = $_POST['comment'];
-        $user_id = $_SESSION['user_id'];
-
-        $model = $this->model('ProductModel');
-        $model->addReview($user_id, $product_id, $rating, $comment);
-
-        header('Location: ' . BASE_URL . 'product/detail/' . $product_id);
-        exit;
-    }
-
-    header('Location: ' . BASE_URL);
-    exit;
-}
-
-// --- LỌC THEO DANH MỤC ---
-public function category($id = null)
-{
-    if (!$id) {
         header('Location: ' . BASE_URL);
         exit;
     }
 
-    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-    $page = max(1, $page);
-    $perPage = 8;
-    $sort = $_GET['sort'] ?? 'newest';
+    // --- LỌC THEO DANH MỤC ---
+    public function category($id = null)
+    {
+        if (!$id) {
+            header('Location: ' . BASE_URL);
+            exit;
+        }
 
-    $model = $this->model('ProductModel');
-    $products = $model->getProductsByCategoryPaginated($id, $page, $perPage, $sort);
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $page = max(1, $page);
+        $perPage = 8;
+        $sort = $_GET['sort'] ?? 'newest';
 
-    $totalProducts = $model->getTotalProductsByCategoryCount($id);
-    $totalPages = (int)ceil($totalProducts / $perPage);
+        $model = $this->model('ProductModel');
+        $products = $model->getProductsByCategoryPaginated($id, $page, $perPage, $sort);
 
-    $categoryName = $model->getCategoryName($id);
+        $totalProducts = $model->getTotalProductsByCategoryCount($id);
+        $totalPages = (int)ceil($totalProducts / $perPage);
 
-    $this->view('layouts/header', ['title' => $categoryName]);
+        $categoryName = $model->getCategoryName($id);
 
-    $this->view('products/category', [
-        'products' => $products,
-        'title' => $categoryName,
-        'currentPage' => $page,
-        'totalPages' => $totalPages,
-        'totalProducts' => $totalProducts,
-        'baseUrl' => BASE_URL . 'product/category/' . $id,
-        'sort' => $sort
-    ]);
+        $this->view('layouts/header', ['title' => $categoryName]);
 
-    $this->view('layouts/footer');
- }
+        $this->view('products/category', [
+            'products' => $products,
+            'title' => $categoryName,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+            'totalProducts' => $totalProducts,
+            'baseUrl' => BASE_URL . 'product/category/' . $id,
+            'sort' => $sort
+        ]);
+
+        $this->view('layouts/footer');
+    }
 }

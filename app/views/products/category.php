@@ -1,12 +1,30 @@
 <div class="container py-4">
     <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="<?= BASE_URL ?>" class="text-decoration-none">Trang chủ</a></li>
+    <ol class="breadcrumb mb-3" style="font-size: 0.9rem;">
+        <li class="breadcrumb-item">
+            <a href="<?= BASE_URL ?>" class="text-decoration-none text-muted">
+                <i class="fa-solid fa-house"></i> Trang chủ
+            </a>
+        </li>
+
+        <?php if (isset($product)): ?>
+            <li class="breadcrumb-item">
+                <a href="<?= BASE_URL ?>product/category/<?= $product['category_id'] ?? 0 ?>" class="text-decoration-none text-muted">
+                    <?= $product['category_name'] ?? 'Sản phẩm' ?>
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                <?= $product['name'] ?>
+            </li>
+
+        <?php else: ?>
             <li class="breadcrumb-item active" aria-current="page">
                 <?= $title ?? 'Sản phẩm' ?>
             </li>
-        </ol>
-    </nav>
+            
+        <?php endif; ?>
+    </ol>
+</nav>
 
     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
         <div>
@@ -49,8 +67,6 @@
                                     class="img-fluid h-100"
                                     style="object-fit: contain; transition: transform 0.3s;"
                                     alt="<?= htmlspecialchars($product['name'] ?? 'Product') ?>"
-                                    onmouseover="this.style.transform='scale(1.1)'"
-                                    onmouseout="this.style.transform='scale(1)'"
                                     onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
                             </a>
                         </div>

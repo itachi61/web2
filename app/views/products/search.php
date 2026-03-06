@@ -1,10 +1,30 @@
 <div class="container my-4">
     <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="<?= BASE_URL ?>" class="text-decoration-none text-muted">Trang chủ</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Tìm kiếm: "<strong><?= htmlspecialchars($data['keyword'] ?? '') ?></strong>"</li>
-        </ol>
-    </nav>
+    <ol class="breadcrumb mb-3" style="font-size: 0.9rem;">
+        <li class="breadcrumb-item">
+            <a href="<?= BASE_URL ?>" class="text-decoration-none text-muted">
+                <i class="fa-solid fa-house"></i> Trang chủ
+            </a>
+        </li>
+
+        <?php if (isset($product)): ?>
+            <li class="breadcrumb-item">
+                <a href="<?= BASE_URL ?>product/category/<?= $product['category_id'] ?? 0 ?>" class="text-decoration-none text-muted">
+                    <?= $product['category_name'] ?? 'Sản phẩm' ?>
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                <?= $product['name'] ?>
+            </li>
+
+        <?php else: ?>
+            <li class="breadcrumb-item active" aria-current="page">
+                <?= $title ?? 'Sản phẩm' ?>
+            </li>
+            
+        <?php endif; ?>
+    </ol>
+</nav>
 
     <div class="row">
         <div class="col-lg-3 mb-4">
