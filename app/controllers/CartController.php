@@ -44,50 +44,6 @@ class CartController extends Controller
         header('Location: ' . BASE_URL . 'cart');
     }
 
-    // AJAX add to cart - trả về JSON, không redirect
-    public function ajaxAdd($id)
-    {
-        header('Content-Type: application/json');
-
-        $productModel = $this->model('ProductModel');
-        $product = $productModel->getProductById($id);
-
-        if (!$product) {
-            echo json_encode(['success' => false, 'message' => 'Sản phẩm không tồn tại']);
-            exit;
-        }
-
-        if (!isset($_SESSION['cart'])) {
-            $_SESSION['cart'] = [];
-        }
-
-        if (isset($_SESSION['cart'][$id])) {
-            $_SESSION['cart'][$id]['quantity']++;
-        } else {
-            $_SESSION['cart'][$id] = [
-                'id' => $product['id'],
-                'name' => $product['name'],
-                'price' => $product['price'],
-                'image' => $product['image'],
-                'quantity' => 1
-            ];
-        }
-
-        // Tính tổng số lượng items trong giỏ
-        $totalItems = 0;
-        foreach ($_SESSION['cart'] as $item) {
-            $totalItems += $item['quantity'];
-        }
-
-        echo json_encode([
-            'success' => true,
-            'message' => 'Đã thêm vào giỏ hàng!',
-            'cartCount' => count($_SESSION['cart']),
-            'totalItems' => $totalItems
-        ]);
-        exit;
-    }
-
     public function update()
     {
         if (isset($_POST['qty'])) {

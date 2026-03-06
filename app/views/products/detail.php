@@ -84,22 +84,10 @@
                 <span class="badge bg-danger">-10%</span>
             </div>
 
-<<<<<<< HEAD
             <div class="d-flex align-items-center py-2 px-3 mb-3 bg-danger bg-opacity-10 border border-danger rounded-3">
                 <i class="fa-solid fa-gift me-2 text-danger"></i>
                 <span class="text-danger fw-bold small">Thu cũ đổi mới: Trợ giá đến 2.000.000đ</span>
             </div>
-=======
-        <?php if (isset($product['sold_count']) && $product['sold_count'] > 0): ?>
-            <span class="badge bg-warning-subtle text-warning border border-warning mb-3">
-                <i class="fa-solid fa-fire-flame-curved me-1"></i>Đã bán <?= $product['sold_count'] ?>
-            </span>
-        <?php endif; ?>
-
-        <p class="text-muted">
-            <?= nl2br($product['description']) ?>
-        </p>
->>>>>>> b7f9bc1aad5e0bb2e8c46cd310269574efa9718f
 
             <div class="mb-3">
                 <label class="fw-bold mb-2 small">Phiên bản</label>
@@ -108,7 +96,6 @@
                 </div>
             </div>
 
-<<<<<<< HEAD
             <div class="border rounded-3 overflow-hidden mb-4">
                 <div class="bg-danger text-white p-2 fw-bold">
                     <i class="fa-solid fa-fire me-1"></i> KHUYẾN MÃI HOT
@@ -120,14 +107,6 @@
                     </ul>
                 </div>
             </div>
-=======
-        <div class="d-flex align-items-center gap-3">
-            <a href="<?= BASE_URL ?>cart/add/<?= $product['id'] ?>" class="btn btn-primary btn-lg px-4 btn-add-cart" data-product-id="<?= $product['id'] ?>" data-base-url="<?= BASE_URL ?>">
-                <i class="fa-solid fa-cart-shopping me-2"></i> Thêm vào giỏ
-            </a>
-            <button class="btn btn-outline-secondary btn-lg"><i class="fa-regular fa-heart"></i></button>
-        </div>
->>>>>>> b7f9bc1aad5e0bb2e8c46cd310269574efa9718f
 
             <div class="mb-3">
                 <div class="d-flex gap-2 mb-2">

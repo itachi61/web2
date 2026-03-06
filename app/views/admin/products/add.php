@@ -20,38 +20,14 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Danh mục</label>
                             <select name="category_id" class="form-select">
-                                <?php if (!empty($data['categories'])): ?>
-                                    <?php foreach ($data['categories'] as $cat): ?>
-                                        <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <option value="1">Laptop</option>
-                                    <option value="2">Điện thoại</option>
-                                    <option value="3">Linh kiện</option>
-                                <?php endif; ?>
+                                <option value="1">Laptop</option>
+                                <option value="2">Điện thoại</option>
+                                <option value="3">Linh kiện</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Giá bán (VNĐ) <span class="text-danger">*</span></label>
-                            <input type="number" name="price" id="priceInput" class="form-control" placeholder="Ví dụ: 25000000" min="0" required>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">Giảm giá (%)</label>
-                            <input type="number" name="discount" id="discountInput" class="form-control" placeholder="0" min="0" max="100" value="10">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">Giá nhập (VNĐ)</label>
-                            <input type="number" name="cost_price" id="costPriceInput" class="form-control" placeholder="Ví dụ: 18000000" min="0">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">Lợi nhuận</label>
-                            <div class="form-control bg-light" id="profitDisplay" style="cursor: default;">
-                                <span class="text-success fw-bold" id="profitValue">0đ</span>
-                                <small class="text-muted" id="profitPercent">(0%)</small>
-                            </div>
+                            <input type="number" name="price" class="form-control" placeholder="Ví dụ: 25000000" min="0" required>
                         </div>
                     </div>
 
@@ -100,25 +76,6 @@
         </form>
     </div>
 </div>
-
-<script>
-// Auto-calculate profit
-function calcProfit() {
-    const price = parseFloat(document.getElementById('priceInput')?.value) || 0;
-    const cost = parseFloat(document.getElementById('costPriceInput')?.value) || 0;
-    const profit = price - cost;
-    const pct = cost > 0 ? ((profit / cost) * 100).toFixed(1) : 0;
-    const el = document.getElementById('profitValue');
-    const elPct = document.getElementById('profitPercent');
-    if (el) {
-        el.textContent = profit.toLocaleString('vi-VN') + 'đ';
-        el.className = profit >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold';
-    }
-    if (elPct) elPct.textContent = '(' + pct + '%)';
-}
-document.getElementById('priceInput')?.addEventListener('input', calcProfit);
-document.getElementById('costPriceInput')?.addEventListener('input', calcProfit);
-</script>
 
 <script>
 document.getElementById('imageUpload').onchange = function (evt) {

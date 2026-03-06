@@ -80,12 +80,11 @@ CREATE TABLE reviews (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- 9. Thêm tài khoản Admin mẫu để test
+-- 9. (TÙY CHỌN) Thêm tài khoản Admin mẫu để test
 -- Mật khẩu là: 123456
 INSERT INTO users (fullname, email, password, role) 
 VALUES ('Admin TechSmart', 'admin@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
 
-<<<<<<< HEAD
 -- 10. (TÙY CHỌN) Thêm danh mục và sản phẩm mẫu
 INSERT INTO categories (name) VALUES ('Laptop'), ('Điện thoại'), ('Linh Kiện'), ('Màn hình'), ('Bàn phím');
 
@@ -128,40 +127,3 @@ INSERT INTO products (category_id, name, price, image, description, stock) VALUE
 (3, 'Corsair RM1000e PSU', 4500000, 'corsair-psu-1000w.png', 'Corsair RM1000e 1000W - Nguồn máy tính chuẩn Gold, Full Modular', 25),
 (3, 'NZXT Kraken Elite 360', 6500000, 'nzxt-kraken-360.png', 'NZXT Kraken Elite 360 - Tản nhiệt nước AIO màn hình LCD', 15);
 
-=======
--- 10. Thêm danh mục
-INSERT INTO categories (name) VALUES ('Laptop'), ('Điện thoại'), ('Linh Kiện');
-
--- 11. Thêm nhiều sản phẩm mẫu để test phân trang (20 sản phẩm)
-
--- LAPTOP (Category 1) - 8 sản phẩm
-INSERT INTO products (category_id, name, price, image, description, stock) VALUES 
-(1, 'MacBook Air M1', 18000000, 'laptop.jpg', 'Chip M1 mạnh mẽ, pin trâu, thiết kế mỏng nhẹ', 15),
-(1, 'MacBook Pro M2', 32000000, 'laptop.jpg', 'Hiệu năng đỉnh cao với chip M2, màn hình Retina', 10),
-(1, 'Dell XPS 13', 25000000, 'laptop.jpg', 'Laptop cao cấp, màn hình InfinityEdge, hiệu năng mạnh', 12),
-(1, 'HP Pavilion 15', 15000000, 'laptop.jpg', 'Laptop đa năng, phù hợp văn phòng và giải trí', 20),
-(1, 'Lenovo ThinkPad X1', 28000000, 'laptop.jpg', 'Laptop doanh nhân, bàn phím tốt, bảo mật cao', 8),
-(1, 'Asus ROG Strix G15', 35000000, 'laptop.jpg', 'Laptop gaming mạnh mẽ, RTX 3060, màn hình 144Hz', 6),
-(1, 'Acer Aspire 5', 12000000, 'laptop.jpg', 'Laptop giá rẻ, cấu hình ổn định cho học tập', 25),
-(1, 'MSI GF63 Thin', 18000000, 'laptop.jpg', 'Laptop gaming mỏng nhẹ, GTX 1650, giá tốt', 10);
-
--- ĐIỆN THOẠI (Category 2) - 8 sản phẩm
-INSERT INTO products (category_id, name, price, image, description, stock) VALUES 
-(2, 'iPhone 15 Pro Max', 32000000, 'dienthoai.jpg', 'Titanium, chip A17 Pro, camera 48MP', 20),
-(2, 'iPhone 14', 20000000, 'dienthoai.jpg', 'Chip A15 Bionic, camera kép, màn hình OLED', 30),
-(2, 'Samsung Galaxy S24 Ultra', 28000000, 'dienthoai.jpg', 'Snapdragon 8 Gen 3, camera 200MP, S Pen', 15),
-(2, 'Samsung Galaxy A54', 9000000, 'dienthoai.jpg', 'Tầm trung cao cấp, camera 50MP, pin 5000mAh', 40),
-(2, 'Xiaomi 13 Pro', 15000000, 'dienthoai.jpg', 'Snapdragon 8 Gen 2, camera Leica, sạc nhanh 120W', 18),
-(2, 'OPPO Find N3', 22000000, 'dienthoai.jpg', 'Điện thoại gập, Snapdragon 8 Gen 2, màn hình lớn', 8),
-(2, 'Vivo V29', 11000000, 'dienthoai.jpg', 'Camera selfie 50MP, thiết kế đẹp, sạc nhanh', 25),
-(2, 'Realme 11 Pro', 8000000, 'dienthoai.jpg', 'Giá rẻ, hiệu năng tốt, pin khủng', 35);
-
--- LINH KIỆN (Category 3) - 6 sản phẩm
-INSERT INTO products (category_id, name, price, image, description, stock) VALUES 
-(3, 'Chuột Logitech MX Master 3', 2500000, 'phukien.jpg', 'Chuột không dây cao cấp, đa thiết bị, pin lâu', 50),
-(3, 'Bàn phím Keychron K2', 2000000, 'phukien.jpg', 'Bàn phím cơ, kết nối Bluetooth, hot-swap', 30),
-(3, 'Tai nghe Sony WH-1000XM5', 8000000, 'phukien.jpg', 'Chống ồn chủ động hàng đầu, âm thanh Hi-Res', 20),
-(3, 'Webcam Logitech C920', 1500000, 'phukien.jpg', 'Webcam Full HD, tự động lấy nét, micro tích hợp', 40),
-(3, 'USB SanDisk 128GB', 400000, 'phukien.jpg', 'USB 3.0, tốc độ cao, thiết kế nhỏ gọn', 100),
-(3, 'Ổ cứng SSD Samsung 1TB', 2500000, 'phukien.jpg', 'SSD NVMe, tốc độ đọc/ghi cực nhanh', 25);
->>>>>>> b7f9bc1aad5e0bb2e8c46cd310269574efa9718f

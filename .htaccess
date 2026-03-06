@@ -1,9 +1,6 @@
-RewriteEngine On
-
-# 1) Cho phép file tĩnh (css/js/img/images) chạy thẳng, KHÔNG rewrite
-RewriteCond %{REQUEST_FILENAME} -f [OR]
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^ - [L]
-
-# 2) Các route còn lại mới đưa về index.php
-RewriteRule ^ index.php?url=$1 [QSA,L]
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Chuyển tất cả yêu cầu vào thư mục public
+    RewriteRule ^$ public/ [L]
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

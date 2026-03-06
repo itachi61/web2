@@ -10,27 +10,12 @@ class ProductController extends Controller
      */
     public function index()
     {
-<<<<<<< HEAD
         $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
         
         $model = $this->model('ProductModel');
         $products = $model->getAllProducts($page, $this->perPage);
         $totalProducts = $model->countAllProducts();
         $totalPages = ceil($totalProducts / $this->perPage);
-=======
-        // Lấy số trang từ URL
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $page = max(1, $page);
-        $perPage = 8;
-        $sort = $_GET['sort'] ?? 'newest';
-
-        $model = $this->model('ProductModel');
-        $products = $model->getAllProductsPaginated($page, $perPage, $sort);
-        
-        // Tính toán phân trang
-        $totalProducts = $model->getTotalProductsCount();
-        $totalPages = ceil($totalProducts / $perPage);
->>>>>>> b7f9bc1aad5e0bb2e8c46cd310269574efa9718f
 
         $this->view('layouts/header', ['title' => 'Danh sách sản phẩm']);
 
@@ -40,12 +25,7 @@ class ProductController extends Controller
             'currentPage' => $page,
             'totalPages' => $totalPages,
             'totalProducts' => $totalProducts,
-<<<<<<< HEAD
             'baseUrl' => BASE_URL . 'product'
-=======
-            'baseUrl' => BASE_URL . 'product/index',
-            'sort' => $sort
->>>>>>> b7f9bc1aad5e0bb2e8c46cd310269574efa9718f
         ]);
 
         $this->view('layouts/footer');
@@ -143,7 +123,6 @@ class ProductController extends Controller
      * Gửi đánh giá sản phẩm
      */
     public function postReview()
-<<<<<<< HEAD
     {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (!isset($_SESSION['user_id'])) {
@@ -160,16 +139,10 @@ class ProductController extends Controller
             $model->addReview($user_id, $product_id, $rating, $comment);
 
             header('Location: ' . BASE_URL . 'product/detail/' . $product_id);
-=======
-{
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: ' . BASE_URL . 'auth/login');
->>>>>>> b7f9bc1aad5e0bb2e8c46cd310269574efa9718f
             exit;
         }
+    }
 
-<<<<<<< HEAD
     /**
      * Lọc theo danh mục (có phân trang)
      */
@@ -202,57 +175,5 @@ class ProductController extends Controller
         ]);
 
         $this->view('layouts/footer');
-=======
-        $product_id = $_POST['product_id'];
-        $rating = $_POST['rating'];
-        $comment = $_POST['comment'];
-        $user_id = $_SESSION['user_id'];
-
-        $model = $this->model('ProductModel');
-        $model->addReview($user_id, $product_id, $rating, $comment);
-
-        header('Location: ' . BASE_URL . 'product/detail/' . $product_id);
-        exit;
->>>>>>> b7f9bc1aad5e0bb2e8c46cd310269574efa9718f
     }
-
-    header('Location: ' . BASE_URL);
-    exit;
-}
-
-// --- LỌC THEO DANH MỤC ---
-public function category($id = null)
-{
-    if (!$id) {
-        header('Location: ' . BASE_URL);
-        exit;
-    }
-
-    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-    $page = max(1, $page);
-    $perPage = 8;
-    $sort = $_GET['sort'] ?? 'newest';
-
-    $model = $this->model('ProductModel');
-    $products = $model->getProductsByCategoryPaginated($id, $page, $perPage, $sort);
-
-    $totalProducts = $model->getTotalProductsByCategoryCount($id);
-    $totalPages = (int)ceil($totalProducts / $perPage);
-
-    $categoryName = $model->getCategoryName($id);
-
-    $this->view('layouts/header', ['title' => $categoryName]);
-
-    $this->view('products/category', [
-        'products' => $products,
-        'title' => $categoryName,
-        'currentPage' => $page,
-        'totalPages' => $totalPages,
-        'totalProducts' => $totalProducts,
-        'baseUrl' => BASE_URL . 'product/category/' . $id,
-        'sort' => $sort
-    ]);
-
-    $this->view('layouts/footer');
- }
 }
