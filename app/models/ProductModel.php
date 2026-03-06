@@ -35,6 +35,40 @@ class ProductModel extends Database
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+<<<<<<< HEAD
+=======
+    // Lấy sản phẩm theo danh mục
+    public function getProductsByCategory($categoryId)
+    {
+        $stmt = $this->conn->prepare("SELECT * FROM products WHERE category_id = ?");
+        $stmt->execute([$categoryId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getCategoryName($id) {
+        $stmt = $this->conn->prepare("SELECT name FROM categories WHERE id = ?");
+        $stmt->execute([$id]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? $result['name'] : 'Danh mục';
+    }
+
+    // Lấy tất cả danh mục
+    public function getAllCategories() {
+        $stmt = $this->conn->prepare("SELECT * FROM categories ORDER BY id ASC");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Tìm sản phẩm cơ bản (theo tên)
+    public function searchProduct($keyword)
+    {
+        $stmt = $this->conn->prepare("SELECT * FROM products WHERE name LIKE ?");
+        $stmt->execute(['%' . $keyword . '%']);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Lấy đánh giá
+>>>>>>> b7f9bc1aad5e0bb2e8c46cd310269574efa9718f
     public function getReviews($productId)
     {
         $sql = "SELECT r.*, u.fullname 
@@ -49,8 +83,54 @@ class ProductModel extends Database
 
     public function getProductImages($productId)
     {
+<<<<<<< HEAD
         $stmt = $this->conn->prepare("SELECT * FROM product_images WHERE product_id = :id");
         $stmt->execute([':id' => $productId]);
+=======
+        $stmt = $this->conn->prepare("INSERT INTO reviews (user_id, product_id, rating, comment) VALUES (?, ?, ?, ?)");
+        return $stmt->execute([$userId, $productId, $rating, $comment]);
+    }
+
+    // Thêm sản phẩm
+    public function insertProduct($name, $cat_id, $price, $desc, $image, $discount = 0, $cost_price = 0)
+    {
+        $stmt = $this->conn->prepare("INSERT INTO products (name, category_id, price, discount, cost_price, description, image) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        return $stmt->execute([$name, $cat_id, $price, $discount, $cost_price, $desc, $image]);
+    }
+
+    // Cập nhật sản phẩm
+    public function updateProduct($id, $name, $cat_id, $price, $desc, $image = null, $discount = 0, $cost_price = 0) {
+        if ($image) {
+            $stmt = $this->conn->prepare("UPDATE products SET name = ?, category_id = ?, price = ?, discount = ?, cost_price = ?, description = ?, image = ? WHERE id = ?");
+            return $stmt->execute([$name, $cat_id, $price, $discount, $cost_price, $desc, $image, $id]);
+        } else {
+            $stmt = $this->conn->prepare("UPDATE products SET name = ?, category_id = ?, price = ?, discount = ?, cost_price = ?, description = ? WHERE id = ?");
+            return $stmt->execute([$name, $cat_id, $price, $discount, $cost_price, $desc, $id]);
+        }
+    }
+
+    // Xóa sản phẩm
+    public function deleteProduct($id)
+    {
+        // Xóa ảnh phụ trước
+        $stmt = $this->conn->prepare("DELETE FROM product_images WHERE product_id = ?");
+        $stmt->execute([$id]);
+        // Xóa sản phẩm
+        $stmt = $this->conn->prepare("DELETE FROM products WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+
+    // 1. Hàm thêm nhiều ảnh phụ
+    public function addProductImage($productId, $imagePath) {
+        $stmt = $this->conn->prepare("INSERT INTO product_images (product_id, image_path) VALUES (?, ?)");
+        return $stmt->execute([$productId, $imagePath]);
+    }
+
+    // 2. Hàm lấy danh sách ảnh phụ của 1 sản phẩm
+    public function getProductImages($productId) {
+        $stmt = $this->conn->prepare("SELECT * FROM product_images WHERE product_id = ?");
+        $stmt->execute([$productId]);
+>>>>>>> b7f9bc1aad5e0bb2e8c46cd310269574efa9718f
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -70,6 +150,7 @@ class ProductModel extends Database
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+<<<<<<< HEAD
     public function countProductsByCategory($categoryId)
     {
         $stmt = $this->conn->prepare("SELECT COUNT(*) as total FROM products WHERE category_id = :cid");
@@ -77,6 +158,70 @@ class ProductModel extends Database
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row['total'];
     }
+=======
+    // --- SORT HELPER ---
+    private function getOrderByClause($sort = 'newest') {
+        switch ($sort) {
+            case 'price_asc':
+                return "ORDER BY price ASC";
+            case 'price_desc':
+                return "ORDER BY price DESC";
+            default:
+                return "ORDER BY id DESC";
+        }
+    }
+
+    // --- PAGINATION METHODS ---
+    
+    // Lấy tất cả sản phẩm với phân trang + sắp xếp
+    public function getAllProductsPaginated($page = 1, $perPage = 8, $sort = 'newest') {
+        $offset = ($page - 1) * $perPage;
+        $orderBy = $this->getOrderByClause($sort);
+        $stmt = $this->conn->prepare("SELECT * FROM products $orderBy LIMIT :limit OFFSET :offset");
+        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Lấy sản phẩm theo danh mục với phân trang + sắp xếp
+    public function getProductsByCategoryPaginated($categoryId, $page = 1, $perPage = 8, $sort = 'newest') {
+        $offset = ($page - 1) * $perPage;
+        $orderBy = $this->getOrderByClause($sort);
+        $stmt = $this->conn->prepare("SELECT * FROM products WHERE category_id = :categoryId $orderBy LIMIT :limit OFFSET :offset");
+        $stmt->bindValue(':categoryId', $categoryId, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Đếm tổng số sản phẩm
+    public function getTotalProductsCount() {
+        $stmt = $this->conn->prepare("SELECT COUNT(*) as total FROM products");
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result['total'];
+    }
+
+    // Đếm tổng số sản phẩm theo danh mục
+    public function getTotalProductsByCategoryCount($categoryId) {
+        $stmt = $this->conn->prepare("SELECT COUNT(*) as total FROM products WHERE category_id = ?");
+        $stmt->execute([$categoryId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result['total'];
+    }
+
+
+    // --- TÌM KIẾM NÂNG CAO (ĐÃ CHUẨN HÓA VỀ PDO THUẦN) ---
+    public function searchProductAdvanced($keyword, $categories = [], $minPrice = null, $maxPrice = null, $sort = 'newest') {
+        
+        // 1. Khởi tạo câu SQL
+        $sql = "SELECT * FROM products WHERE name LIKE :keyword";
+        
+        // Mảng chứa giá trị để bind vào câu SQL
+        $params = [':keyword' => "%$keyword%"];
+>>>>>>> b7f9bc1aad5e0bb2e8c46cd310269574efa9718f
 
     public function getCategoryName($id)
     {

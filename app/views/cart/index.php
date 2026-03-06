@@ -41,7 +41,11 @@
                                         <tr>
                                             <td class="ps-4">
                                                 <div class="d-flex align-items-center">
+<<<<<<< HEAD
                                                     <img src="<?= BASE_URL ?>public/images/<?= $item['image'] ?>" 
+=======
+                                                    <img src="<?= BASE_URL . 'images/' . $item['image'] ?>" 
+>>>>>>> b7f9bc1aad5e0bb2e8c46cd310269574efa9718f
                                                          class="rounded border me-3" width="60" height="60" 
                                                          style="object-fit: contain;"
                                                          onerror="this.src='https://via.placeholder.com/60'">
@@ -66,11 +70,30 @@
                                                 <?= number_format($line_total, 0, ',', '.') ?>đ
                                             </td>
                                             <td class="text-end pe-4">
+<<<<<<< HEAD
                                                 <a href="<?= BASE_URL ?>cart/remove/<?= $id ?>" 
                                                    class="btn btn-sm btn-outline-danger border-0"
                                                    onclick="return confirm('<?= getCurrentLang() === 'en' ? 'Remove this product from cart?' : 'Xóa sản phẩm này khỏi giỏ hàng?' ?>');">
                                                     <i class="fa-solid fa-trash"></i>
                                                 </a>
+=======
+                                                <div class="cart-delete-wrap d-inline-block">
+                                                    <!-- Nút xóa ban đầu -->
+                                                    <button type="button" class="btn btn-sm btn-outline-danger border-0 btn-cart-delete-init" title="Xóa sản phẩm">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                    <!-- Xác nhận xóa (ẩn mặc định) -->
+                                                    <div class="cart-delete-confirm d-none">
+                                                        <a href="<?= BASE_URL ?>cart/remove/<?= $id ?>" 
+                                                           class="btn btn-sm btn-danger me-1">
+                                                            <i class="fa-solid fa-check me-1"></i>Xóa
+                                                        </a>
+                                                        <button type="button" class="btn btn-sm btn-secondary btn-cart-delete-cancel">
+                                                            <i class="fa-solid fa-xmark"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+>>>>>>> b7f9bc1aad5e0bb2e8c46cd310269574efa9718f
                                             </td>
                                         </tr>
                                         <?php endforeach; ?>
