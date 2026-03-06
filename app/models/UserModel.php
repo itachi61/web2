@@ -42,15 +42,27 @@ class UserModel extends Database {
         return false;
     }
 
+<<<<<<< HEAD
     /**
      * Lấy thông tin user theo ID
      */
+=======
+    // Lấy tất cả users
+    public function getAllUsers() {
+        $stmt = $this->conn->prepare("SELECT id, fullname, email, role, status, created_at FROM users ORDER BY id ASC");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Lấy 1 user theo ID
+>>>>>>> b7f9bc1aad5e0bb2e8c46cd310269574efa9718f
     public function getUserById($id) {
         $stmt = $this->conn->prepare("SELECT * FROM users WHERE id = ?");
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+<<<<<<< HEAD
     /**
      * Cập nhật thông tin profile
      */
@@ -110,6 +122,16 @@ class UserModel extends Database {
     public function updateRole($email, $role) {
         $stmt = $this->conn->prepare("UPDATE users SET role = ? WHERE email = ?");
         return $stmt->execute([$role, $email]);
+=======
+    // Toggle trạng thái khóa/mở khóa
+    public function toggleUserStatus($id) {
+        $user = $this->getUserById($id);
+        $currentStatus = $user['status'] ?? 'active';
+        $newStatus = ($currentStatus == 'active') ? 'locked' : 'active';
+        
+        $stmt = $this->conn->prepare("UPDATE users SET status = ? WHERE id = ?");
+        return $stmt->execute([$newStatus, $id]);
+>>>>>>> b7f9bc1aad5e0bb2e8c46cd310269574efa9718f
     }
 }
 ?>
