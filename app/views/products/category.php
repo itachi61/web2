@@ -80,12 +80,14 @@
                             
                             <div class="mt-auto">
                                 <div class="mb-2">
-                                    <span class="text-danger fw-bold fs-5"><?= number_format($product['price'], 0, ',', '.') ?>đ</span>
                                     <?php if ($disc > 0): ?>
+                                        <span class="text-danger fw-bold fs-5"><?= number_format($product['price'] * (1 - $disc/100), 0, ',', '.') ?>đ</span>
                                         <br>
                                         <small class="text-decoration-line-through text-muted small">
-                                            <?= number_format($product['price'] / (1 - $disc/100), 0, ',', '.') ?>đ
+                                            <?= number_format($product['price'], 0, ',', '.') ?>đ
                                         </small>
+                                    <?php else: ?>
+                                        <span class="text-danger fw-bold fs-5"><?= number_format($product['price'], 0, ',', '.') ?>đ</span>
                                     <?php endif; ?>
                                 </div>
                                 <?php if (isset($product['sold_count']) && $product['sold_count'] > 0): ?>

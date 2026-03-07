@@ -100,10 +100,12 @@
                     
                     <div class="d-flex align-items-end gap-3 mb-3 pb-3 border-bottom">
                         <?php $disc = intval($product['discount'] ?? 0); ?>
-                        <h2 class="text-danger fw-bold mb-0"><?= number_format($product['price'], 0, ',', '.') ?>đ</h2>
                         <?php if ($disc > 0): ?>
-                            <span class="text-decoration-line-through text-muted mb-1"><?= number_format($product['price'] / (1 - $disc/100), 0, ',', '.') ?>đ</span>
+                            <h2 class="text-danger fw-bold mb-0"><?= number_format($product['price'] * (1 - $disc/100), 0, ',', '.') ?>đ</h2>
+                            <span class="text-decoration-line-through text-muted mb-1"><?= number_format($product['price'], 0, ',', '.') ?>đ</span>
                             <span class="badge bg-danger mb-2">-<?= $disc ?>%</span>
+                        <?php else: ?>
+                            <h2 class="text-danger fw-bold mb-0"><?= number_format($product['price'], 0, ',', '.') ?>đ</h2>
                         <?php endif; ?>
                     </div>
 
