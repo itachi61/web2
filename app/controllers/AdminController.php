@@ -225,6 +225,13 @@ class AdminController extends Controller
 
         $model->updateProduct($id, $name, $category_id, $price, $desc, $dbImageName, $discount, $cost_price, $profit_margin);
 
+        // Cập nhật lại giá bán trong lịch sử nhập theo margin mới
+        try {
+            $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+            $db->prepare("UPDATE import_history SET selling_price = new_cost_price * (1 + ? / 100), profit_margin = ? WHERE product_id = ?")
+               ->execute([$profit_margin, $profit_margin, $id]);
+        } catch (Exception $e) {}
+
         // Xử lý ảnh phụ mới (nếu có)
         if (isset($_FILES['extra_images'])) {
             $folderName = $this->createSlug($name);
