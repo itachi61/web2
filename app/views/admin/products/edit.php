@@ -55,12 +55,35 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Giá bán chính thức -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="card border-success bg-success bg-opacity-10">
+                                <div class="card-body py-2 d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold text-success"><i class="fa-solid fa-tag me-2"></i>Giá bán chính thức (sau KM):</span>
+                                    <span class="fs-4 fw-bold text-success" id="finalPrice">0đ</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-warning bg-warning bg-opacity-10">
+                                <div class="card-body py-2 d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold text-warning"><i class="fa-solid fa-coins me-2"></i>Lãi thực tế/SP:</span>
+                                    <span class="fs-4 fw-bold" id="realProfit">0đ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <script>
                     const _cost = document.getElementById('costPriceInput');
                     const _margin = document.getElementById('marginInput');
                     const _price = document.getElementById('priceInput');
                     const _discount = document.getElementById('discountInput');
                     const _profit = document.getElementById('profitValue');
+                    const _finalPrice = document.getElementById('finalPrice');
+                    const _realProfit = document.getElementById('realProfit');
                     const fmt = n => new Intl.NumberFormat('vi-VN').format(Math.round(n));
 
                     // Công thức: Giá bán = Giá nhập × (1 + LN%)
@@ -69,7 +92,7 @@
                         const margin = parseFloat(_margin.value) || 0;
                         const price = Math.round(cost * (1 + margin / 100));
                         _price.value = price;
-                        updateProfitDisplay(cost, price);
+                        updateAll(cost, price);
                     }
                     function calcFromPrice() {
                         const cost = parseFloat(_cost.value) || 0;
@@ -78,23 +101,25 @@
                             const margin = Math.round(((price / cost) - 1) * 100 * 10) / 10;
                             _margin.value = margin;
                         }
-                        updateProfitDisplay(cost, price);
+                        updateAll(cost, price);
                     }
-                    function updateProfitDisplay(cost, price) {
+                    function updateAll(cost, price) {
                         const discount = parseFloat(_discount.value) || 0;
                         const profit = price - cost;
-                        const realProfit = price * (1 - discount / 100) - cost;
-                        let text = fmt(profit) + 'đ';
-                        if (discount > 0) text += ' (KM: ' + fmt(realProfit) + 'đ)';
-                        _profit.textContent = text;
+                        const finalP = Math.round(price * (1 - discount / 100));
+                        const realP = finalP - cost;
+
+                        _profit.textContent = fmt(profit) + 'đ';
+                        _finalPrice.textContent = fmt(finalP) + 'đ';
+                        _realProfit.textContent = fmt(realP) + 'đ';
+                        _realProfit.className = 'fs-4 fw-bold ' + (realP >= 0 ? 'text-success' : 'text-danger');
                     }
                     _cost.addEventListener('input', calcFromMargin);
                     _margin.addEventListener('input', calcFromMargin);
                     _price.addEventListener('input', calcFromPrice);
-                    _discount.addEventListener('input', () => updateProfitDisplay(
+                    _discount.addEventListener('input', () => updateAll(
                         parseFloat(_cost.value)||0, parseFloat(_price.value)||0
                     ));
-                    // Init
                     calcFromPrice();
                     </script>
 
