@@ -309,6 +309,22 @@ class AdminController extends Controller
         header('Location: ' . BASE_URL . 'admin/products');
     }
 
+    // Mở bán lại sản phẩm đã ẩn
+    public function restoreProduct($id = null)
+    {
+        if ($id && $_SERVER['REQUEST_METHOD'] == 'POST') {
+            $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+            $stmt = $db->prepare("SELECT name FROM products WHERE id = ?");
+            $stmt->execute([$id]);
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $db->prepare("UPDATE products SET is_hidden = 0 WHERE id = ?")->execute([$id]);
+            $_SESSION['success_msg'] = 'Sản phẩm "' . ($product['name'] ?? '') . '" đã được mở bán lại!';
+        }
+        header('Location: ' . BASE_URL . 'admin/products');
+        exit;
+    }
+
     // === Bug 5: Trang quản lý khách hàng ===
     public function users()
     {

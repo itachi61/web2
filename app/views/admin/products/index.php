@@ -88,15 +88,23 @@
                                     <?php endif; ?>
                                 </td>
                                 <td class="text-end pe-4">
-                                    <a href="<?= BASE_URL ?>admin/editProduct/<?= $item['id'] ?>" class="btn btn-sm btn-outline-warning me-2">
+                                    <a href="<?= BASE_URL ?>admin/editProduct/<?= $item['id'] ?>" class="btn btn-sm btn-outline-warning me-1">
                                         <i class="fa-solid fa-pen"></i>
                                     </a>
 
-                                    <form action="<?= BASE_URL ?>admin/deleteProduct/<?= $item['id'] ?>" method="POST" class="d-inline">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
-                                    </form>
+                                    <?php if (!empty($item['is_hidden'])): ?>
+                                        <form action="<?= BASE_URL ?>admin/restoreProduct/<?= $item['id'] ?>" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-success" title="Mở bán lại">
+                                                <i class="fa-solid fa-eye me-1"></i>Mở bán
+                                            </button>
+                                        </form>
+                                    <?php else: ?>
+                                        <form action="<?= BASE_URL ?>admin/deleteProduct/<?= $item['id'] ?>" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
