@@ -23,7 +23,7 @@ class ProductModel extends Database
     // Lấy sản phẩm theo danh mục
     public function getProductsByCategory($categoryId)
     {
-        $stmt = $this->conn->prepare("SELECT * FROM products WHERE category_id = ?");
+        $stmt = $this->conn->prepare("SELECT * FROM products WHERE category_id = ? AND is_hidden = 0");
         $stmt->execute([$categoryId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -45,7 +45,7 @@ class ProductModel extends Database
     // Tìm sản phẩm cơ bản (theo tên)
     public function searchProduct($keyword)
     {
-        $stmt = $this->conn->prepare("SELECT * FROM products WHERE name LIKE ?");
+        $stmt = $this->conn->prepare("SELECT * FROM products WHERE name LIKE ? AND is_hidden = 0");
         $stmt->execute(['%' . $keyword . '%']);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -135,7 +135,7 @@ class ProductModel extends Database
     public function getAllProductsPaginated($page = 1, $perPage = 8, $sort = 'newest') {
         $offset = ($page - 1) * $perPage;
         $orderBy = $this->getOrderByClause($sort);
-        $stmt = $this->conn->prepare("SELECT * FROM products $orderBy LIMIT :limit OFFSET :offset");
+        $stmt = $this->conn->prepare("SELECT * FROM products WHERE is_hidden = 0 $orderBy LIMIT :limit OFFSET :offset");
         $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
@@ -146,7 +146,7 @@ class ProductModel extends Database
     public function getProductsByCategoryPaginated($categoryId, $page = 1, $perPage = 8, $sort = 'newest') {
         $offset = ($page - 1) * $perPage;
         $orderBy = $this->getOrderByClause($sort);
-        $stmt = $this->conn->prepare("SELECT * FROM products WHERE category_id = :categoryId $orderBy LIMIT :limit OFFSET :offset");
+        $stmt = $this->conn->prepare("SELECT * FROM products WHERE category_id = :categoryId AND is_hidden = 0 $orderBy LIMIT :limit OFFSET :offset");
         $stmt->bindValue(':categoryId', $categoryId, PDO::PARAM_INT);
         $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
@@ -156,7 +156,7 @@ class ProductModel extends Database
 
     // Đếm tổng số sản phẩm
     public function getTotalProductsCount() {
-        $stmt = $this->conn->prepare("SELECT COUNT(*) as total FROM products");
+        $stmt = $this->conn->prepare("SELECT COUNT(*) as total FROM products WHERE is_hidden = 0");
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result['total'];
@@ -164,7 +164,7 @@ class ProductModel extends Database
 
     // Đếm tổng số sản phẩm theo danh mục
     public function getTotalProductsByCategoryCount($categoryId) {
-        $stmt = $this->conn->prepare("SELECT COUNT(*) as total FROM products WHERE category_id = ?");
+        $stmt = $this->conn->prepare("SELECT COUNT(*) as total FROM products WHERE category_id = ? AND is_hidden = 0");
         $stmt->execute([$categoryId]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result['total'];
@@ -175,7 +175,7 @@ class ProductModel extends Database
     public function searchProductAdvanced($keyword, $categories = [], $minPrice = null, $maxPrice = null, $sort = 'newest') {
         
         // 1. Khởi tạo câu SQL
-        $sql = "SELECT * FROM products WHERE name LIKE :keyword";
+        $sql = "SELECT * FROM products WHERE name LIKE :keyword AND is_hidden = 0";
         
         // Mảng chứa giá trị để bind vào câu SQL
         $params = [':keyword' => "%$keyword%"];

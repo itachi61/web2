@@ -64,6 +64,9 @@
                                 </td>
                                 <td>
                                     <span class="fw-bold text-dark d-block"><?= $item['name'] ?></span>
+                                    <?php if (!empty($item['is_hidden'])): ?>
+                                        <span class="badge bg-secondary mt-1"><i class="fa-solid fa-eye-slash me-1"></i>Đã ẩn</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="fw-bold text-primary">
                                     <?= number_format($item['price'], 0, ',', '.') ?>đ

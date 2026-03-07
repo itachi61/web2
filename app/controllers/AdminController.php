@@ -258,7 +258,7 @@ class AdminController extends Controller
         exit;
     }
 
-    // === Bug 4: Hàm xóa sản phẩm (cải tiến với cảnh báo stock) ===
+    // Xóa sản phẩm: nếu chưa nhập hàng → xóa hẳn, nếu đã nhập → ẩn SP
     public function deleteProduct($id)
     {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -270,11 +270,9 @@ class AdminController extends Controller
                 exit;
             }
 
-            // Kiểm tra nếu có param force_delete hoặc stock = 0 thì xóa
             $forceDelete = isset($_POST['force_delete']) && $_POST['force_delete'] == '1';
 
             if ($product['stock'] > 0 && !$forceDelete) {
-                // Hiển thị cảnh báo - truyền thông tin stock qua session
                 $_SESSION['delete_warning'] = [
                     'product_id' => $id,
                     'product_name' => $product['name'],
@@ -284,16 +282,26 @@ class AdminController extends Controller
                 exit;
             }
 
-            // Xóa ảnh và folder trên server
-            if ($product['image']) {
-                $imgPath = dirname(__DIR__, 2) . '/public/images/' . $product['image'];
-                if (file_exists($imgPath)) {
-                    unlink($imgPath);
+            // Kiểm tra sản phẩm đã từng nhập hàng chưa
+            $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+            $stmt = $db->prepare("SELECT COUNT(*) FROM import_history WHERE product_id = ?");
+            $stmt->execute([$id]);
+            $hasImportHistory = $stmt->fetchColumn() > 0;
+
+            if ($hasImportHistory) {
+                // Đã nhập hàng → ẩn sản phẩm (soft delete)
+                $db->prepare("UPDATE products SET is_hidden = 1 WHERE id = ?")->execute([$id]);
+                $_SESSION['success_msg'] = 'Sản phẩm "' . $product['name'] . '" đã được ẩn khỏi website (vẫn giữ lịch sử nhập hàng).';
+            } else {
+                // Chưa nhập hàng → xóa hẳn
+                if ($product['image']) {
+                    $imgPath = dirname(__DIR__, 2) . '/public/images/' . $product['image'];
+                    if (file_exists($imgPath)) unlink($imgPath);
                 }
+                $model->deleteProduct($id);
+                $_SESSION['success_msg'] = 'Đã xóa hẳn sản phẩm "' . $product['name'] . '" khỏi CSDL.';
             }
 
-            $model->deleteProduct($id);
-            $_SESSION['success_msg'] = 'Đã xóa sản phẩm "' . $product['name'] . '" thành công!';
             header('Location: ' . BASE_URL . 'admin/products');
             exit;
         }
