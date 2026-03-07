@@ -106,25 +106,55 @@
                     <hr>
                     <h6 class="fw-bold mb-3"><i class="fa-solid fa-box me-1"></i> Sản phẩm trong đơn</h6>
                     <?php if (!empty($order['items'])): ?>
+                    <?php $totalRevenue = 0; $totalCost = 0; ?>
                     <table class="table table-sm">
                         <thead class="table-light">
                             <tr>
                                 <th>Sản phẩm</th>
-                                <th>Đơn giá</th>
+                                <th>Đơn giá bán</th>
+                                <th>Giá vốn</th>
                                 <th>SL</th>
                                 <th>Thành tiền</th>
+                                <th>Lãi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($order['items'] as $item): ?>
+                            <?php foreach ($order['items'] as $item): 
+                                $itemRevenue = $item['price'] * $item['quantity'];
+                                $itemCost = ($item['cost_price'] ?? 0) * $item['quantity'];
+                                $itemProfit = $itemRevenue - $itemCost;
+                                $totalRevenue += $itemRevenue;
+                                $totalCost += $itemCost;
+                            ?>
                             <tr>
                                 <td class="fw-bold"><?= htmlspecialchars($item['product_name'] ?? 'SP #' . $item['product_id']) ?></td>
                                 <td><?= number_format($item['price'], 0, ',', '.') ?>đ</td>
+                                <td class="text-muted small"><?= number_format($item['cost_price'] ?? 0, 0, ',', '.') ?>đ</td>
                                 <td><?= $item['quantity'] ?></td>
-                                <td class="fw-bold text-primary"><?= number_format($item['price'] * $item['quantity'], 0, ',', '.') ?>đ</td>
+                                <td class="fw-bold text-primary"><?= number_format($itemRevenue, 0, ',', '.') ?>đ</td>
+                                <td class="fw-bold <?= $itemProfit >= 0 ? 'text-success' : 'text-danger' ?>">
+                                    <?= ($itemProfit >= 0 ? '+' : '') . number_format($itemProfit, 0, ',', '.') ?>đ
+                                </td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
+                        <tfoot class="table-light">
+                            <tr class="fw-bold">
+                                <td colspan="4" class="text-end">Tổng cộng:</td>
+                                <td class="text-primary"><?= number_format($totalRevenue, 0, ',', '.') ?>đ</td>
+                                <td class="<?= ($totalRevenue - $totalCost) >= 0 ? 'text-success' : 'text-danger' ?>" style="font-size:1.05em;">
+                                    <?= ($totalRevenue - $totalCost) >= 0 ? '+' : '' ?><?= number_format($totalRevenue - $totalCost, 0, ',', '.') ?>đ
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="text-end text-muted small">Chi tiết:</td>
+                                <td colspan="2" class="small">
+                                    Doanh thu: <strong class="text-primary"><?= number_format($totalRevenue, 0, ',', '.') ?>đ</strong> | 
+                                    Vốn: <strong class="text-danger"><?= number_format($totalCost, 0, ',', '.') ?>đ</strong> | 
+                                    Lãi: <strong class="<?= ($totalRevenue - $totalCost) >= 0 ? 'text-success' : 'text-danger' ?>"><?= number_format($totalRevenue - $totalCost, 0, ',', '.') ?>đ</strong>
+                                </td>
+                            </tr>
+                        </tfoot>
                     </table>
                     <?php else: ?>
                         <p class="text-muted">Không có dữ liệu chi tiết sản phẩm.</p>
