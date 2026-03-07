@@ -104,7 +104,7 @@
                             <div class="card product-card h-100 border-0 shadow-sm">
                                 <div class="position-relative text-center p-3 bg-white rounded-top" style="height: 200px;">
                                     <a href="<?= BASE_URL ?>product/detail/<?= $item['id'] ?>">
-                                        <img src="<?= BASE_URL ?>public/images/<?= $item['image'] ?>" 
+                                        <img src="<?= BASE_URL ?>images/<?= $item['image'] ?>" 
                                              class="img-fluid h-100" 
                                              style="object-fit: contain;"
                                              onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'">
