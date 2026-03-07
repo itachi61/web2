@@ -63,33 +63,39 @@
                     const _profit = document.getElementById('profitValue');
                     const fmt = n => new Intl.NumberFormat('vi-VN').format(Math.round(n));
 
+                    // Công thức: Giá bán = Giá nhập × (1 + LN%)
                     function calcFromMargin() {
                         const cost = parseFloat(_cost.value) || 0;
                         const margin = parseFloat(_margin.value) || 0;
-                        const discount = parseFloat(_discount.value) || 0;
                         const price = Math.round(cost * (1 + margin / 100));
                         _price.value = price;
-                        const realPrice = price * (1 - discount / 100);
-                        _profit.textContent = fmt(realPrice - cost) + 'đ (' + Math.round((realPrice/cost - 1)*100*10)/10 + '%)';
+                        updateProfitDisplay(cost, price);
                     }
                     function calcFromPrice() {
                         const cost = parseFloat(_cost.value) || 0;
                         const price = parseFloat(_price.value) || 0;
-                        const discount = parseFloat(_discount.value) || 0;
-                        const realPrice = price * (1 - discount / 100);
                         if (cost > 0) {
-                            const margin = ((price / cost) - 1) * 100;
-                            _margin.value = Math.round(margin * 10) / 10;
+                            const margin = Math.round(((price / cost) - 1) * 100 * 10) / 10;
+                            _margin.value = margin;
                         }
-                        _profit.textContent = fmt(realPrice - cost) + 'đ (' + (cost > 0 ? Math.round((realPrice/cost - 1)*100*10)/10 : 0) + '%)';
+                        updateProfitDisplay(cost, price);
+                    }
+                    function updateProfitDisplay(cost, price) {
+                        const discount = parseFloat(_discount.value) || 0;
+                        const profit = price - cost;
+                        const realProfit = price * (1 - discount / 100) - cost;
+                        let text = fmt(profit) + 'đ';
+                        if (discount > 0) text += ' (KM: ' + fmt(realProfit) + 'đ)';
+                        _profit.textContent = text;
                     }
                     _cost.addEventListener('input', calcFromMargin);
                     _margin.addEventListener('input', calcFromMargin);
                     _price.addEventListener('input', calcFromPrice);
-                    _discount.addEventListener('input', () => { calcFromPrice(); });
+                    _discount.addEventListener('input', () => updateProfitDisplay(
+                        parseFloat(_cost.value)||0, parseFloat(_price.value)||0
+                    ));
                     // Init
-                    if (parseFloat(_margin.value) > 0) calcFromMargin();
-                    else calcFromPrice();
+                    calcFromPrice();
                     </script>
 
                     <div class="mb-3">
