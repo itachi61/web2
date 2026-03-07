@@ -172,9 +172,9 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         // Translate nav links, buttons, headings, labels, spans, etc.
-        document.querySelectorAll('.nav-link, .btn, h1, h2, h3, h4, h5, h6, label, th, td span, .dropdown-item, p, small, span, a, .breadcrumb-item, li').forEach(el => {
-            // Skip elements with children that are complex
-            if (el.children.length > 1) return;
+        document.querySelectorAll('.nav-link, .btn, h1, h2, h3, h4, h5, h6, label, th, td span, .dropdown-item, p, small, span, a, .breadcrumb-item').forEach(el => {
+            // Skip elements with many children (complex elements)
+            if (el.children.length > 2) return;
 
             // Handle elements with icon + text
             const textContent = el.textContent.trim();
