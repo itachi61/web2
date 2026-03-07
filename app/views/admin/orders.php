@@ -4,7 +4,7 @@
 
 <div class="card shadow-sm border-0 rounded-3">
     <div class="card-body p-0">
-        <div class="table-responsive">
+        <div class="table-responsive" style="overflow:visible;">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light text-secondary">
                     <tr>
