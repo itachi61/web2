@@ -278,7 +278,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (data.needLogin) {
                         window.location.href = baseUrl + 'auth/login';
                     } else {
-                        alert(data.message || 'Có lỗi xảy ra');
+                        showCartToast(data.message || 'Có lỗi xảy ra');
                     }
                 }
             })
