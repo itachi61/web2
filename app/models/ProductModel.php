@@ -86,9 +86,14 @@ class ProductModel extends Database
     // Xóa sản phẩm
     public function deleteProduct($id)
     {
-        // Xóa ảnh phụ trước
-        $stmt = $this->conn->prepare("DELETE FROM product_images WHERE product_id = ?");
-        $stmt->execute([$id]);
+        // Xóa các bản ghi liên quan trước
+        $tables = ['product_images', 'import_history', 'stock_history', 'order_items', 'cart_items'];
+        foreach ($tables as $table) {
+            try {
+                $stmt = $this->conn->prepare("DELETE FROM $table WHERE product_id = ?");
+                $stmt->execute([$id]);
+            } catch (Exception $e) {} // Bỏ qua nếu bảng chưa tồn tại
+        }
         // Xóa sản phẩm
         $stmt = $this->conn->prepare("DELETE FROM products WHERE id = ?");
         return $stmt->execute([$id]);
