@@ -51,7 +51,7 @@
             <div class="card border-0 shadow-sm mb-3" style="border-radius: 12px; overflow: hidden;">
                 <div class="card-body p-2 text-center d-flex align-items-center justify-content-center position-relative" style="height: 450px; background: #fff;">
                     <img id="mainImage"
-                        src="<?= BASE_URL ?>public/images/<?= $product['image'] ?>"
+                        src="<?= BASE_URL ?>images/<?= $product['image'] ?>"
                         class="img-fluid"
                         style="max-height: 100%; object-fit: contain; transition: 0.3s;"
                         alt="<?= $product['name'] ?>"
@@ -60,14 +60,14 @@
             </div>
 
             <div class="d-flex gap-2 overflow-auto mb-4 pb-2 custom-scrollbar">
-                <div class="thumb-box active" onclick="changeMainImage(this, '<?= BASE_URL ?>public/images/<?= $product['image'] ?>')">
-                    <img src="<?= BASE_URL ?>public/images/<?= $product['image'] ?>" class="img-fluid" alt="Thumb">
+                <div class="thumb-box active" onclick="changeMainImage(this, '<?= BASE_URL ?>images/<?= $product['image'] ?>')">
+                    <img src="<?= BASE_URL ?>images/<?= $product['image'] ?>" class="img-fluid" alt="Thumb">
                 </div>
 
                 <?php if (isset($images) && count($images) > 0): ?>
                     <?php foreach ($images as $img): ?>
-                        <div class="thumb-box" onclick="changeMainImage(this, '<?= BASE_URL ?>public/images/<?= $img['image_path'] ?>')">
-                            <img src="<?= BASE_URL ?>public/images/<?= $img['image_path'] ?>" class="img-fluid" alt="Thumb">
+                        <div class="thumb-box" onclick="changeMainImage(this, '<?= BASE_URL ?>images/<?= $img['image_path'] ?>')">
+                            <img src="<?= BASE_URL ?>images/<?= $img['image_path'] ?>" class="img-fluid" alt="Thumb">
                         </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
@@ -99,9 +99,12 @@
                 <div class="card-body p-4">
                     
                     <div class="d-flex align-items-end gap-3 mb-3 pb-3 border-bottom">
+                        <?php $disc = intval($product['discount'] ?? 0); ?>
                         <h2 class="text-danger fw-bold mb-0"><?= number_format($product['price'], 0, ',', '.') ?>đ</h2>
-                        <span class="text-decoration-line-through text-muted mb-1"><?= number_format($product['price'] * 1.1, 0, ',', '.') ?>đ</span>
-                        <span class="badge bg-danger mb-2">-10%</span>
+                        <?php if ($disc > 0): ?>
+                            <span class="text-decoration-line-through text-muted mb-1"><?= number_format($product['price'] / (1 - $disc/100), 0, ',', '.') ?>đ</span>
+                            <span class="badge bg-danger mb-2">-<?= $disc ?>%</span>
+                        <?php endif; ?>
                     </div>
 
                     <div class="d-flex align-items-center py-2 px-3 mb-4 bg-danger bg-opacity-10 border border-danger rounded-3">
@@ -132,13 +135,13 @@
                     <div class="mb-2">
                         <div class="row g-2 mb-2">
                             <div class="col-6">
-                                <a href="<?= BASE_URL ?>cart/add/<?= $product['id'] ?>" class="btn btn-add-cart w-100 h-100 py-3 rounded-3 d-flex flex-column align-items-center justify-content-center text-decoration-none shadow-sm">
+                                <a href="<?= BASE_URL ?>cart/add/<?= $product['id'] ?>" class="btn btn-add-cart w-100 h-100 py-3 rounded-3 d-flex flex-column align-items-center justify-content-center text-decoration-none shadow-sm" data-product-id="<?= $product['id'] ?>" data-base-url="<?= BASE_URL ?>">
                                     <i class="fa-solid fa-cart-plus mb-1 fs-5"></i>
                                     <span class="fw-bold small">THÊM VÀO GIỎ</span>
                                 </a>
                             </div>
                             <div class="col-6">
-                                <a href="<?= BASE_URL ?>cart/add/<?= $product['id'] ?>" class="btn btn-danger w-100 h-100 py-3 rounded-3 d-flex flex-column align-items-center justify-content-center text-decoration-none shadow-sm">
+                                <a href="<?= BASE_URL ?>cart/add/<?= $product['id'] ?>?redirect=checkout" class="btn btn-danger w-100 h-100 py-3 rounded-3 d-flex flex-column align-items-center justify-content-center text-decoration-none shadow-sm">
                                     <strong class="text-uppercase mb-1">MUA NGAY</strong>
                                     <small style="font-size: 11px; font-weight: normal;">(Giao tận nơi nhanh chóng)</small>
                                 </a>
@@ -244,4 +247,14 @@
         document.querySelectorAll('.thumb-box').forEach(el => el.classList.remove('active'));
         element.classList.add('active');
     }
+</script>
+
+<script>
+    // Smooth scroll to reviews
+    document.querySelectorAll('a[href="#reviews"]').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('reviews').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
 </script>

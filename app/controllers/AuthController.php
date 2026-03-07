@@ -147,5 +147,33 @@ class AuthController extends Controller {
         header('Location: ' . BASE_URL . 'auth/profile');
         exit;
     }
+
+    // --- ĐƠN HÀNG CỦA TÔI ---
+    public function myOrders() {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: ' . BASE_URL . 'auth/login');
+            exit;
+        }
+
+        try {
+            $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+            $stmt = $db->prepare("SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC");
+            $stmt->execute([$_SESSION['user_id']]);
+            $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Lấy items cho từng đơn
+            foreach ($orders as &$order) {
+                $stmt2 = $db->prepare("SELECT oi.*, p.name as product_name, p.image FROM order_items oi LEFT JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?");
+                $stmt2->execute([$order['id']]);
+                $order['items'] = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+            }
+        } catch (Exception $e) {
+            $orders = [];
+        }
+
+        $this->view('auth/my_orders', ['orders' => $orders]);
+    }
 }
 ?>

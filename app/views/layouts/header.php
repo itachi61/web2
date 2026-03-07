@@ -100,7 +100,7 @@ $IMG = BASE_URL . 'img/';
                                 <li><hr class="dropdown-divider"></li>
                             <?php endif; ?>
                             <li><a class="dropdown-item" href="<?= BASE_URL ?>auth/profile"><i class="fa-solid fa-user-pen me-2"></i>Thông tin cá nhân</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="fa-solid fa-box me-2"></i>Đơn hàng của tôi</a></li>
+                            <li><a class="dropdown-item" href="<?= BASE_URL ?>auth/myOrders"><i class="fa-solid fa-box me-2"></i>Đơn hàng của tôi</a></li>
                             <li><a class="dropdown-item text-danger" href="<?= BASE_URL ?>auth/logout"><i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất</a></li>
                         </ul>
                     </div>
