@@ -25,10 +25,89 @@
                         
                         <div class="mb-3">
                             <label class="form-label fw-bold">Địa chỉ giao hàng <span class="text-danger">*</span></label>
-                            <textarea name="address" class="form-control" rows="3" 
-                                      placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố" required><?= htmlspecialchars($_SESSION['address'] ?? '') ?></textarea>
+                            
+                            <?php $savedAddr = $_SESSION['address'] ?? ''; ?>
+                            <?php if ($savedAddr): ?>
+                            <div class="alert alert-light border py-2 mb-2 d-flex justify-content-between align-items-center" id="savedAddrBox">
+                                <div>
+                                    <i class="fa-solid fa-location-dot text-primary me-1"></i>
+                                    <span class="small"><?= htmlspecialchars($savedAddr) ?></span>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('savedAddrBox').style.display='none'; document.getElementById('newAddrForm').style.display='block'; document.getElementById('addressField').value='';">
+                                    <i class="fa-solid fa-pen me-1"></i>Đổi
+                                </button>
+                            </div>
+                            <?php endif; ?>
+
+                            <div id="newAddrForm" style="<?= $savedAddr ? 'display:none' : '' ?>">
+                                <div class="row g-2 mb-2">
+                                    <div class="col-md-4">
+                                        <select id="province" class="form-select" required>
+                                            <option value="">Tỉnh/Thành phố</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select id="district" class="form-select" disabled>
+                                            <option value="">Quận/Huyện</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select id="ward" class="form-select" disabled>
+                                            <option value="">Phường/Xã</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <input type="text" id="streetAddr" class="form-control" placeholder="Số nhà, tên đường (VD: 123 Nguyễn Huệ)">
+                            </div>
+
+                            <input type="hidden" name="address" id="addressField" value="<?= htmlspecialchars($savedAddr) ?>" required>
                             <small class="text-muted"><i class="fa-solid fa-info-circle me-1"></i>Bạn có thể dùng địa chỉ khác cho đơn hàng này</small>
                         </div>
+
+                        <script>
+                        const API = 'https://provinces.open-api.vn/api/';
+                        const pSel = document.getElementById('province');
+                        const dSel = document.getElementById('district');
+                        const wSel = document.getElementById('ward');
+                        const street = document.getElementById('streetAddr');
+                        const addrField = document.getElementById('addressField');
+
+                        function buildAddr() {
+                            const parts = [street.value, wSel.selectedOptions[0]?.text, dSel.selectedOptions[0]?.text, pSel.selectedOptions[0]?.text].filter(p => p && !p.includes('Tỉnh') && !p.includes('Quận') && !p.includes('Phường') && !p.includes('Chọn'));
+                            addrField.value = parts.join(', ');
+                        }
+
+                        fetch(API + '?depth=1').then(r=>r.json()).then(data => {
+                            data.sort((a,b) => a.name.localeCompare(b.name));
+                            data.forEach(p => { const o = new Option(p.name, p.code); pSel.add(o); });
+                        });
+
+                        pSel.onchange = function() {
+                            dSel.innerHTML = '<option value="">Quận/Huyện</option>';
+                            wSel.innerHTML = '<option value="">Phường/Xã</option>';
+                            dSel.disabled = true; wSel.disabled = true;
+                            if (!this.value) return;
+                            fetch(API + 'p/' + this.value + '?depth=2').then(r=>r.json()).then(data => {
+                                data.districts.forEach(d => dSel.add(new Option(d.name, d.code)));
+                                dSel.disabled = false;
+                            });
+                            buildAddr();
+                        };
+
+                        dSel.onchange = function() {
+                            wSel.innerHTML = '<option value="">Phường/Xã</option>';
+                            wSel.disabled = true;
+                            if (!this.value) return;
+                            fetch(API + 'd/' + this.value + '?depth=2').then(r=>r.json()).then(data => {
+                                data.wards.forEach(w => wSel.add(new Option(w.name, w.code)));
+                                wSel.disabled = false;
+                            });
+                            buildAddr();
+                        };
+
+                        wSel.onchange = buildAddr;
+                        street.addEventListener('input', buildAddr);
+                        </script>
                         
                         <div class="mb-3">
                             <label class="form-label fw-bold">Ghi chú</label>

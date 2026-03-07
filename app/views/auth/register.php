@@ -25,9 +25,38 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Địa chỉ giao hàng mặc định <span class="text-danger">*</span></label>
-                        <textarea class="form-control py-2" name="address" rows="2" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố" required></textarea>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-4">
+                                <select id="regProvince" class="form-select form-select-sm">
+                                    <option value="">Tỉnh/Thành phố</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select id="regDistrict" class="form-select form-select-sm" disabled>
+                                    <option value="">Quận/Huyện</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select id="regWard" class="form-select form-select-sm" disabled>
+                                    <option value="">Phường/Xã</option>
+                                </select>
+                            </div>
+                        </div>
+                        <input type="text" id="regStreet" class="form-control py-2" placeholder="Số nhà, tên đường (VD: 123 Nguyễn Huệ)">
+                        <input type="hidden" name="address" id="regAddrField" required>
                         <small class="text-muted"><i class="fa-solid fa-info-circle me-1"></i>Địa chỉ này sẽ được sử dụng làm mặc định khi đặt hàng</small>
                     </div>
+                    <script>
+                    (function(){
+                        const API='https://provinces.open-api.vn/api/';
+                        const p=document.getElementById('regProvince'), d=document.getElementById('regDistrict'), w=document.getElementById('regWard'), s=document.getElementById('regStreet'), f=document.getElementById('regAddrField');
+                        function build(){const pts=[s.value,w.selectedOptions[0]?.text,d.selectedOptions[0]?.text,p.selectedOptions[0]?.text].filter(x=>x&&!x.includes('Tỉnh')&&!x.includes('Quận')&&!x.includes('Phường'));f.value=pts.join(', ');}
+                        fetch(API+'?depth=1').then(r=>r.json()).then(data=>{data.sort((a,b)=>a.name.localeCompare(b.name));data.forEach(i=>{p.add(new Option(i.name,i.code));});});
+                        p.onchange=function(){d.innerHTML='<option value="">Quận/Huyện</option>';w.innerHTML='<option value="">Phường/Xã</option>';d.disabled=true;w.disabled=true;if(!this.value)return;fetch(API+'p/'+this.value+'?depth=2').then(r=>r.json()).then(data=>{data.districts.forEach(i=>d.add(new Option(i.name,i.code)));d.disabled=false;});build();};
+                        d.onchange=function(){w.innerHTML='<option value="">Phường/Xã</option>';w.disabled=true;if(!this.value)return;fetch(API+'d/'+this.value+'?depth=2').then(r=>r.json()).then(data=>{data.wards.forEach(i=>w.add(new Option(i.name,i.code)));w.disabled=false;});build();};
+                        w.onchange=build; s.addEventListener('input',build);
+                    })();
+                    </script>
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Mật khẩu <span class="text-danger">*</span></label>
