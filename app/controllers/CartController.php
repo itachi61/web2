@@ -61,6 +61,7 @@ class CartController extends Controller
         header('Content-Type: application/json');
 
         if (!isset($_SESSION['user'])) {
+            $_SESSION['login_message'] = 'Vui lòng đăng nhập trước khi mua hàng!';
             echo json_encode(['success' => false, 'message' => 'Vui lòng đăng nhập để thêm giỏ hàng!', 'needLogin' => true]);
             exit;
         }
