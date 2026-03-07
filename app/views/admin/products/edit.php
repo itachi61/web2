@@ -59,28 +59,34 @@
                     const _cost = document.getElementById('costPriceInput');
                     const _margin = document.getElementById('marginInput');
                     const _price = document.getElementById('priceInput');
+                    const _discount = document.getElementById('discountInput');
                     const _profit = document.getElementById('profitValue');
                     const fmt = n => new Intl.NumberFormat('vi-VN').format(Math.round(n));
 
                     function calcFromMargin() {
                         const cost = parseFloat(_cost.value) || 0;
                         const margin = parseFloat(_margin.value) || 0;
+                        const discount = parseFloat(_discount.value) || 0;
                         const price = Math.round(cost * (1 + margin / 100));
                         _price.value = price;
-                        _profit.textContent = fmt(price - cost) + 'đ';
+                        const realPrice = price * (1 - discount / 100);
+                        _profit.textContent = fmt(realPrice - cost) + 'đ (' + Math.round((realPrice/cost - 1)*100*10)/10 + '%)';
                     }
                     function calcFromPrice() {
                         const cost = parseFloat(_cost.value) || 0;
                         const price = parseFloat(_price.value) || 0;
+                        const discount = parseFloat(_discount.value) || 0;
+                        const realPrice = price * (1 - discount / 100);
                         if (cost > 0) {
                             const margin = ((price / cost) - 1) * 100;
                             _margin.value = Math.round(margin * 10) / 10;
                         }
-                        _profit.textContent = fmt(price - cost) + 'đ';
+                        _profit.textContent = fmt(realPrice - cost) + 'đ (' + (cost > 0 ? Math.round((realPrice/cost - 1)*100*10)/10 : 0) + '%)';
                     }
                     _cost.addEventListener('input', calcFromMargin);
                     _margin.addEventListener('input', calcFromMargin);
                     _price.addEventListener('input', calcFromPrice);
+                    _discount.addEventListener('input', () => { calcFromPrice(); });
                     // Init
                     if (parseFloat(_margin.value) > 0) calcFromMargin();
                     else calcFromPrice();
