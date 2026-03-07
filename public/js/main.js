@@ -35,16 +35,28 @@ document.addEventListener("DOMContentLoaded", function () {
         'Laptop': 'Laptop',
         'Điện thoại': 'Phones',
         'Linh kiện': 'Components',
+        'Linh Kiện': 'Components',
+        'Sản phẩm kỹ thuật số': 'Digital Products',
+        'Danh mục': 'Categories',
         'Bạn tìm gì...': 'Search...',
         'Đăng nhập': 'Login',
         'Đăng xuất': 'Logout',
         'Trang quản trị': 'Admin Panel',
         'Đơn hàng của tôi': 'My Orders',
+        'Thông tin cá nhân': 'My Profile',
 
-        // Homepage
+        // Banner Carousel
         'Công Nghệ Trong Tầm Tay': 'Technology At Your Fingertips',
+        'Khám phá những sản phẩm mới nhất với mức giá ưu đãi chưa từng có': 'Discover the latest products at unprecedented prices',
         'Khám phá những sản phẩm mới nhất với mức giá ưu đãi chưa từng có.': 'Discover the latest products at unprecedented prices.',
         'Mua sắm ngay': 'Shop Now',
+        'Flash Sale Cuối Tuần': 'Weekend Flash Sale',
+        'Xem ngay': 'View Now',
+        'Bảo Hành Chính Hãng': 'Authentic Warranty',
+        'Cam kết 100% sản phẩm chính hãng, bảo hành toàn quốc, đổi trả 30 ngày': '100% authentic products, nationwide warranty, 30-day returns',
+        'Khám phá': 'Explore',
+
+        // Homepage
         'Sản phẩm nổi bật': 'Featured Products',
         'Thêm vào giỏ': 'Add to Cart',
         'Đã bán': 'Sold',
@@ -61,7 +73,6 @@ document.addEventListener("DOMContentLoaded", function () {
         'Quay lại trang chủ': 'Back to Home',
 
         // Product detail
-        'Thêm vào giỏ': 'Add to Cart',
         'Đánh giá sản phẩm': 'Product Reviews',
         'Gửi đánh giá': 'Submit Review',
         'Mô tả sản phẩm': 'Product Description',
@@ -89,12 +100,40 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Footer
         'VỀ TECHSMART': 'ABOUT TECHSMART',
+        'Về TechSmart': 'About TechSmart',
         'HỖ TRỢ KHÁCH HÀNG': 'CUSTOMER SUPPORT',
+        'Hỗ trợ khách hàng': 'Customer Support',
         'LIÊN HỆ': 'CONTACT',
+        'Liên hệ': 'Contact',
         'Hướng dẫn mua hàng': 'Shopping Guide',
         'Chính sách bảo hành': 'Warranty Policy',
         'Vận chuyển & Giao nhận': 'Shipping & Delivery',
         'Phương thức thanh toán': 'Payment Methods',
+        'Hệ thống bán lẻ công nghệ uy tín hàng đầu. Cam kết sản phẩm chính hãng, bảo hành trọn đời, hỗ trợ 24/7.': 'Leading technology retail system. 100% authentic products, lifetime warranty, 24/7 support.',
+
+        // Checkout
+        'Thanh toán': 'Checkout',
+        'Thông tin giao hàng': 'Shipping Information',
+        'Họ và tên người nhận': 'Recipient Name',
+        'Số điện thoại': 'Phone Number',
+        'Địa chỉ giao hàng': 'Shipping Address',
+        'Ghi chú': 'Notes',
+        'Phương thức thanh toán': 'Payment Methods',
+        'Thanh toán khi nhận hàng (COD)': 'Cash on Delivery (COD)',
+        'Chuyển khoản ngân hàng': 'Bank Transfer',
+        'Đơn hàng của bạn': 'Your Order',
+        'Xác nhận đặt hàng': 'Place Order',
+        'Quay lại giỏ hàng': 'Back to Cart',
+
+        // Auth
+        'Đăng Ký Tài Khoản': 'Create Account',
+        'Họ và tên': 'Full Name',
+        'Địa chỉ Email': 'Email Address',
+        'Mật khẩu': 'Password',
+        'Nhập lại mật khẩu': 'Confirm Password',
+        'Tạo tài khoản': 'Sign Up',
+        'Đã có tài khoản? Đăng nhập': 'Already have an account? Login',
+        'Địa chỉ giao hàng mặc định': 'Default Shipping Address',
 
         // Toast
         'Đã thêm vào giỏ hàng!': 'Added to cart!',
