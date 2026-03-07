@@ -33,26 +33,14 @@
                                 <td>
                                     <?php 
                                     $status = $order['status'] ?? 'pending';
-                                    $statusMap = [
-                                        'pending' => ['bg' => 'warning', 'text' => 'Chờ xử lý', 'icon' => 'clock'],
-                                        'processing' => ['bg' => 'info', 'text' => 'Đang giao', 'icon' => 'truck'],
-                                        'completed' => ['bg' => 'success', 'text' => 'Hoàn thành', 'icon' => 'check-circle'],
-                                        'cancelled' => ['bg' => 'danger', 'text' => 'Đã hủy', 'icon' => 'xmark-circle'],
-                                    ];
-                                    $s = $statusMap[$status] ?? $statusMap['pending'];
+                                    $colorMap = ['pending' => '#fff3cd', 'processing' => '#cff4fc', 'completed' => '#d1e7dd', 'cancelled' => '#f8d7da'];
                                     ?>
-                                    <div class="dropdown">
-                                        <span class="badge bg-<?= $s['bg'] ?>-subtle text-<?= $s['bg'] ?> border border-<?= $s['bg'] ?> px-3 rounded-pill dropdown-toggle" role="button" data-bs-toggle="dropdown" style="cursor:pointer;">
-                                            <i class="fa-solid fa-<?= $s['icon'] ?> me-1"></i><?= $s['text'] ?>
-                                        </span>
-                                        <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>admin/updateOrderStatus/<?= $order['id'] ?>/pending"><i class="fa-solid fa-clock text-warning me-2"></i>Chờ xử lý</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>admin/updateOrderStatus/<?= $order['id'] ?>/processing"><i class="fa-solid fa-truck text-info me-2"></i>Đang giao</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>admin/updateOrderStatus/<?= $order['id'] ?>/completed"><i class="fa-solid fa-check-circle text-success me-2"></i>Hoàn thành</a></li>
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item text-danger" href="<?= BASE_URL ?>admin/updateOrderStatus/<?= $order['id'] ?>/cancelled"><i class="fa-solid fa-xmark-circle me-2"></i>Hủy đơn</a></li>
-                                        </ul>
-                                    </div>
+                                    <select class="form-select form-select-sm fw-bold" style="width:140px; background-color:<?= $colorMap[$status] ?? '#fff' ?>; border-radius:20px; font-size:0.8rem;" onchange="if(this.value) window.location='<?= BASE_URL ?>admin/updateOrderStatus/<?= $order['id'] ?>/'+this.value">
+                                        <option value="pending" <?= $status=='pending'?'selected':'' ?>>🕐 Chờ xử lý</option>
+                                        <option value="processing" <?= $status=='processing'?'selected':'' ?>>🚚 Đang giao</option>
+                                        <option value="completed" <?= $status=='completed'?'selected':'' ?>>✅ Hoàn thành</option>
+                                        <option value="cancelled" <?= $status=='cancelled'?'selected':'' ?>>❌ Đã hủy</option>
+                                    </select>
                                 </td>
                                 <td class="text-muted small">
                                     <?= isset($order['created_at']) ? date('d/m/Y H:i', strtotime($order['created_at'])) : 'N/A' ?>
@@ -105,7 +93,12 @@
                             <p class="mb-1"><strong>Ngày đặt:</strong> <?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></p>
                             <p class="mb-1"><strong>Tổng tiền:</strong> <span class="text-danger fw-bold"><?= number_format($order['total_money'] ?? 0, 0, ',', '.') ?>đ</span></p>
                             <p class="mb-0"><strong>Trạng thái:</strong> 
-                                <span class="badge bg-<?= $statusMap[$order['status']]['bg'] ?? 'secondary' ?>"><?= $statusMap[$order['status']]['text'] ?? 'N/A' ?></span>
+                                <?php 
+                                $mStatus = $order['status'] ?? 'pending';
+                                $mMap = ['pending'=>['warning','Chờ xử lý'],'processing'=>['info','Đang giao'],'completed'=>['success','Hoàn thành'],'cancelled'=>['danger','Đã hủy']];
+                                $mS = $mMap[$mStatus] ?? $mMap['pending'];
+                                ?>
+                                <span class="badge bg-<?= $mS[0] ?>"><?= $mS[1] ?></span>
                             </p>
                         </div>
                     </div>
