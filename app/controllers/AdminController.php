@@ -199,9 +199,11 @@ class AdminController extends Controller
         $cost_price = isset($_POST['cost_price']) ? floatval($_POST['cost_price']) : 0;
         $profit_margin = isset($_POST['profit_margin']) ? floatval($_POST['profit_margin']) : 0;
 
-        // Auto-calculate price from cost and margin
+        // Bidirectional: margin↔price
         if ($cost_price > 0 && $profit_margin > 0) {
             $price = round($cost_price * (1 + $profit_margin / 100));
+        } elseif ($cost_price > 0 && $price > 0) {
+            $profit_margin = round((($price / $cost_price) - 1) * 100, 2);
         }
 
         $model = $this->model('ProductModel');

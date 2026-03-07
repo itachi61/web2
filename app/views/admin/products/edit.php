@@ -56,17 +56,34 @@
                         </div>
                     </div>
                     <script>
-                    function calcProfit() {
-                        const cost = parseFloat(document.getElementById('costPriceInput').value) || 0;
-                        const margin = parseFloat(document.getElementById('marginInput').value) || 0;
+                    const _cost = document.getElementById('costPriceInput');
+                    const _margin = document.getElementById('marginInput');
+                    const _price = document.getElementById('priceInput');
+                    const _profit = document.getElementById('profitValue');
+                    const fmt = n => new Intl.NumberFormat('vi-VN').format(Math.round(n));
+
+                    function calcFromMargin() {
+                        const cost = parseFloat(_cost.value) || 0;
+                        const margin = parseFloat(_margin.value) || 0;
                         const price = Math.round(cost * (1 + margin / 100));
-                        document.getElementById('priceInput').value = price;
-                        const profit = price - cost;
-                        document.getElementById('profitValue').textContent = new Intl.NumberFormat('vi-VN').format(profit) + 'đ';
+                        _price.value = price;
+                        _profit.textContent = fmt(price - cost) + 'đ';
                     }
-                    document.getElementById('costPriceInput').addEventListener('input', calcProfit);
-                    document.getElementById('marginInput').addEventListener('input', calcProfit);
-                    calcProfit();
+                    function calcFromPrice() {
+                        const cost = parseFloat(_cost.value) || 0;
+                        const price = parseFloat(_price.value) || 0;
+                        if (cost > 0) {
+                            const margin = ((price / cost) - 1) * 100;
+                            _margin.value = Math.round(margin * 10) / 10;
+                        }
+                        _profit.textContent = fmt(price - cost) + 'đ';
+                    }
+                    _cost.addEventListener('input', calcFromMargin);
+                    _margin.addEventListener('input', calcFromMargin);
+                    _price.addEventListener('input', calcFromPrice);
+                    // Init
+                    if (parseFloat(_margin.value) > 0) calcFromMargin();
+                    else calcFromPrice();
                     </script>
 
                     <div class="mb-3">
