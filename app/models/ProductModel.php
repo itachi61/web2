@@ -73,13 +73,13 @@ class ProductModel extends Database
     }
 
     // Cập nhật sản phẩm
-    public function updateProduct($id, $name, $cat_id, $price, $desc, $image = null, $discount = 0, $cost_price = 0) {
+    public function updateProduct($id, $name, $cat_id, $price, $desc, $image = null, $discount = 0, $cost_price = 0, $profit_margin = 0) {
         if ($image) {
-            $stmt = $this->conn->prepare("UPDATE products SET name = ?, category_id = ?, price = ?, discount = ?, cost_price = ?, description = ?, image = ? WHERE id = ?");
-            return $stmt->execute([$name, $cat_id, $price, $discount, $cost_price, $desc, $image, $id]);
+            $stmt = $this->conn->prepare("UPDATE products SET name = ?, category_id = ?, price = ?, discount = ?, cost_price = ?, profit_margin = ?, description = ?, image = ? WHERE id = ?");
+            return $stmt->execute([$name, $cat_id, $price, $discount, $cost_price, $profit_margin, $desc, $image, $id]);
         } else {
-            $stmt = $this->conn->prepare("UPDATE products SET name = ?, category_id = ?, price = ?, discount = ?, cost_price = ?, description = ? WHERE id = ?");
-            return $stmt->execute([$name, $cat_id, $price, $discount, $cost_price, $desc, $id]);
+            $stmt = $this->conn->prepare("UPDATE products SET name = ?, category_id = ?, price = ?, discount = ?, cost_price = ?, profit_margin = ?, description = ? WHERE id = ?");
+            return $stmt->execute([$name, $cat_id, $price, $discount, $cost_price, $profit_margin, $desc, $id]);
         }
     }
 

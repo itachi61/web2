@@ -24,13 +24,19 @@ class AdminController extends Controller
     // Trang quản lý đơn hàng
     public function orders()
     {
-        // Lấy đơn hàng từ DB
         try {
-            $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+            $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);
             $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $stmt = $db->prepare("SELECT o.*, u.fullname, u.email FROM orders o LEFT JOIN users u ON o.user_id = u.id ORDER BY o.id DESC");
-            $stmt->execute();
+            $stmt = $db->query("SELECT o.*, u.fullname, u.email FROM orders o LEFT JOIN users u ON o.user_id = u.id ORDER BY o.id DESC");
             $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Load order items for each order
+            $stmtItems = $db->prepare("SELECT oi.*, p.name as product_name, p.image as product_image FROM order_items oi LEFT JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?");
+            foreach ($orders as &$order) {
+                $stmtItems->execute([$order['id']]);
+                $order['items'] = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
+            }
+            unset($order);
         } catch (Exception $e) {
             $orders = [];
         }
@@ -40,6 +46,26 @@ class AdminController extends Controller
             'active' => 'orders',
             'orders' => $orders
         ]);
+    }
+
+    // === CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG ===
+    public function updateOrderStatus($id = null, $status = null) {
+        $validStatuses = ['pending', 'processing', 'completed', 'cancelled'];
+        if (!$id || !$status || !in_array($status, $validStatuses)) {
+            header('Location: ' . BASE_URL . 'admin/orders');
+            exit;
+        }
+        try {
+            $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $stmt = $db->prepare("UPDATE orders SET status = ? WHERE id = ?");
+            $stmt->execute([$status, $id]);
+            $_SESSION['success_msg'] = 'Đã cập nhật trạng thái đơn hàng #' . $id;
+        } catch (Exception $e) {
+            $_SESSION['error_msg'] = 'Lỗi: ' . $e->getMessage();
+        }
+        header('Location: ' . BASE_URL . 'admin/orders');
+        exit;
     }
     // Trang thống kê báo cáo
     public function statistics()
@@ -171,6 +197,12 @@ class AdminController extends Controller
         $desc = $_POST['description'];
         $discount = isset($_POST['discount']) ? intval($_POST['discount']) : 0;
         $cost_price = isset($_POST['cost_price']) ? floatval($_POST['cost_price']) : 0;
+        $profit_margin = isset($_POST['profit_margin']) ? floatval($_POST['profit_margin']) : 0;
+
+        // Auto-calculate price from cost and margin
+        if ($cost_price > 0 && $profit_margin > 0) {
+            $price = round($cost_price * (1 + $profit_margin / 100));
+        }
 
         $model = $this->model('ProductModel');
         $product = $model->getProductById($id);
@@ -191,7 +223,7 @@ class AdminController extends Controller
             $dbImageName = $folderName . '/' . $fileName;
         }
 
-        $model->updateProduct($id, $name, $category_id, $price, $desc, $dbImageName, $discount, $cost_price);
+        $model->updateProduct($id, $name, $category_id, $price, $desc, $dbImageName, $discount, $cost_price, $profit_margin);
 
         // Xử lý ảnh phụ mới (nếu có)
         if (isset($_FILES['extra_images'])) {
@@ -308,13 +340,31 @@ class AdminController extends Controller
     // === TRANG NHẬP HÀNG ===
     public function import() {
         try {
-            $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+            $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);
             $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             
-            $stmt = $db->query("SELECT id, name, stock, cost_price, price FROM products ORDER BY name ASC");
+            $stmt = $db->query("SELECT id, name, stock, cost_price, price, profit_margin FROM products ORDER BY name ASC");
             $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
-            $stmt = $db->query("SELECT ih.*, p.name as product_name FROM import_history ih JOIN products p ON ih.product_id = p.id ORDER BY ih.created_at DESC LIMIT 20");
+            // Build filter query
+            $where = [];
+            $params = [];
+            if (!empty($_GET['product_id'])) {
+                $where[] = 'ih.product_id = ?';
+                $params[] = intval($_GET['product_id']);
+            }
+            if (!empty($_GET['date_from'])) {
+                $where[] = 'ih.created_at >= ?';
+                $params[] = $_GET['date_from'] . ' 00:00:00';
+            }
+            if (!empty($_GET['date_to'])) {
+                $where[] = 'ih.created_at <= ?';
+                $params[] = $_GET['date_to'] . ' 23:59:59';
+            }
+            $whereSQL = $where ? ' WHERE ' . implode(' AND ', $where) : '';
+            
+            $stmt = $db->prepare("SELECT ih.*, p.name as product_name FROM import_history ih JOIN products p ON ih.product_id = p.id" . $whereSQL . " ORDER BY ih.created_at DESC LIMIT 50");
+            $stmt->execute($params);
             $history = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             $products = [];
@@ -352,7 +402,7 @@ class AdminController extends Controller
             $db->beginTransaction();
 
             // Lấy thông tin SP hiện tại
-            $stmt = $db->prepare("SELECT stock, cost_price, price FROM products WHERE id = ?");
+            $stmt = $db->prepare("SELECT stock, cost_price, price, profit_margin FROM products WHERE id = ?");
             $stmt->execute([$productId]);
             $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -363,25 +413,28 @@ class AdminController extends Controller
             $oldStock = intval($product['stock']);
             $oldCostPrice = floatval($product['cost_price']);
             $oldPrice = floatval($product['price']);
-
-            // Tính tỷ lệ lợi nhuận hiện tại
-            $margin = ($oldCostPrice > 0) ? (($oldPrice / $oldCostPrice) - 1) * 100 : 0;
+            $margin = floatval($product['profit_margin']);
+            if ($margin <= 0 && $oldCostPrice > 0) {
+                $margin = (($oldPrice / $oldCostPrice) - 1) * 100;
+            }
 
             // === TÍNH GIÁ NHẬP BQ MỚI (WAC) ===
-            // Công thức: (tồn × giá_cũ + SL_mới × giá_mới) / (tồn + SL_mới)
             $newStock = $oldStock + $quantity;
             $newCostPrice = ($oldStock * $oldCostPrice + $quantity * $importPrice) / $newStock;
-
-            // Giá bán mới = Giá nhập BQ × (1 + tỷ lệ LN%)
             $newPrice = $newCostPrice * (1 + $margin / 100);
 
             // Cập nhật SP
-            $stmt = $db->prepare("UPDATE products SET stock = ?, cost_price = ?, price = ? WHERE id = ?");
-            $stmt->execute([$newStock, round($newCostPrice, 2), round($newPrice, 2), $productId]);
+            $stmt = $db->prepare("UPDATE products SET stock = ?, cost_price = ?, price = ?, profit_margin = ? WHERE id = ?");
+            $stmt->execute([$newStock, round($newCostPrice, 2), round($newPrice, 2), round($margin, 2), $productId]);
 
-            // Lưu lịch sử nhập
-            $stmt = $db->prepare("INSERT INTO import_history (product_id, quantity, import_price, old_cost_price, new_cost_price, old_stock, new_stock) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$productId, $quantity, $importPrice, $oldCostPrice, round($newCostPrice, 2), $oldStock, $newStock]);
+            // Lưu lịch sử nhập (với giá bán + LN%)
+            $stmt = $db->prepare("INSERT INTO import_history (product_id, quantity, import_price, old_cost_price, new_cost_price, old_stock, new_stock, selling_price, profit_margin) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$productId, $quantity, $importPrice, $oldCostPrice, round($newCostPrice, 2), $oldStock, $newStock, round($newPrice, 2), round($margin, 2)]);
+
+            // Log stock history
+            $importId = $db->lastInsertId();
+            $stmt = $db->prepare("INSERT INTO stock_history (product_id, stock_before, stock_after, change_qty, change_type, reference_id) VALUES (?, ?, ?, ?, 'import', ?)");
+            $stmt->execute([$productId, $oldStock, $newStock, $quantity, $importId]);
 
             $db->commit();
 
@@ -393,6 +446,65 @@ class AdminController extends Controller
 
         header('Location: ' . BASE_URL . 'admin/import');
         exit;
+    }
+
+    // === TRA CỨU TỒN KHO ===
+    public function stockHistory() {
+        try {
+            $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);
+            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+            $products = $db->query("SELECT id, name, stock FROM products ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
+            
+            $history = [];
+            $stockAtDate = null;
+            $selectedProduct = null;
+            $selectedDate = $_GET['date'] ?? '';
+            $selectedProductId = intval($_GET['product_id'] ?? 0);
+            
+            if ($selectedProductId > 0) {
+                $stmt = $db->prepare("SELECT sh.*, p.name as product_name FROM stock_history sh JOIN products p ON sh.product_id = p.id WHERE sh.product_id = ? ORDER BY sh.created_at DESC LIMIT 50");
+                $stmt->execute([$selectedProductId]);
+                $history = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Get product info
+                $stmt = $db->prepare("SELECT * FROM products WHERE id = ?");
+                $stmt->execute([$selectedProductId]);
+                $selectedProduct = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                // Calculate stock at specific date
+                if ($selectedDate && $selectedProduct) {
+                    $currentStock = intval($selectedProduct['stock']);
+                    // Get all changes AFTER the selected date
+                    $stmt = $db->prepare("SELECT change_qty, change_type FROM stock_history WHERE product_id = ? AND created_at > ? ORDER BY created_at ASC");
+                    $stmt->execute([$selectedProductId, $selectedDate . ' 23:59:59']);
+                    $changes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    
+                    $stockAtDate = $currentStock;
+                    foreach ($changes as $c) {
+                        if ($c['change_type'] == 'import') {
+                            $stockAtDate -= $c['change_qty'];
+                        } else {
+                            $stockAtDate += $c['change_qty'];
+                        }
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            $products = [];
+            $history = [];
+        }
+        
+        $this->view('admin/dashboard', [
+            'view' => 'admin/stock_history',
+            'active' => 'stock',
+            'products' => $products,
+            'history' => $history,
+            'stockAtDate' => $stockAtDate,
+            'selectedProduct' => $selectedProduct,
+            'selectedDate' => $selectedDate,
+            'selectedProductId' => $selectedProductId ?? 0
+        ]);
     }
 
     // Hàm hỗ trợ tạo tên folder (Slug)

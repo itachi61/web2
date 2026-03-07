@@ -45,6 +45,10 @@
                 <a href="<?= BASE_URL ?>admin/import" class="<?= (isset($data['active']) && $data['active'] == 'import') ? 'active' : '' ?>">
                     <i class="fa-solid fa-truck-ramp-box"></i> Nhập hàng
                 </a>
+
+                <a href="<?= BASE_URL ?>admin/stockHistory" class="<?= (isset($data['active']) && $data['active'] == 'stock') ? 'active' : '' ?>">
+                    <i class="fa-solid fa-warehouse"></i> Tra cứu tồn kho
+                </a>
             </div>
 
             <div class="p-3 border-top border-secondary">

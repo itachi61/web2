@@ -36,22 +36,38 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <label class="form-label fw-bold">Giảm giá (%)</label>
                             <input type="number" name="discount" id="discountInput" class="form-control" min="0" max="100" value="<?= $data['product']['discount'] ?? 0 ?>">
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <label class="form-label fw-bold">Giá nhập (VNĐ)</label>
                             <input type="number" name="cost_price" id="costPriceInput" class="form-control" min="0" value="<?= $data['product']['cost_price'] ?? 0 ?>">
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">Lợi nhuận</label>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label fw-bold text-warning">% Lợi nhuận <span class="text-danger">*</span></label>
+                            <input type="number" name="profit_margin" id="marginInput" class="form-control border-warning" step="0.1" min="0" value="<?= $data['product']['profit_margin'] ?? 0 ?>">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label fw-bold">Lãi/SP</label>
                             <div class="form-control bg-light" style="cursor:default;">
                                 <span class="text-success fw-bold" id="profitValue">0đ</span>
-                                <small class="text-muted" id="profitPercent">(0%)</small>
                             </div>
                         </div>
                     </div>
+                    <script>
+                    function calcProfit() {
+                        const cost = parseFloat(document.getElementById('costPriceInput').value) || 0;
+                        const margin = parseFloat(document.getElementById('marginInput').value) || 0;
+                        const price = Math.round(cost * (1 + margin / 100));
+                        document.getElementById('priceInput').value = price;
+                        const profit = price - cost;
+                        document.getElementById('profitValue').textContent = new Intl.NumberFormat('vi-VN').format(profit) + 'đ';
+                    }
+                    document.getElementById('costPriceInput').addEventListener('input', calcProfit);
+                    document.getElementById('marginInput').addEventListener('input', calcProfit);
+                    calcProfit();
+                    </script>
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">Mô tả chi tiết</label>

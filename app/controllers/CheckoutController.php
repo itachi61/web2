@@ -70,17 +70,24 @@ class CheckoutController extends Controller {
 
             // Thêm chi tiết đơn hàng + lưu giá nhập snapshot + trừ tồn kho
             $stmtItem = $db->prepare("INSERT INTO order_items (order_id, product_id, quantity, price, cost_price) VALUES (?, ?, ?, ?, ?)");
-            $stmtCost = $db->prepare("SELECT cost_price FROM products WHERE id = ?");
+            $stmtCost = $db->prepare("SELECT cost_price, stock FROM products WHERE id = ?");
             $stmtStock = $db->prepare("UPDATE products SET stock = GREATEST(stock - ?, 0) WHERE id = ?");
+            $stmtStockLog = $db->prepare("INSERT INTO stock_history (product_id, stock_before, stock_after, change_qty, change_type, reference_id) VALUES (?, ?, ?, ?, 'sale', ?)");
             foreach ($cart as $item) {
-                // Lấy giá nhập hiện tại
+                // Lấy giá nhập + tồn kho hiện tại
                 $stmtCost->execute([$item['id']]);
-                $costPrice = $stmtCost->fetchColumn() ?: 0;
+                $pInfo = $stmtCost->fetch(PDO::FETCH_ASSOC);
+                $costPrice = $pInfo['cost_price'] ?? 0;
+                $stockBefore = intval($pInfo['stock'] ?? 0);
                 
                 $stmtItem->execute([$orderId, $item['id'], $item['quantity'], $item['price'], $costPrice]);
                 
                 // Trừ tồn kho
                 $stmtStock->execute([$item['quantity'], $item['id']]);
+                
+                // Log stock history
+                $stockAfter = max(0, $stockBefore - $item['quantity']);
+                $stmtStockLog->execute([$item['id'], $stockBefore, $stockAfter, $item['quantity'], $orderId]);
             }
 
             $db->commit();
