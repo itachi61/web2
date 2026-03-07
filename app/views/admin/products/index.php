@@ -89,7 +89,7 @@
                                         <i class="fa-solid fa-pen"></i>
                                     </a>
 
-                                    <form action="<?= BASE_URL ?>admin/deleteProduct/<?= $item['id'] ?>" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?');">
+                                    <form action="<?= BASE_URL ?>admin/deleteProduct/<?= $item['id'] ?>" method="POST" class="d-inline">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
