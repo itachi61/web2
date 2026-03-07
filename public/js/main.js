@@ -275,7 +275,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     // Show toast notification
                     showCartToast(data.message);
                 } else {
-                    alert(data.message || 'Có lỗi xảy ra');
+                    if (data.needLogin) {
+                        window.location.href = baseUrl + 'auth/login';
+                    } else {
+                        alert(data.message || 'Có lỗi xảy ra');
+                    }
                 }
             })
             .catch(err => {

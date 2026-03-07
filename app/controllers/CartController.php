@@ -6,7 +6,11 @@ class CartController extends Controller
 
     public function index()
     {
-        // Lấy giỏ hàng từ Session, nếu chưa có thì là mảng rỗng
+        if (!isset($_SESSION['user'])) {
+            $_SESSION['redirect_after_login'] = BASE_URL . 'cart';
+            header('Location: ' . BASE_URL . 'auth/login');
+            exit;
+        }
         $cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
 
         $this->view('layouts/header', ['title' => 'Giỏ hàng']);
@@ -16,6 +20,11 @@ class CartController extends Controller
 
     public function add($id)
     {
+        if (!isset($_SESSION['user'])) {
+            $_SESSION['redirect_after_login'] = BASE_URL . 'cart';
+            header('Location: ' . BASE_URL . 'auth/login');
+            exit;
+        }
         $productModel = $this->model('ProductModel');
         $product = $productModel->getProductById($id);
 
@@ -48,6 +57,11 @@ class CartController extends Controller
     public function ajaxAdd($id)
     {
         header('Content-Type: application/json');
+
+        if (!isset($_SESSION['user'])) {
+            echo json_encode(['success' => false, 'message' => 'Vui lòng đăng nhập để thêm giỏ hàng!', 'needLogin' => true]);
+            exit;
+        }
 
         $productModel = $this->model('ProductModel');
         $product = $productModel->getProductById($id);
