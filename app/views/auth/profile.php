@@ -36,7 +36,16 @@
                         <label class="form-label fw-bold"><i class="fa-solid fa-envelope me-1"></i> Email</label>
                         <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($data['user']['email'] ?? '') ?>" required>
                     </div>
-                    
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold"><i class="fa-solid fa-phone me-1"></i> Số điện thoại</label>
+                        <input type="tel" name="phone" class="form-control" value="<?= htmlspecialchars($data['user']['phone'] ?? '') ?>" placeholder="Nhập số điện thoại">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold"><i class="fa-solid fa-location-dot me-1"></i> Địa chỉ</label>
+                        <textarea name="address" class="form-control" rows="2" placeholder="Nhập địa chỉ giao hàng"><?= htmlspecialchars($data['user']['address'] ?? '') ?></textarea>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold"><i class="fa-solid fa-calendar me-1"></i> Ngày đăng ký</label>
                         <input type="text" class="form-control bg-light" value="<?= isset($data['user']['created_at']) ? date('d/m/Y H:i', strtotime($data['user']['created_at'])) : 'N/A' ?>" disabled>

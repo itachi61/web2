@@ -110,6 +110,8 @@ class AuthController extends Controller {
 
         $fullname = trim($_POST['fullname']);
         $email = trim($_POST['email']);
+        $phone = trim($_POST['phone'] ?? '');
+        $address = trim($_POST['address'] ?? '');
         $currentPw = $_POST['current_password'] ?? '';
         $newPw = $_POST['new_password'] ?? '';
 
@@ -118,8 +120,8 @@ class AuthController extends Controller {
             $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             
             // Update name & email
-            $stmt = $db->prepare("UPDATE users SET fullname = ?, email = ? WHERE id = ?");
-            $stmt->execute([$fullname, $email, $_SESSION['user_id']]);
+            $stmt = $db->prepare("UPDATE users SET fullname = ?, email = ?, phone = ?, address = ? WHERE id = ?");
+            $stmt->execute([$fullname, $email, $phone, $address, $_SESSION['user_id']]);
             $_SESSION['name'] = $fullname;
 
             // Change password if provided
