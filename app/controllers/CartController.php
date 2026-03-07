@@ -7,6 +7,7 @@ class CartController extends Controller
     public function index()
     {
         if (!isset($_SESSION['user'])) {
+            $_SESSION['login_message'] = 'Vui lòng đăng nhập trước khi mua hàng!';
             $_SESSION['redirect_after_login'] = BASE_URL . 'cart';
             header('Location: ' . BASE_URL . 'auth/login');
             exit;
@@ -21,6 +22,7 @@ class CartController extends Controller
     public function add($id)
     {
         if (!isset($_SESSION['user'])) {
+            $_SESSION['login_message'] = 'Vui lòng đăng nhập trước khi mua hàng!';
             $_SESSION['redirect_after_login'] = BASE_URL . 'cart';
             header('Location: ' . BASE_URL . 'auth/login');
             exit;

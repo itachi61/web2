@@ -6,6 +6,14 @@
             </div>
             <div class="card-body p-4">
                 
+                <?php if(isset($_SESSION['login_message'])): ?>
+                    <div class="alert alert-info d-flex align-items-center" role="alert">
+                        <i class="fa-solid fa-cart-shopping me-2"></i>
+                        <?= $_SESSION['login_message'] ?>
+                    </div>
+                    <?php unset($_SESSION['login_message']); ?>
+                <?php endif; ?>
+
                 <?php if(isset($data['error'])): ?>
                     <div class="alert alert-danger"><?= $data['error'] ?></div>
                 <?php endif; ?>
