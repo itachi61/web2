@@ -41,6 +41,10 @@
                 <a href="<?= BASE_URL ?>admin/statistics" class="<?= (isset($data['active']) && $data['active'] == 'statistics') ? 'active' : '' ?>">
                     <i class="fa-solid fa-chart-line"></i> Thống kê
                 </a>
+
+                <a href="<?= BASE_URL ?>admin/import" class="<?= (isset($data['active']) && $data['active'] == 'import') ? 'active' : '' ?>">
+                    <i class="fa-solid fa-truck-ramp-box"></i> Nhập hàng
+                </a>
             </div>
 
             <div class="p-3 border-top border-secondary">
@@ -63,6 +67,7 @@
                         elseif ($data['active'] == 'orders') echo 'Quản lý đơn hàng';
                         elseif ($data['active'] == 'users') echo 'Quản lý khách hàng';
                         elseif ($data['active'] == 'statistics') echo 'Thống kê & Báo cáo';
+                        elseif ($data['active'] == 'import') echo 'Nhập hàng';
                         else echo 'Quản trị viên';
                     }
                     ?>

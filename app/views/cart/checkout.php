@@ -19,13 +19,15 @@
                         <div class="mb-3">
                             <label class="form-label fw-bold">Số điện thoại <span class="text-danger">*</span></label>
                             <input type="tel" name="phone" class="form-control form-control-lg" 
+                                   value="<?= htmlspecialchars($_SESSION['phone'] ?? '') ?>"
                                    placeholder="Ví dụ: 0901234567" required>
                         </div>
                         
                         <div class="mb-3">
                             <label class="form-label fw-bold">Địa chỉ giao hàng <span class="text-danger">*</span></label>
                             <textarea name="address" class="form-control" rows="3" 
-                                      placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố" required></textarea>
+                                      placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố" required><?= htmlspecialchars($_SESSION['address'] ?? '') ?></textarea>
+                            <small class="text-muted"><i class="fa-solid fa-info-circle me-1"></i>Bạn có thể dùng địa chỉ khác cho đơn hàng này</small>
                         </div>
                         
                         <div class="mb-3">

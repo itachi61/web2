@@ -68,10 +68,19 @@ class CheckoutController extends Controller {
             $stmt->execute([$_SESSION['user_id'], $fullname, $phone, $address, $note, $total]);
             $orderId = $db->lastInsertId();
 
-            // Thêm chi tiết đơn hàng
-            $stmt = $db->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
+            // Thêm chi tiết đơn hàng + lưu giá nhập snapshot + trừ tồn kho
+            $stmtItem = $db->prepare("INSERT INTO order_items (order_id, product_id, quantity, price, cost_price) VALUES (?, ?, ?, ?, ?)");
+            $stmtCost = $db->prepare("SELECT cost_price FROM products WHERE id = ?");
+            $stmtStock = $db->prepare("UPDATE products SET stock = GREATEST(stock - ?, 0) WHERE id = ?");
             foreach ($cart as $item) {
-                $stmt->execute([$orderId, $item['id'], $item['quantity'], $item['price']]);
+                // Lấy giá nhập hiện tại
+                $stmtCost->execute([$item['id']]);
+                $costPrice = $stmtCost->fetchColumn() ?: 0;
+                
+                $stmtItem->execute([$orderId, $item['id'], $item['quantity'], $item['price'], $costPrice]);
+                
+                // Trừ tồn kho
+                $stmtStock->execute([$item['quantity'], $item['id']]);
             }
 
             $db->commit();

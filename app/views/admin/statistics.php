@@ -3,40 +3,97 @@
 </div>
 
 <?php
-// Query statistics
+// Lọc theo thời gian
+$dateFrom = $_GET['from'] ?? '';
+$dateTo = $_GET['to'] ?? '';
+$filterProduct = $_GET['product_id'] ?? '';
+
+$whereDate = '';
+$params = [];
+if ($dateFrom) { $whereDate .= " AND o.created_at >= ?"; $params[] = $dateFrom . ' 00:00:00'; }
+if ($dateTo) { $whereDate .= " AND o.created_at <= ?"; $params[] = $dateTo . ' 23:59:59'; }
+
 try {
     $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     // Tổng doanh thu
-    $stmt = $db->query("SELECT COALESCE(SUM(total_money), 0) as total_revenue, COUNT(*) as total_orders FROM orders WHERE status != 'cancelled'");
+    $sql = "SELECT COALESCE(SUM(o.total_money), 0) as total_revenue, COUNT(*) as total_orders 
+            FROM orders o WHERE o.status != 'cancelled'" . $whereDate;
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
     $revenue = $stmt->fetch(PDO::FETCH_ASSOC);
     
     // Tổng SP đã bán
-    $stmt = $db->query("SELECT COALESCE(SUM(sold_count), 0) as total_sold FROM products");
+    $sql2 = "SELECT COALESCE(SUM(oi.quantity), 0) as total_sold 
+             FROM order_items oi 
+             JOIN orders o ON oi.order_id = o.id 
+             WHERE o.status != 'cancelled'" . $whereDate;
+    $stmt = $db->prepare($sql2);
+    $stmt->execute($params);
     $totalSold = $stmt->fetch(PDO::FETCH_ASSOC)['total_sold'];
     
-    // Tổng lợi nhuận ước tính
-    $stmt = $db->query("SELECT COALESCE(SUM((price - cost_price) * sold_count), 0) as total_profit FROM products WHERE cost_price > 0");
+    // Tổng lợi nhuận (dùng cost_price snapshot từ order_items)
+    $sql3 = "SELECT COALESCE(SUM((oi.price - COALESCE(oi.cost_price, p.cost_price)) * oi.quantity), 0) as total_profit 
+             FROM order_items oi 
+             JOIN orders o ON oi.order_id = o.id 
+             JOIN products p ON oi.product_id = p.id 
+             WHERE o.status != 'cancelled'" . $whereDate;
+    $stmt = $db->prepare($sql3);
+    $stmt->execute($params);
     $totalProfit = $stmt->fetch(PDO::FETCH_ASSOC)['total_profit'];
     
     // Doanh thu theo từng SP
-    $stmt = $db->query("SELECT p.id, p.name, p.price, p.cost_price, p.sold_count, p.stock, p.discount, 
-                         (p.price * p.sold_count) as revenue, 
-                         ((p.price - p.cost_price) * p.sold_count) as profit,
-                         c.name as category_name
-                         FROM products p 
-                         LEFT JOIN categories c ON p.category_id = c.id
-                         ORDER BY revenue DESC");
+    $sql4 = "SELECT p.id, p.name, p.price, p.cost_price, p.stock, p.discount, p.image,
+             COALESCE(SUM(oi.quantity), 0) as qty_sold,
+             COALESCE(SUM(oi.price * oi.quantity), 0) as revenue, 
+             COALESCE(SUM((oi.price - COALESCE(oi.cost_price, p.cost_price)) * oi.quantity), 0) as profit,
+             c.name as category_name
+             FROM products p 
+             LEFT JOIN categories c ON p.category_id = c.id
+             LEFT JOIN order_items oi ON p.id = oi.product_id
+             LEFT JOIN orders o ON oi.order_id = o.id AND o.status != 'cancelled'" . $whereDate . "
+             GROUP BY p.id
+             ORDER BY revenue DESC";
+    $stmt = $db->prepare($sql4);
+    $stmt->execute($params);
     $productStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     // Doanh thu theo danh mục
-    $stmt = $db->query("SELECT c.name, SUM(p.price * p.sold_count) as revenue, SUM(p.sold_count) as sold
-                         FROM products p 
-                         LEFT JOIN categories c ON p.category_id = c.id
-                         GROUP BY c.id, c.name
-                         ORDER BY revenue DESC");
+    $sql5 = "SELECT c.name, 
+             COALESCE(SUM(oi.price * oi.quantity), 0) as revenue, 
+             COALESCE(SUM(oi.quantity), 0) as sold
+             FROM order_items oi
+             JOIN orders o ON oi.order_id = o.id
+             JOIN products p ON oi.product_id = p.id
+             LEFT JOIN categories c ON p.category_id = c.id
+             WHERE o.status != 'cancelled'" . $whereDate . "
+             GROUP BY c.id, c.name
+             ORDER BY revenue DESC";
+    $stmt = $db->prepare($sql5);
+    $stmt->execute($params);
     $categoryStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Chi tiết 1 SP (nếu chọn) — bao gồm giá nhập lúc bán
+    $productDetail = null;
+    $productOrders = [];
+    if ($filterProduct) {
+        $stmt = $db->prepare("SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?");
+        $stmt->execute([$filterProduct]);
+        $productDetail = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $sqlDetail = "SELECT o.id as order_id, o.created_at, o.status, o.fullname, 
+                      oi.quantity, oi.price, oi.cost_price as snapshot_cost,
+                      (oi.price * oi.quantity) as subtotal,
+                      ((oi.price - COALESCE(oi.cost_price, 0)) * oi.quantity) as profit
+                      FROM order_items oi 
+                      JOIN orders o ON oi.order_id = o.id 
+                      WHERE oi.product_id = ? AND o.status != 'cancelled'" . $whereDate . "
+                      ORDER BY o.created_at DESC";
+        $stmt = $db->prepare($sqlDetail);
+        $stmt->execute(array_merge([$filterProduct], $params));
+        $productOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     
 } catch (Exception $e) {
     $revenue = ['total_revenue' => 0, 'total_orders' => 0];
@@ -44,8 +101,52 @@ try {
     $totalProfit = 0;
     $productStats = [];
     $categoryStats = [];
+    $productDetail = null;
+    $productOrders = [];
 }
 ?>
+
+<!-- Bộ lọc thời gian -->
+<div class="card shadow-sm border-0 rounded-3 mb-4">
+    <div class="card-body p-3">
+        <form method="GET" action="<?= BASE_URL ?>admin/statistics" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted">Từ ngày</label>
+                <input type="date" name="from" class="form-control" value="<?= htmlspecialchars($dateFrom) ?>">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted">Đến ngày</label>
+                <input type="date" name="to" class="form-control" value="<?= htmlspecialchars($dateTo) ?>">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted">Sản phẩm cụ thể</label>
+                <select name="product_id" class="form-select">
+                    <option value="">-- Tất cả --</option>
+                    <?php foreach ($productStats as $ps): ?>
+                        <option value="<?= $ps['id'] ?>" <?= $filterProduct == $ps['id'] ? 'selected' : '' ?>><?= htmlspecialchars($ps['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1">
+                    <i class="fa-solid fa-filter me-1"></i> Lọc
+                </button>
+                <a href="<?= BASE_URL ?>admin/statistics" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<?php if ($dateFrom || $dateTo): ?>
+<div class="alert alert-info mb-4">
+    <i class="fa-solid fa-calendar-days me-2"></i>
+    Đang xem thống kê 
+    <?php if ($dateFrom): ?>từ <strong><?= date('d/m/Y', strtotime($dateFrom)) ?></strong><?php endif; ?>
+    <?php if ($dateTo): ?> đến <strong><?= date('d/m/Y', strtotime($dateTo)) ?></strong><?php endif; ?>
+</div>
+<?php endif; ?>
 
 <!-- Summary Cards -->
 <div class="row g-3 mb-4">
@@ -67,7 +168,7 @@ try {
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <small class="opacity-75">Lợi nhuận ước tính</small>
+                        <small class="opacity-75">Lợi nhuận</small>
                         <h4 class="mb-0 fw-bold"><?= number_format($totalProfit, 0, ',', '.') ?>đ</h4>
                     </div>
                     <i class="fa-solid fa-arrow-trend-up fa-2x opacity-50"></i>
@@ -103,7 +204,179 @@ try {
     </div>
 </div>
 
+<!-- Chi tiết 1 sản phẩm (nếu chọn) -->
+<?php if ($productDetail): ?>
+<div class="card shadow-sm border-0 rounded-3 mb-4 border-start border-primary border-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold"><i class="fa-solid fa-magnifying-glass-chart me-2"></i>Chi tiết: <?= htmlspecialchars($productDetail['name']) ?></h5>
+        <a href="<?= BASE_URL ?>admin/statistics<?= $dateFrom ? '?from='.$dateFrom.'&to='.$dateTo : '' ?>" class="btn btn-sm btn-outline-secondary">✕ Đóng</a>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-2 text-center">
+                <img src="<?= BASE_URL ?>images/<?= $productDetail['image'] ?>" class="img-fluid rounded" style="max-height: 100px;" onerror="this.style.display='none'">
+            </div>
+            <div class="col-md-10">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <small class="text-muted d-block">Giá bán</small>
+                            <strong class="text-primary"><?= number_format($productDetail['price'], 0, ',', '.') ?>đ</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <small class="text-muted d-block">Giá nhập BQ</small>
+                            <strong><?= number_format($productDetail['cost_price'], 0, ',', '.') ?>đ</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <small class="text-muted d-block">Tồn kho</small>
+                            <strong class="<?= $productDetail['stock'] > 0 ? 'text-success' : 'text-danger' ?>"><?= $productDetail['stock'] ?></strong>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <small class="text-muted d-block">Giảm giá</small>
+                            <strong class="text-danger"><?= $productDetail['discount'] ?>%</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BIỂU ĐỒ CỘT -->
+        <?php if (!empty($productOrders)): ?>
+        <div class="card bg-light border-0 mb-3">
+            <div class="card-body">
+                <h6 class="fw-bold"><i class="fa-solid fa-chart-column me-2 text-primary"></i>Biểu đồ doanh thu & lợi nhuận theo đơn hàng</h6>
+                <canvas id="productChart" height="250"></canvas>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <h6 class="fw-bold mt-3 mb-2"><i class="fa-solid fa-list me-1"></i> Đơn hàng chứa sản phẩm này (<?= count($productOrders) ?> đơn)</h6>
+        <?php if (!empty($productOrders)): ?>
+        <table class="table table-sm table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Mã đơn</th>
+                    <th>Khách hàng</th>
+                    <th>SL</th>
+                    <th>Giá bán</th>
+                    <th>Giá nhập lúc bán</th>
+                    <th>Thành tiền</th>
+                    <th>Lợi nhuận</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày đặt</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php 
+                $totalQty = 0; $totalRev = 0; $totalProf = 0;
+                foreach ($productOrders as $po): 
+                    $totalQty += $po['quantity'];
+                    $totalRev += $po['subtotal'];
+                    $totalProf += $po['profit'];
+                ?>
+                <tr>
+                    <td class="fw-bold">#<?= $po['order_id'] ?></td>
+                    <td><?= htmlspecialchars($po['fullname']) ?></td>
+                    <td><?= $po['quantity'] ?></td>
+                    <td><?= number_format($po['price'], 0, ',', '.') ?>đ</td>
+                    <td class="text-muted"><?= number_format($po['snapshot_cost'], 0, ',', '.') ?>đ</td>
+                    <td class="fw-bold text-primary"><?= number_format($po['subtotal'], 0, ',', '.') ?>đ</td>
+                    <td class="fw-bold <?= $po['profit'] >= 0 ? 'text-success' : 'text-danger' ?>"><?= number_format($po['profit'], 0, ',', '.') ?>đ</td>
+                    <td>
+                        <?php
+                        $sMap = ['pending'=>'warning','processing'=>'info','completed'=>'success','cancelled'=>'danger'];
+                        $sText = ['pending'=>'Chờ','processing'=>'Đang giao','completed'=>'Xong','cancelled'=>'Hủy'];
+                        ?>
+                        <span class="badge bg-<?= $sMap[$po['status']] ?? 'secondary' ?>"><?= $sText[$po['status']] ?? $po['status'] ?></span>
+                    </td>
+                    <td class="small text-muted"><?= date('d/m/Y H:i', strtotime($po['created_at'])) ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+            <tfoot class="table-light fw-bold">
+                <tr>
+                    <td colspan="2">Tổng cộng</td>
+                    <td><?= $totalQty ?></td>
+                    <td></td>
+                    <td></td>
+                    <td class="text-primary"><?= number_format($totalRev, 0, ',', '.') ?>đ</td>
+                    <td class="<?= $totalProf >= 0 ? 'text-success' : 'text-danger' ?>"><?= number_format($totalProf, 0, ',', '.') ?>đ</td>
+                    <td colspan="2"></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <!-- Chart.js Script -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+        <script>
+        const ctx = document.getElementById('productChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [<?php foreach($productOrders as $po) echo "'#" . $po['order_id'] . " (" . date('d/m', strtotime($po['created_at'])) . ")',"; ?>],
+                datasets: [{
+                    label: 'Doanh thu (đ)',
+                    data: [<?php foreach($productOrders as $po) echo $po['subtotal'] . ','; ?>],
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }, {
+                    label: 'Lợi nhuận (đ)',
+                    data: [<?php foreach($productOrders as $po) echo $po['profit'] . ','; ?>],
+                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }, {
+                    label: 'Giá nhập × SL (đ)',
+                    data: [<?php foreach($productOrders as $po) echo ($po['snapshot_cost'] * $po['quantity']) . ','; ?>],
+                    backgroundColor: 'rgba(255, 159, 64, 0.5)',
+                    borderColor: 'rgba(255, 159, 64, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + new Intl.NumberFormat('vi-VN').format(context.raw) + 'đ';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return new Intl.NumberFormat('vi-VN').format(value) + 'đ';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        </script>
+        <?php else: ?>
+            <p class="text-muted">Chưa có đơn hàng nào cho sản phẩm này trong khoảng thời gian đã chọn.</p>
+        <?php endif; ?>
+    </div>
+</div>
+<?php endif; ?>
+
 <!-- Doanh thu theo danh mục -->
+<?php if (!empty($categoryStats)): ?>
 <div class="row g-3 mb-4">
     <?php foreach ($categoryStats as $cs): ?>
     <div class="col-md-4">
@@ -117,6 +390,7 @@ try {
     </div>
     <?php endforeach; ?>
 </div>
+<?php endif; ?>
 
 <!-- Bảng chi tiết từng SP -->
 <div class="card shadow-sm border-0 rounded-3">
@@ -137,6 +411,7 @@ try {
                         <th>Đã bán</th>
                         <th>Doanh thu</th>
                         <th>Lợi nhuận</th>
+                        <th>Chi tiết</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -154,10 +429,16 @@ try {
                                 <span class="text-muted">-</span>
                             <?php endif; ?>
                         </td>
-                        <td><span class="badge bg-info text-dark rounded-pill"><?= $ps['sold_count'] ?></span></td>
+                        <td><span class="badge bg-info text-dark rounded-pill"><?= $ps['qty_sold'] ?></span></td>
                         <td class="fw-bold text-primary"><?= number_format($ps['revenue'], 0, ',', '.') ?>đ</td>
                         <td class="fw-bold <?= $ps['profit'] >= 0 ? 'text-success' : 'text-danger' ?>">
                             <?= number_format($ps['profit'], 0, ',', '.') ?>đ
+                        </td>
+                        <td>
+                            <a href="<?= BASE_URL ?>admin/statistics?product_id=<?= $ps['id'] ?><?= $dateFrom ? '&from='.$dateFrom : '' ?><?= $dateTo ? '&to='.$dateTo : '' ?>" 
+                               class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
                         </td>
                     </tr>
                     <?php endforeach; ?>

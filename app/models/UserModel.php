@@ -2,10 +2,10 @@
 require_once dirname(__DIR__) . '/core/Database.php';
 
 class UserModel extends Database {
-    public function register($fullname, $email, $password) {
+    public function register($fullname, $email, $password, $phone = '', $address = '') {
         $hash = password_hash($password, PASSWORD_BCRYPT);
-        $stmt = $this->conn->prepare("INSERT INTO users (fullname, email, password) VALUES (?, ?, ?)");
-        return $stmt->execute([$fullname, $email, $hash]);
+        $stmt = $this->conn->prepare("INSERT INTO users (fullname, email, phone, address, password) VALUES (?, ?, ?, ?, ?)");
+        return $stmt->execute([$fullname, $email, $phone, $address, $hash]);
     }
 
     public function login($email, $password) {

@@ -305,6 +305,96 @@ class AdminController extends Controller
         exit;
     }
 
+    // === TRANG NHẬP HÀNG ===
+    public function import() {
+        try {
+            $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+            $stmt = $db->query("SELECT id, name, stock, cost_price, price FROM products ORDER BY name ASC");
+            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            $stmt = $db->query("SELECT ih.*, p.name as product_name FROM import_history ih JOIN products p ON ih.product_id = p.id ORDER BY ih.created_at DESC LIMIT 20");
+            $history = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            $products = [];
+            $history = [];
+        }
+        
+        $this->view('admin/dashboard', [
+            'view' => 'admin/import',
+            'active' => 'import',
+            'products' => $products,
+            'history' => $history
+        ]);
+    }
+
+    // === XỬ LÝ NHẬP HÀNG WAC ===
+    public function processImport() {
+        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+            header('Location: ' . BASE_URL . 'admin/import');
+            exit;
+        }
+
+        $productId = intval($_POST['product_id'] ?? 0);
+        $quantity = intval($_POST['quantity'] ?? 0);
+        $importPrice = floatval($_POST['import_price'] ?? 0);
+
+        if ($productId <= 0 || $quantity <= 0 || $importPrice <= 0) {
+            $_SESSION['import_error'] = 'Vui lòng nhập đầy đủ thông tin hợp lệ!';
+            header('Location: ' . BASE_URL . 'admin/import');
+            exit;
+        }
+
+        try {
+            $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $db->beginTransaction();
+
+            // Lấy thông tin SP hiện tại
+            $stmt = $db->prepare("SELECT stock, cost_price, price FROM products WHERE id = ?");
+            $stmt->execute([$productId]);
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$product) {
+                throw new Exception('Sản phẩm không tồn tại!');
+            }
+
+            $oldStock = intval($product['stock']);
+            $oldCostPrice = floatval($product['cost_price']);
+            $oldPrice = floatval($product['price']);
+
+            // Tính tỷ lệ lợi nhuận hiện tại
+            $margin = ($oldCostPrice > 0) ? (($oldPrice / $oldCostPrice) - 1) * 100 : 0;
+
+            // === TÍNH GIÁ NHẬP BQ MỚI (WAC) ===
+            // Công thức: (tồn × giá_cũ + SL_mới × giá_mới) / (tồn + SL_mới)
+            $newStock = $oldStock + $quantity;
+            $newCostPrice = ($oldStock * $oldCostPrice + $quantity * $importPrice) / $newStock;
+
+            // Giá bán mới = Giá nhập BQ × (1 + tỷ lệ LN%)
+            $newPrice = $newCostPrice * (1 + $margin / 100);
+
+            // Cập nhật SP
+            $stmt = $db->prepare("UPDATE products SET stock = ?, cost_price = ?, price = ? WHERE id = ?");
+            $stmt->execute([$newStock, round($newCostPrice, 2), round($newPrice, 2), $productId]);
+
+            // Lưu lịch sử nhập
+            $stmt = $db->prepare("INSERT INTO import_history (product_id, quantity, import_price, old_cost_price, new_cost_price, old_stock, new_stock) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$productId, $quantity, $importPrice, $oldCostPrice, round($newCostPrice, 2), $oldStock, $newStock]);
+
+            $db->commit();
+
+            $_SESSION['import_success'] = "Nhập hàng thành công! Tồn kho: {$oldStock} → {$newStock}, Giá nhập BQ: " . number_format($oldCostPrice, 0, ',', '.') . "đ → " . number_format($newCostPrice, 0, ',', '.') . "đ";
+        } catch (Exception $e) {
+            if (isset($db)) $db->rollBack();
+            $_SESSION['import_error'] = 'Lỗi: ' . $e->getMessage();
+        }
+
+        header('Location: ' . BASE_URL . 'admin/import');
+        exit;
+    }
+
     // Hàm hỗ trợ tạo tên folder (Slug)
     private function createSlug($str)
     {

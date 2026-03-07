@@ -23,6 +23,8 @@ class AuthController extends Controller {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['name'] = $user['fullname'];
                 $_SESSION['role'] = $user['role'];
+                $_SESSION['phone'] = $user['phone'] ?? '';
+                $_SESSION['address'] = $user['address'] ?? '';
 
                 // Chuyển hướng dựa trên quyền
                 if ($user['role'] == 'admin') {
@@ -47,6 +49,8 @@ class AuthController extends Controller {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $fullname = $_POST['fullname'];
             $email = $_POST['email'];
+            $phone = $_POST['phone'] ?? '';
+            $address = $_POST['address'] ?? '';
             $password = $_POST['password'];
             $confirm = $_POST['confirm_password'];
 
@@ -59,10 +63,7 @@ class AuthController extends Controller {
 
             $userModel = $this->model('UserModel');
             
-            // (Nên kiểm tra email đã tồn tại chưa ở đây, tạm thời bỏ qua cho đơn giản)
-            
-            if ($userModel->register($fullname, $email, $password)) {
-                // Đăng ký thành công -> Chuyển sang login
+            if ($userModel->register($fullname, $email, $password, $phone, $address)) {
                 header('Location: ' . BASE_URL . 'auth/login');
             } else {
                 $this->view('layouts/header', ['title' => 'Đăng ký']);

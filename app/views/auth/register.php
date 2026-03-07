@@ -12,20 +12,29 @@
 
                 <form action="<?= BASE_URL ?>auth/register" method="POST">
                     <div class="mb-3">
-                        <label class="form-label">Họ và tên</label>
+                        <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
                         <input class="form-control py-2" type="text" name="fullname" placeholder="Nguyễn Văn A" required />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Địa chỉ Email</label>
+                        <label class="form-label">Địa chỉ Email <span class="text-danger">*</span></label>
                         <input class="form-control py-2" type="email" name="email" placeholder="name@example.com" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                        <input class="form-control py-2" type="tel" name="phone" placeholder="0901234567" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Địa chỉ giao hàng mặc định <span class="text-danger">*</span></label>
+                        <textarea class="form-control py-2" name="address" rows="2" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố" required></textarea>
+                        <small class="text-muted"><i class="fa-solid fa-info-circle me-1"></i>Địa chỉ này sẽ được sử dụng làm mặc định khi đặt hàng</small>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="form-label">Mật khẩu</label>
+                            <label class="form-label">Mật khẩu <span class="text-danger">*</span></label>
                             <input class="form-control py-2" type="password" name="password" required />
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Nhập lại mật khẩu</label>
+                            <label class="form-label">Nhập lại mật khẩu <span class="text-danger">*</span></label>
                             <input class="form-control py-2" type="password" name="confirm_password" required />
                         </div>
                     </div>
