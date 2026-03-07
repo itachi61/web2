@@ -38,6 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
         'Linh Kiện': 'Components',
         'Sản phẩm kỹ thuật số': 'Digital Products',
         'Danh mục': 'Categories',
+        'Xem tất cả': 'View All',
         'Bạn tìm gì...': 'Search...',
         'Đăng nhập': 'Login',
         'Đăng xuất': 'Logout',
@@ -171,7 +172,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         // Translate nav links, buttons, headings, labels, spans, etc.
-        document.querySelectorAll('.nav-link, .btn, h1, h2, h3, h4, h5, h6, label, th, td span, .dropdown-item, p, small, .breadcrumb-item').forEach(el => {
+        document.querySelectorAll('.nav-link, .btn, h1, h2, h3, h4, h5, h6, label, th, td span, .dropdown-item, p, small, span, a, .breadcrumb-item, li').forEach(el => {
             // Skip elements with children that are complex
             if (el.children.length > 1) return;
 
