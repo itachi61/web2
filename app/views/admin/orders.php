@@ -41,9 +41,18 @@
                                     ];
                                     $s = $statusMap[$status] ?? $statusMap['pending'];
                                     ?>
-                                    <span class="badge bg-<?= $s['bg'] ?>-subtle text-<?= $s['bg'] ?> border border-<?= $s['bg'] ?> px-3 rounded-pill">
-                                        <i class="fa-solid fa-<?= $s['icon'] ?> me-1"></i><?= $s['text'] ?>
-                                    </span>
+                                    <div class="dropdown">
+                                        <span class="badge bg-<?= $s['bg'] ?>-subtle text-<?= $s['bg'] ?> border border-<?= $s['bg'] ?> px-3 rounded-pill dropdown-toggle" role="button" data-bs-toggle="dropdown" style="cursor:pointer;">
+                                            <i class="fa-solid fa-<?= $s['icon'] ?> me-1"></i><?= $s['text'] ?>
+                                        </span>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>admin/updateOrderStatus/<?= $order['id'] ?>/pending"><i class="fa-solid fa-clock text-warning me-2"></i>Chờ xử lý</a></li>
+                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>admin/updateOrderStatus/<?= $order['id'] ?>/processing"><i class="fa-solid fa-truck text-info me-2"></i>Đang giao</a></li>
+                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>admin/updateOrderStatus/<?= $order['id'] ?>/completed"><i class="fa-solid fa-check-circle text-success me-2"></i>Hoàn thành</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="<?= BASE_URL ?>admin/updateOrderStatus/<?= $order['id'] ?>/cancelled"><i class="fa-solid fa-xmark-circle me-2"></i>Hủy đơn</a></li>
+                                        </ul>
+                                    </div>
                                 </td>
                                 <td class="text-muted small">
                                     <?= isset($order['created_at']) ? date('d/m/Y H:i', strtotime($order['created_at'])) : 'N/A' ?>
@@ -52,21 +61,9 @@
                                     <?= htmlspecialchars($order['address'] ?? 'N/A') ?>
                                 </td>
                                 <td class="text-end pe-4">
-                                    <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#orderModal<?= $order['id'] ?>" title="Xem chi tiết">
+                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#orderModal<?= $order['id'] ?>" title="Xem chi tiết">
                                         <i class="fa-solid fa-eye"></i>
                                     </button>
-                                    <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" title="Cập nhật trạng thái">
-                                            <i class="fa-solid fa-pen"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end">
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>admin/updateOrderStatus/<?= $order['id'] ?>/pending"><i class="fa-solid fa-clock text-warning me-2"></i>Chờ xử lý</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>admin/updateOrderStatus/<?= $order['id'] ?>/processing"><i class="fa-solid fa-truck text-info me-2"></i>Đang giao</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>admin/updateOrderStatus/<?= $order['id'] ?>/completed"><i class="fa-solid fa-check-circle text-success me-2"></i>Hoàn thành</a></li>
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item text-danger" href="<?= BASE_URL ?>admin/updateOrderStatus/<?= $order['id'] ?>/cancelled"><i class="fa-solid fa-xmark-circle me-2"></i>Hủy đơn</a></li>
-                                        </ul>
-                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
