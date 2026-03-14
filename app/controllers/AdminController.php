@@ -571,115 +571,218 @@ class AdminController extends Controller
         exit;
     }
 
-    // === TRANG NHẬP HÀNG ===
+    // === TRANG NHẬP HÀNG (PHIẾU NHẬP) ===
     public function import() {
         try {
             $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);
             $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             
-            $stmt = $db->query("SELECT id, name, stock, cost_price, price, profit_margin FROM products ORDER BY name ASC");
-            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
-            // Build filter query
-            $where = [];
-            $params = [];
-            if (!empty($_GET['product_id'])) {
-                $where[] = 'ih.product_id = ?';
-                $params[] = intval($_GET['product_id']);
-            }
-            if (!empty($_GET['date_from'])) {
-                $where[] = 'ih.created_at >= ?';
-                $params[] = $_GET['date_from'] . ' 00:00:00';
-            }
-            if (!empty($_GET['date_to'])) {
-                $where[] = 'ih.created_at <= ?';
-                $params[] = $_GET['date_to'] . ' 23:59:59';
-            }
-            $whereSQL = $where ? ' WHERE ' . implode(' AND ', $where) : '';
-            
-            $stmt = $db->prepare("SELECT ih.*, p.name as product_name FROM import_history ih JOIN products p ON ih.product_id = p.id" . $whereSQL . " ORDER BY ih.created_at DESC LIMIT 50");
-            $stmt->execute($params);
-            $history = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $products = $db->query("SELECT id, name, stock, cost_price, price, profit_margin FROM products ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+            // Lấy danh sách phiếu nhập
+            $receipts = $db->query("SELECT ir.*, u.fullname as created_by_name,
+                (SELECT COUNT(*) FROM import_receipt_items WHERE receipt_id = ir.id) as item_count
+                FROM import_receipts ir 
+                LEFT JOIN users u ON ir.created_by = u.id 
+                ORDER BY ir.created_at DESC LIMIT 50")->fetchAll(PDO::FETCH_ASSOC);
+
         } catch (Exception $e) {
             $products = [];
-            $history = [];
+            $receipts = [];
         }
         
         $this->view('admin/dashboard', [
             'view' => 'admin/import',
             'active' => 'import',
             'products' => $products,
-            'history' => $history
+            'receipts' => $receipts
         ]);
     }
 
-    // === XỬ LÝ NHẬP HÀNG WAC ===
-    public function processImport() {
-        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-            header('Location: ' . BASE_URL . 'admin/import');
-            exit;
+    // Tạo phiếu nhập mới (draft)
+    public function createReceipt() {
+        $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+        $code = 'PN-' . date('YmdHis');
+        $note = trim($_POST['note'] ?? '');
+        $db->prepare("INSERT INTO import_receipts (receipt_code, status, note, created_by) VALUES (?, 'draft', ?, ?)")
+           ->execute([$code, $note, $_SESSION['user_id']]);
+        $id = $db->lastInsertId();
+        header('Location: ' . BASE_URL . 'admin/viewReceipt/' . $id);
+        exit;
+    }
+
+    // Xem chi tiết phiếu nhập
+    public function viewReceipt($id = null) {
+        if (!$id) { header('Location: ' . BASE_URL . 'admin/import'); exit; }
+        try {
+            $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);
+            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+            $receipt = $db->prepare("SELECT ir.*, u.fullname as created_by_name FROM import_receipts ir LEFT JOIN users u ON ir.created_by = u.id WHERE ir.id = ?");
+            $receipt->execute([$id]);
+            $receipt = $receipt->fetch(PDO::FETCH_ASSOC);
+            if (!$receipt) { header('Location: ' . BASE_URL . 'admin/import'); exit; }
+
+            $items = $db->prepare("SELECT iri.*, p.name as product_name, p.stock, p.cost_price, p.image FROM import_receipt_items iri JOIN products p ON iri.product_id = p.id WHERE iri.receipt_id = ?");
+            $items->execute([$id]);
+            $items = $items->fetchAll(PDO::FETCH_ASSOC);
+
+            $products = $db->query("SELECT id, name, stock, cost_price, price, profit_margin FROM products ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (Exception $e) {
+            header('Location: ' . BASE_URL . 'admin/import'); exit;
         }
 
+        $this->view('admin/dashboard', [
+            'view' => 'admin/receipt_detail',
+            'active' => 'import',
+            'receipt' => $receipt,
+            'items' => $items,
+            'products' => $products
+        ]);
+    }
+
+    // Thêm SP vào phiếu nhập
+    public function addReceiptItem($receiptId = null) {
+        if (!$receiptId || $_SERVER['REQUEST_METHOD'] != 'POST') { header('Location: ' . BASE_URL . 'admin/import'); exit; }
         $productId = intval($_POST['product_id'] ?? 0);
         $quantity = intval($_POST['quantity'] ?? 0);
         $importPrice = floatval($_POST['import_price'] ?? 0);
 
         if ($productId <= 0 || $quantity <= 0 || $importPrice <= 0) {
-            $_SESSION['import_error'] = 'Vui lòng nhập đầy đủ thông tin hợp lệ!';
-            header('Location: ' . BASE_URL . 'admin/import');
-            exit;
+            $_SESSION['import_error'] = 'Vui lòng nhập đầy đủ thông tin!';
+            header('Location: ' . BASE_URL . 'admin/viewReceipt/' . $receiptId); exit;
         }
 
+        $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+        // Check receipt is draft
+        $r = $db->prepare("SELECT status FROM import_receipts WHERE id = ?");
+        $r->execute([$receiptId]);
+        $receipt = $r->fetch(PDO::FETCH_ASSOC);
+        if (!$receipt || $receipt['status'] != 'draft') {
+            $_SESSION['import_error'] = 'Phiếu đã hoàn thành, không thể sửa!';
+            header('Location: ' . BASE_URL . 'admin/viewReceipt/' . $receiptId); exit;
+        }
+
+        $db->prepare("INSERT INTO import_receipt_items (receipt_id, product_id, quantity, import_price) VALUES (?, ?, ?, ?)")
+           ->execute([$receiptId, $productId, $quantity, $importPrice]);
+
+        // Update totals
+        $this->updateReceiptTotals($db, $receiptId);
+        $_SESSION['import_success'] = 'Đã thêm sản phẩm vào phiếu!';
+        header('Location: ' . BASE_URL . 'admin/viewReceipt/' . $receiptId);
+        exit;
+    }
+
+    // Xóa SP khỏi phiếu
+    public function removeReceiptItem($itemId = null) {
+        if (!$itemId) { header('Location: ' . BASE_URL . 'admin/import'); exit; }
+        $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+        $stmt = $db->prepare("SELECT iri.receipt_id, ir.status FROM import_receipt_items iri JOIN import_receipts ir ON iri.receipt_id = ir.id WHERE iri.id = ?");
+        $stmt->execute([$itemId]);
+        $item = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$item || $item['status'] != 'draft') { header('Location: ' . BASE_URL . 'admin/import'); exit; }
+
+        $receiptId = $item['receipt_id'];
+        $db->prepare("DELETE FROM import_receipt_items WHERE id = ?")->execute([$itemId]);
+        $this->updateReceiptTotals($db, $receiptId);
+        $_SESSION['import_success'] = 'Đã xóa sản phẩm khỏi phiếu!';
+        header('Location: ' . BASE_URL . 'admin/viewReceipt/' . $receiptId);
+        exit;
+    }
+
+    // Sửa item trong phiếu
+    public function updateReceiptItem() {
+        if ($_SERVER['REQUEST_METHOD'] != 'POST') { header('Location: ' . BASE_URL . 'admin/import'); exit; }
+        $itemId = intval($_POST['item_id'] ?? 0);
+        $quantity = intval($_POST['quantity'] ?? 0);
+        $importPrice = floatval($_POST['import_price'] ?? 0);
+        if (!$itemId || $quantity <= 0 || $importPrice <= 0) { header('Location: ' . BASE_URL . 'admin/import'); exit; }
+
+        $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+        $stmt = $db->prepare("SELECT iri.receipt_id, ir.status FROM import_receipt_items iri JOIN import_receipts ir ON iri.receipt_id = ir.id WHERE iri.id = ?");
+        $stmt->execute([$itemId]);
+        $item = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$item || $item['status'] != 'draft') { header('Location: ' . BASE_URL . 'admin/import'); exit; }
+
+        $db->prepare("UPDATE import_receipt_items SET quantity = ?, import_price = ? WHERE id = ?")->execute([$quantity, $importPrice, $itemId]);
+        $this->updateReceiptTotals($db, $item['receipt_id']);
+        $_SESSION['import_success'] = 'Đã cập nhật!';
+        header('Location: ' . BASE_URL . 'admin/viewReceipt/' . $item['receipt_id']);
+        exit;
+    }
+
+    // Hoàn thành phiếu nhập → áp dụng WAC cho từng SP
+    public function completeReceipt($id = null) {
+        if (!$id) { header('Location: ' . BASE_URL . 'admin/import'); exit; }
         try {
             $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
             $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $db->beginTransaction();
 
-            // Lấy thông tin SP hiện tại
-            $stmt = $db->prepare("SELECT stock, cost_price, price, profit_margin FROM products WHERE id = ?");
-            $stmt->execute([$productId]);
-            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+            $r = $db->prepare("SELECT * FROM import_receipts WHERE id = ? AND status = 'draft'");
+            $r->execute([$id]);
+            $receipt = $r->fetch(PDO::FETCH_ASSOC);
+            if (!$receipt) { throw new Exception('Phiếu không tồn tại hoặc đã hoàn thành!'); }
 
-            if (!$product) {
-                throw new Exception('Sản phẩm không tồn tại!');
+            $items = $db->prepare("SELECT * FROM import_receipt_items WHERE receipt_id = ?");
+            $items->execute([$id]);
+            $items = $items->fetchAll(PDO::FETCH_ASSOC);
+            if (empty($items)) { throw new Exception('Phiếu chưa có sản phẩm!'); }
+
+            foreach ($items as $item) {
+                // Lấy thông tin SP
+                $stmt = $db->prepare("SELECT stock, cost_price, price, profit_margin FROM products WHERE id = ?");
+                $stmt->execute([$item['product_id']]);
+                $product = $stmt->fetch(PDO::FETCH_ASSOC);
+                if (!$product) continue;
+
+                $oldStock = intval($product['stock']);
+                $oldCost = floatval($product['cost_price']);
+                $margin = floatval($product['profit_margin']);
+                if ($margin <= 0 && $oldCost > 0) {
+                    $margin = (($product['price'] / $oldCost) - 1) * 100;
+                }
+
+                // WAC
+                $qty = $item['quantity'];
+                $price = $item['import_price'];
+                $newStock = $oldStock + $qty;
+                $newCost = ($oldStock * $oldCost + $qty * $price) / $newStock;
+                $newPrice = $newCost * (1 + $margin / 100);
+
+                // Update product
+                $db->prepare("UPDATE products SET stock = ?, cost_price = ?, price = ?, profit_margin = ? WHERE id = ?")
+                   ->execute([$newStock, round($newCost, 2), round($newPrice, 2), round($margin, 2), $item['product_id']]);
+
+                // Log import_history
+                $db->prepare("INSERT INTO import_history (product_id, quantity, import_price, old_cost_price, new_cost_price, old_stock, new_stock, selling_price, profit_margin) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+                   ->execute([$item['product_id'], $qty, $price, $oldCost, round($newCost, 2), $oldStock, $newStock, round($newPrice, 2), round($margin, 2)]);
+                
+                $importId = $db->lastInsertId();
+                $db->prepare("INSERT INTO stock_history (product_id, stock_before, stock_after, change_qty, change_type, reference_id) VALUES (?, ?, ?, ?, 'import', ?)")
+                   ->execute([$item['product_id'], $oldStock, $newStock, $qty, $importId]);
             }
 
-            $oldStock = intval($product['stock']);
-            $oldCostPrice = floatval($product['cost_price']);
-            $oldPrice = floatval($product['price']);
-            $margin = floatval($product['profit_margin']);
-            if ($margin <= 0 && $oldCostPrice > 0) {
-                $margin = (($oldPrice / $oldCostPrice) - 1) * 100;
-            }
-
-            // === TÍNH GIÁ NHẬP BQ MỚI (WAC) ===
-            $newStock = $oldStock + $quantity;
-            $newCostPrice = ($oldStock * $oldCostPrice + $quantity * $importPrice) / $newStock;
-            $newPrice = $newCostPrice * (1 + $margin / 100);
-
-            // Cập nhật SP
-            $stmt = $db->prepare("UPDATE products SET stock = ?, cost_price = ?, price = ?, profit_margin = ? WHERE id = ?");
-            $stmt->execute([$newStock, round($newCostPrice, 2), round($newPrice, 2), round($margin, 2), $productId]);
-
-            // Lưu lịch sử nhập (với giá bán + LN%)
-            $stmt = $db->prepare("INSERT INTO import_history (product_id, quantity, import_price, old_cost_price, new_cost_price, old_stock, new_stock, selling_price, profit_margin) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$productId, $quantity, $importPrice, $oldCostPrice, round($newCostPrice, 2), $oldStock, $newStock, round($newPrice, 2), round($margin, 2)]);
-
-            // Log stock history
-            $importId = $db->lastInsertId();
-            $stmt = $db->prepare("INSERT INTO stock_history (product_id, stock_before, stock_after, change_qty, change_type, reference_id) VALUES (?, ?, ?, ?, 'import', ?)");
-            $stmt->execute([$productId, $oldStock, $newStock, $quantity, $importId]);
-
+            // Đánh dấu hoàn thành
+            $db->prepare("UPDATE import_receipts SET status = 'completed', completed_at = NOW() WHERE id = ?")->execute([$id]);
             $db->commit();
-
-            $_SESSION['import_success'] = "Nhập hàng thành công! Tồn kho: {$oldStock} → {$newStock}, Giá nhập BQ: " . number_format($oldCostPrice, 0, ',', '.') . "đ → " . number_format($newCostPrice, 0, ',', '.') . "đ";
+            $_SESSION['import_success'] = 'Đã hoàn thành phiếu nhập ' . $receipt['receipt_code'] . '! Tồn kho & giá đã được cập nhật.';
         } catch (Exception $e) {
             if (isset($db)) $db->rollBack();
             $_SESSION['import_error'] = 'Lỗi: ' . $e->getMessage();
+            header('Location: ' . BASE_URL . 'admin/viewReceipt/' . $id); exit;
         }
-
         header('Location: ' . BASE_URL . 'admin/import');
         exit;
+    }
+
+    // Helper: cập nhật tổng phiếu
+    private function updateReceiptTotals($db, $receiptId) {
+        $stmt = $db->prepare("SELECT COUNT(*) as cnt, COALESCE(SUM(quantity * import_price), 0) as total FROM import_receipt_items WHERE receipt_id = ?");
+        $stmt->execute([$receiptId]);
+        $r = $stmt->fetch(PDO::FETCH_ASSOC);
+        $db->prepare("UPDATE import_receipts SET total_items = ?, total_amount = ? WHERE id = ?")->execute([$r['cnt'], $r['total'], $receiptId]);
     }
 
     // === TRA CỨU TỒN KHO ===
