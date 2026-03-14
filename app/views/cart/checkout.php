@@ -25,43 +25,43 @@
                         
                         <div class="mb-3">
                             <label class="form-label fw-bold">Địa chỉ giao hàng <span class="text-danger">*</span></label>
-                            
                             <?php $savedAddr = $_SESSION['address'] ?? ''; ?>
-                            <?php if ($savedAddr): ?>
-                            <div class="border rounded bg-light py-2 px-3 mb-2 d-flex justify-content-between align-items-center" id="savedAddrBox">
-                                <div>
-                                    <i class="fa-solid fa-location-dot text-primary me-1"></i>
-                                    <span class="small"><?= htmlspecialchars($savedAddr) ?></span>
-                                </div>
-                                <button type="button" class="btn btn-sm btn-outline-primary" id="btnChangeAddr">
-                                    <i class="fa-solid fa-pen me-1"></i>Đổi
-                                </button>
-                            </div>
-                            <?php endif; ?>
+                            
+                            <!-- Ô nhập địa chỉ - luôn hiển thị, chỉnh sửa trực tiếp -->
+                            <input type="text" name="address" id="addressField" class="form-control form-control-lg mb-2" 
+                                   value="<?= htmlspecialchars($savedAddr) ?>" 
+                                   placeholder="Nhập địa chỉ giao hàng..." required>
+                            
+                            <a href="#" id="togglePicker" class="small text-primary text-decoration-none">
+                                <i class="fa-solid fa-map-location-dot me-1"></i>Chọn từ danh sách tỉnh/huyện/xã
+                            </a>
 
-                            <div id="newAddrForm" style="<?= $savedAddr ? 'display:none' : '' ?>">
+                            <!-- Bộ chọn tỉnh/huyện/xã (ẩn mặc định, toggle khi cần) -->
+                            <div id="addrPicker" style="display:none" class="mt-2">
                                 <div class="row g-2 mb-2">
                                     <div class="col-md-4">
-                                        <select id="province" class="form-select">
+                                        <select id="province" class="form-select form-select-sm">
                                             <option value="">Tỉnh/Thành phố</option>
                                         </select>
                                     </div>
                                     <div class="col-md-4">
-                                        <select id="district" class="form-select" disabled>
+                                        <select id="district" class="form-select form-select-sm" disabled>
                                             <option value="">Quận/Huyện</option>
                                         </select>
                                     </div>
                                     <div class="col-md-4">
-                                        <select id="ward" class="form-select" disabled>
+                                        <select id="ward" class="form-select form-select-sm" disabled>
                                             <option value="">Phường/Xã</option>
                                         </select>
                                     </div>
                                 </div>
-                                <input type="text" id="streetAddr" class="form-control" placeholder="Số nhà, tên đường (VD: 123 Nguyễn Huệ)">
+                                <input type="text" id="streetAddr" class="form-control form-control-sm" placeholder="Số nhà, tên đường (VD: 123 Nguyễn Huệ)">
+                                <button type="button" id="applyAddr" class="btn btn-sm btn-primary mt-2">
+                                    <i class="fa-solid fa-check me-1"></i>Áp dụng địa chỉ này
+                                </button>
                             </div>
 
-                            <input type="hidden" name="address" id="addressField" value="<?= htmlspecialchars($savedAddr) ?>" required>
-                            <small class="text-muted"><i class="fa-solid fa-info-circle me-1"></i>Bạn có thể dùng địa chỉ khác cho đơn hàng này</small>
+                            <small class="text-muted d-block mt-1"><i class="fa-solid fa-info-circle me-1"></i>Bạn có thể nhập trực tiếp hoặc chọn từ danh sách</small>
                         </div>
 
                         <script>
@@ -72,27 +72,28 @@
                             const wSel = document.getElementById('ward');
                             const street = document.getElementById('streetAddr');
                             const addrField = document.getElementById('addressField');
-                            const savedBox = document.getElementById('savedAddrBox');
-                            const btnChange = document.getElementById('btnChangeAddr');
-                            const newForm = document.getElementById('newAddrForm');
+                            const picker = document.getElementById('addrPicker');
+                            const toggleBtn = document.getElementById('togglePicker');
+                            const applyBtn = document.getElementById('applyAddr');
 
-                            function buildAddr() {
+                            // Toggle picker
+                            toggleBtn.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+                            });
+
+                            // Áp dụng địa chỉ từ picker vào ô input
+                            applyBtn.addEventListener('click', function() {
                                 const parts = [];
-                                if (street && street.value) parts.push(street.value);
-                                if (wSel && wSel.value && wSel.selectedOptions[0]) parts.push(wSel.selectedOptions[0].text);
-                                if (dSel && dSel.value && dSel.selectedOptions[0]) parts.push(dSel.selectedOptions[0].text);
-                                if (pSel && pSel.value && pSel.selectedOptions[0]) parts.push(pSel.selectedOptions[0].text);
-                                if (parts.length > 0) addrField.value = parts.join(', ');
-                            }
-
-                            // Nút Đổi địa chỉ
-                            if (btnChange) {
-                                btnChange.addEventListener('click', function() {
-                                    savedBox.style.display = 'none';
-                                    newForm.style.display = 'block';
-                                    addrField.value = '';
-                                });
-                            }
+                                if (street.value.trim()) parts.push(street.value.trim());
+                                if (wSel.value && wSel.selectedOptions[0]) parts.push(wSel.selectedOptions[0].text);
+                                if (dSel.value && dSel.selectedOptions[0]) parts.push(dSel.selectedOptions[0].text);
+                                if (pSel.value && pSel.selectedOptions[0]) parts.push(pSel.selectedOptions[0].text);
+                                if (parts.length > 0) {
+                                    addrField.value = parts.join(', ');
+                                    picker.style.display = 'none';
+                                }
+                            });
 
                             // Load tỉnh thành
                             fetch(API + '?depth=1').then(r => r.json()).then(data => {
@@ -109,7 +110,6 @@
                                     data.districts.forEach(d => dSel.add(new Option(d.name, d.code)));
                                     dSel.disabled = false;
                                 }).catch(() => {});
-                                buildAddr();
                             };
 
                             dSel.onchange = function() {
@@ -120,19 +120,7 @@
                                     data.wards.forEach(w => wSel.add(new Option(w.name, w.code)));
                                     wSel.disabled = false;
                                 }).catch(() => {});
-                                buildAddr();
                             };
-
-                            wSel.onchange = buildAddr;
-                            if (street) street.addEventListener('input', buildAddr);
-
-                            // Validate: phải có địa chỉ trước khi submit
-                            document.getElementById('checkoutForm').addEventListener('submit', function(e) {
-                                if (!addrField.value.trim()) {
-                                    e.preventDefault();
-                                    alert('Vui lòng nhập địa chỉ giao hàng!');
-                                }
-                            });
                         })();
                         </script>
                         
