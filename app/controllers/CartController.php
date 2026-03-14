@@ -6,7 +6,7 @@ class CartController extends Controller
 
     public function index()
     {
-        if (!isset($_SESSION['user'])) {
+        if (!isset($_SESSION['user_id'])) {
             $_SESSION['login_message'] = 'Vui lòng đăng nhập trước khi mua hàng!';
             $_SESSION['redirect_after_login'] = BASE_URL . 'cart';
             header('Location: ' . BASE_URL . 'auth/login');
@@ -21,7 +21,7 @@ class CartController extends Controller
 
     public function add($id)
     {
-        if (!isset($_SESSION['user'])) {
+        if (!isset($_SESSION['user_id'])) {
             $_SESSION['login_message'] = 'Vui lòng đăng nhập trước khi mua hàng!';
             $_SESSION['redirect_after_login'] = BASE_URL . 'cart';
             header('Location: ' . BASE_URL . 'auth/login');
@@ -60,7 +60,7 @@ class CartController extends Controller
     {
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['user'])) {
+        if (!isset($_SESSION['user_id'])) {
             $_SESSION['login_message'] = 'Vui lòng đăng nhập trước khi mua hàng!';
             echo json_encode(['success' => false, 'message' => 'Vui lòng đăng nhập để thêm giỏ hàng!', 'needLogin' => true]);
             exit;
