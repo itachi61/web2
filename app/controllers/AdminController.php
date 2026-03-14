@@ -827,23 +827,24 @@ class AdminController extends Controller
                     }
                 }
             }
+
+            // Lấy lịch sử nhập hàng (giá vốn, %LN, giá bán theo lô)
+            if ($selectedProductId > 0) {
+                try {
+                    $stmt = $db->prepare("SELECT ih.*, p.profit_margin, p.price as current_price 
+                        FROM import_history ih 
+                        JOIN products p ON ih.product_id = p.id
+                        WHERE ih.product_id = ? ORDER BY ih.created_at DESC");
+                    $stmt->execute([$selectedProductId]);
+                    $importBatches = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                } catch(Exception $e2) { $importBatches = []; }
+            }
         } catch (Exception $e) {
             $products = [];
             $history = [];
         }
 
-        // Lấy lịch sử nhập hàng (giá vốn, %LN, giá bán theo lô)
-        $importBatches = [];
-        if (($selectedProductId ?? 0) > 0) {
-            try {
-                $stmt = $db->prepare("SELECT ih.*, p.profit_margin, p.price as current_price 
-                    FROM import_history ih 
-                    JOIN products p ON ih.product_id = p.id
-                    WHERE ih.product_id = ? ORDER BY ih.import_date DESC");
-                $stmt->execute([$selectedProductId]);
-                $importBatches = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            } catch(Exception $e) { $importBatches = []; }
-        }
+        if (!isset($importBatches)) $importBatches = [];
         
         $this->view('admin/dashboard', [
             'view' => 'admin/stock_history',

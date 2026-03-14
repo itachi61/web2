@@ -104,10 +104,49 @@
             </div>
         </div>
         <?php elseif ($data['selectedProductId'] > 0): ?>
+        <!-- Hiển thị thông tin tồn kho hiện tại dù chưa có lịch sử -->
+        <?php if ($data['selectedProduct']): ?>
+        <div class="card shadow-sm border-0 rounded-3 mb-3">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="mb-0"><i class="fa-solid fa-box me-2"></i>Thông tin tồn kho hiện tại</h5>
+            </div>
+            <div class="card-body">
+                <h5 class="fw-bold text-primary mb-3"><?= htmlspecialchars($data['selectedProduct']['name']) ?></h5>
+                <div class="row text-center g-3">
+                    <div class="col-3">
+                        <div class="border rounded-3 py-3">
+                            <small class="text-muted d-block">Tồn kho</small>
+                            <strong class="fs-3 text-success"><?= $data['selectedProduct']['stock'] ?></strong>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="border rounded-3 py-3">
+                            <small class="text-muted d-block">Giá vốn</small>
+                            <strong class="text-info"><?= number_format($data['selectedProduct']['cost_price'], 0, ',', '.') ?>đ</strong>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="border rounded-3 py-3">
+                            <small class="text-muted d-block">Giá bán</small>
+                            <strong class="text-primary"><?= number_format($data['selectedProduct']['price'], 0, ',', '.') ?>đ</strong>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="border rounded-3 py-3">
+                            <small class="text-muted d-block">% LN</small>
+                            <strong class="text-warning"><?= $data['selectedProduct']['profit_margin'] ?? 0 ?>%</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <div class="card shadow-sm border-0">
             <div class="card-body text-center py-5">
                 <i class="fa-solid fa-box-open fa-3x text-muted mb-3"></i>
-                <p class="text-muted">Chưa có lịch sử thay đổi kho cho sản phẩm này</p>
+                <p class="text-muted">Chưa có lịch sử thay đổi kho cho sản phẩm này.</p>
+                <small class="text-muted">Hãy nhập hàng qua phiếu nhập để có lịch sử.</small>
             </div>
         </div>
         <?php else: ?>
@@ -141,7 +180,7 @@
                             <?php foreach ($data['import_batches'] as $idx => $batch): ?>
                             <tr>
                                 <td><span class="badge bg-primary-subtle text-primary">#<?= count($data['import_batches']) - $idx ?></span></td>
-                                <td class="small"><?= date('d/m/Y H:i', strtotime($batch['import_date'])) ?></td>
+                                <td class="small"><?= date('d/m/Y H:i', strtotime($batch['created_at'] ?? $batch['import_date'] ?? '')) ?></td>
                                 <td class="fw-bold"><?= $batch['quantity'] ?></td>
                                 <td class="text-info fw-bold"><?= number_format($batch['import_price'], 0, ',', '.') ?>đ</td>
                                 <td><span class="badge bg-success-subtle text-success"><?= $batch['profit_margin'] ?? 0 ?>%</span></td>
