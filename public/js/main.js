@@ -328,15 +328,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // 1. Tự động ẩn thông báo (Alerts) sau 3 giây
-    const alerts = document.querySelectorAll('.alert');
+    // 1. Tự động ẩn thông báo (Alerts) sau 3 giây — chỉ ẩn alert-dismissible
+    const alerts = document.querySelectorAll('.alert.alert-dismissible');
     if (alerts.length > 0) {
         setTimeout(() => {
             alerts.forEach(alert => {
-                // Sử dụng Bootstrap fade out nếu có class 'fade'
                 alert.classList.remove('show');
                 alert.classList.add('fade');
-                setTimeout(() => alert.remove(), 500); // Xóa khỏi DOM sau khi mờ dần
+                setTimeout(() => alert.remove(), 500);
             });
         }, 3000);
     }
