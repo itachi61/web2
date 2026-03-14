@@ -28,7 +28,7 @@
                             
                             <?php $savedAddr = $_SESSION['address'] ?? ''; ?>
                             <?php if ($savedAddr): ?>
-                            <div class="alert alert-light border py-2 mb-2 d-flex justify-content-between align-items-center" id="savedAddrBox">
+                            <div class="border rounded bg-light py-2 px-3 mb-2 d-flex justify-content-between align-items-center" id="savedAddrBox">
                                 <div>
                                     <i class="fa-solid fa-location-dot text-primary me-1"></i>
                                     <span class="small"><?= htmlspecialchars($savedAddr) ?></span>
