@@ -3,13 +3,76 @@ require_once dirname(__DIR__) . '/core/Controller.php';
 
 class AdminController extends Controller
 {
+    // Các method không cần đăng nhập
+    private $publicMethods = ['login', 'processLogin'];
+
     public function __construct()
     {
+        // Cho phép truy cập login mà không cần auth
+        $uri = $_SERVER['REQUEST_URI'] ?? '';
+        foreach ($this->publicMethods as $m) {
+            if (strpos($uri, $m) !== false) return;
+        }
         // Bảo mật: Chỉ Admin mới được vào
         if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
-            header('Location: ' . BASE_URL . 'auth/login');
+            header('Location: ' . BASE_URL . 'admin/login');
             exit;
         }
+    }
+
+    // Trang đăng nhập admin riêng
+    public function login()
+    {
+        // Nếu đã đăng nhập admin, vào dashboard
+        if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin') {
+            header('Location: ' . BASE_URL . 'admin');
+            exit;
+        }
+        $this->view('admin/login', ['error' => $_SESSION['admin_login_error'] ?? null]);
+        unset($_SESSION['admin_login_error']);
+    }
+
+    // Xử lý đăng nhập admin
+    public function processLogin()
+    {
+        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+            header('Location: ' . BASE_URL . 'admin/login');
+            exit;
+        }
+
+        $email = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+
+        $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+        $stmt = $db->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user || !password_verify($password, $user['password'])) {
+            $_SESSION['admin_login_error'] = 'Email hoặc mật khẩu không đúng!';
+            header('Location: ' . BASE_URL . 'admin/login');
+            exit;
+        }
+
+        if ($user['role'] != 'admin') {
+            $_SESSION['admin_login_error'] = 'Tài khoản không có quyền quản trị!';
+            header('Location: ' . BASE_URL . 'admin/login');
+            exit;
+        }
+
+        if (($user['status'] ?? 'active') == 'locked') {
+            $_SESSION['admin_login_error'] = 'Tài khoản đã bị khóa!';
+            header('Location: ' . BASE_URL . 'admin/login');
+            exit;
+        }
+
+        // Đăng nhập thành công
+        $_SESSION['user'] = $user;
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['name'] = $user['fullname'];
+        $_SESSION['role'] = $user['role'];
+        header('Location: ' . BASE_URL . 'admin');
+        exit;
     }
 
     // Trang Dashboard
@@ -24,10 +87,32 @@ class AdminController extends Controller
     // Trang quản lý đơn hàng
     public function orders()
     {
+        // Lấy bộ lọc từ GET
+        $dateFrom = $_GET['from'] ?? '';
+        $dateTo = $_GET['to'] ?? '';
+        $filterStatus = $_GET['status'] ?? '';
+        $sortBy = $_GET['sort'] ?? 'newest';
+
         try {
             $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);
             $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $stmt = $db->query("SELECT o.*, u.fullname, u.email FROM orders o LEFT JOIN users u ON o.user_id = u.id ORDER BY o.id DESC");
+
+            $sql = "SELECT o.*, u.fullname, u.email FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE 1=1";
+            $params = [];
+
+            if ($dateFrom) { $sql .= " AND o.created_at >= ?"; $params[] = $dateFrom . ' 00:00:00'; }
+            if ($dateTo) { $sql .= " AND o.created_at <= ?"; $params[] = $dateTo . ' 23:59:59'; }
+            if ($filterStatus) { $sql .= " AND o.status = ?"; $params[] = $filterStatus; }
+
+            switch ($sortBy) {
+                case 'address': $sql .= " ORDER BY o.address ASC, o.id DESC"; break;
+                case 'oldest': $sql .= " ORDER BY o.created_at ASC"; break;
+                case 'total_desc': $sql .= " ORDER BY o.total_money DESC"; break;
+                default: $sql .= " ORDER BY o.id DESC";
+            }
+
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
             $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Load order items for each order
@@ -44,7 +129,8 @@ class AdminController extends Controller
         $this->view('admin/dashboard', [
             'view' => 'admin/orders',
             'active' => 'orders',
-            'orders' => $orders
+            'orders' => $orders,
+            'filters' => ['from' => $dateFrom, 'to' => $dateTo, 'status' => $filterStatus, 'sort' => $sortBy]
         ]);
     }
 
@@ -370,6 +456,121 @@ class AdminController extends Controller
         exit;
     }
 
+    // Thêm tài khoản mới
+    public function createUser()
+    {
+        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+            header('Location: ' . BASE_URL . 'admin/users');
+            exit;
+        }
+        $fullname = trim($_POST['fullname'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '123456';
+        $role = $_POST['role'] ?? 'customer';
+
+        if (!$fullname || !$email) {
+            $_SESSION['error_msg'] = 'Vui lòng nhập đầy đủ thông tin!';
+            header('Location: ' . BASE_URL . 'admin/users');
+            exit;
+        }
+
+        $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+        // Check email trùng
+        $check = $db->prepare("SELECT id FROM users WHERE email = ?");
+        $check->execute([$email]);
+        if ($check->fetch()) {
+            $_SESSION['error_msg'] = 'Email "' . $email . '" đã tồn tại!';
+            header('Location: ' . BASE_URL . 'admin/users');
+            exit;
+        }
+
+        $stmt = $db->prepare("INSERT INTO users (fullname, email, password, role, status) VALUES (?, ?, ?, ?, 'active')");
+        $stmt->execute([$fullname, $email, password_hash($password, PASSWORD_DEFAULT), $role]);
+        $_SESSION['success_msg'] = 'Đã tạo tài khoản "' . $fullname . '" thành công! Mật khẩu: ' . $password;
+        header('Location: ' . BASE_URL . 'admin/users');
+        exit;
+    }
+
+    // Khởi tạo lại mật khẩu
+    public function resetPassword($id = null)
+    {
+        if (!$id) { header('Location: ' . BASE_URL . 'admin/users'); exit; }
+
+        $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+        $stmt = $db->prepare("SELECT fullname FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user) { header('Location: ' . BASE_URL . 'admin/users'); exit; }
+
+        $newPw = '123456';
+        $db->prepare("UPDATE users SET password = ? WHERE id = ?")->execute([password_hash($newPw, PASSWORD_DEFAULT), $id]);
+        $_SESSION['success_msg'] = 'Đã reset mật khẩu của "' . $user['fullname'] . '" thành: <strong>' . $newPw . '</strong>';
+        header('Location: ' . BASE_URL . 'admin/users');
+        exit;
+    }
+
+    // === QUẢN LÝ DANH MỤC ===
+    public function categories()
+    {
+        $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+        $cats = $db->query("SELECT c.*, COUNT(p.id) as product_count FROM categories c LEFT JOIN products p ON c.id = p.category_id GROUP BY c.id ORDER BY c.id ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+        $this->view('admin/dashboard', [
+            'view' => 'admin/categories',
+            'active' => 'categories',
+            'categories' => $cats
+        ]);
+    }
+
+    public function addCategory()
+    {
+        if ($_SERVER['REQUEST_METHOD'] != 'POST') { header('Location: ' . BASE_URL . 'admin/categories'); exit; }
+        $name = trim($_POST['name'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        if (!$name) { $_SESSION['error_msg'] = 'Tên danh mục không được trống!'; header('Location: ' . BASE_URL . 'admin/categories'); exit; }
+
+        $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+        $slug = $this->createSlug($name);
+        $db->prepare("INSERT INTO categories (name, slug, description) VALUES (?, ?, ?)")->execute([$name, $slug, $description]);
+        $_SESSION['success_msg'] = 'Đã thêm danh mục "' . $name . '"!';
+        header('Location: ' . BASE_URL . 'admin/categories');
+        exit;
+    }
+
+    public function updateCategory($id = null)
+    {
+        if (!$id || $_SERVER['REQUEST_METHOD'] != 'POST') { header('Location: ' . BASE_URL . 'admin/categories'); exit; }
+        $name = trim($_POST['name'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        if (!$name) { $_SESSION['error_msg'] = 'Tên danh mục không được trống!'; header('Location: ' . BASE_URL . 'admin/categories'); exit; }
+
+        $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+        $slug = $this->createSlug($name);
+        $db->prepare("UPDATE categories SET name = ?, slug = ?, description = ? WHERE id = ?")->execute([$name, $slug, $description, $id]);
+        $_SESSION['success_msg'] = 'Đã cập nhật danh mục!';
+        header('Location: ' . BASE_URL . 'admin/categories');
+        exit;
+    }
+
+    public function deleteCategory($id = null)
+    {
+        if (!$id) { header('Location: ' . BASE_URL . 'admin/categories'); exit; }
+        $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+        // Check xem có SP nào trong danh mục không
+        $stmt = $db->prepare("SELECT COUNT(*) as cnt FROM products WHERE category_id = ?");
+        $stmt->execute([$id]);
+        $cnt = $stmt->fetch(PDO::FETCH_ASSOC)['cnt'];
+        if ($cnt > 0) {
+            $_SESSION['error_msg'] = 'Không thể xóa! Danh mục còn ' . $cnt . ' sản phẩm.';
+        } else {
+            $db->prepare("DELETE FROM categories WHERE id = ?")->execute([$id]);
+            $_SESSION['success_msg'] = 'Đã xóa danh mục!';
+        }
+        header('Location: ' . BASE_URL . 'admin/categories');
+        exit;
+    }
+
     // === TRANG NHẬP HÀNG ===
     public function import() {
         try {
@@ -527,12 +728,26 @@ class AdminController extends Controller
             $products = [];
             $history = [];
         }
+
+        // Lấy lịch sử nhập hàng (giá vốn, %LN, giá bán theo lô)
+        $importBatches = [];
+        if (($selectedProductId ?? 0) > 0) {
+            try {
+                $stmt = $db->prepare("SELECT ih.*, p.profit_margin, p.price as current_price 
+                    FROM import_history ih 
+                    JOIN products p ON ih.product_id = p.id
+                    WHERE ih.product_id = ? ORDER BY ih.import_date DESC");
+                $stmt->execute([$selectedProductId]);
+                $importBatches = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } catch(Exception $e) { $importBatches = []; }
+        }
         
         $this->view('admin/dashboard', [
             'view' => 'admin/stock_history',
             'active' => 'stock',
             'products' => $products,
             'history' => $history,
+            'import_batches' => $importBatches,
             'stockAtDate' => $stockAtDate,
             'selectedProduct' => $selectedProduct,
             'selectedDate' => $selectedDate,

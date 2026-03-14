@@ -94,6 +94,37 @@ try {
         $stmt->execute(array_merge([$filterProduct], $params));
         $productOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    // Báo cáo nhập-xuất theo khoảng thời gian
+    $importExportReport = [];
+    $importWhereDate = '';
+    $importParams = [];
+    if ($dateFrom) { $importWhereDate .= " AND ih.import_date >= ?"; $importParams[] = $dateFrom . ' 00:00:00'; }
+    if ($dateTo) { $importWhereDate .= " AND ih.import_date <= ?"; $importParams[] = $dateTo . ' 23:59:59'; }
+
+    $sqlIE = "SELECT p.id, p.name, p.image,
+              COALESCE(SUM(ih.quantity), 0) as total_imported,
+              COALESCE(SUM(ih.quantity * ih.import_price), 0) as total_import_cost
+              FROM products p 
+              LEFT JOIN import_history ih ON p.id = ih.product_id" . ($importWhereDate ? " AND 1=1" . $importWhereDate : "") . "
+              GROUP BY p.id HAVING total_imported > 0
+              ORDER BY total_imported DESC";
+    $stmt = $db->prepare($sqlIE);
+    $stmt->execute($importParams);
+    $importExportReport = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Merge with sold data
+    foreach ($importExportReport as &$row) {
+        foreach ($productStats as $ps) {
+            if ($ps['id'] == $row['id']) {
+                $row['total_sold'] = $ps['qty_sold'];
+                $row['total_revenue'] = $ps['revenue'];
+                break;
+            }
+        }
+        if (!isset($row['total_sold'])) { $row['total_sold'] = 0; $row['total_revenue'] = 0; }
+    }
+    unset($row);
     
 } catch (Exception $e) {
     $revenue = ['total_revenue' => 0, 'total_orders' => 0];
@@ -447,3 +478,69 @@ try {
         </div>
     </div>
 </div>
+
+<!-- Báo cáo Nhập - Xuất -->
+<?php if (!empty($importExportReport)): ?>
+<div class="card shadow-sm border-0 rounded-3 mt-4">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-bold"><i class="fa-solid fa-arrow-right-arrow-left me-2 text-info"></i>Báo cáo Nhập – Xuất
+            <?php if ($dateFrom || $dateTo): ?>
+                <small class="text-muted fw-normal">
+                    (<?= $dateFrom ? date('d/m/Y', strtotime($dateFrom)) : '...' ?> → <?= $dateTo ? date('d/m/Y', strtotime($dateTo)) : '...' ?>)
+                </small>
+            <?php endif; ?>
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th class="text-center">SL Nhập</th>
+                        <th class="text-center">SL Bán</th>
+                        <th class="text-end">Tổng tiền nhập</th>
+                        <th class="text-end">Tổng doanh thu</th>
+                        <th class="text-end">Chênh lệch</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php 
+                    $sumImported = 0; $sumSold = 0; $sumImportCost = 0; $sumRevenue = 0;
+                    foreach ($importExportReport as $ie): 
+                        $sumImported += $ie['total_imported'];
+                        $sumSold += $ie['total_sold'];
+                        $sumImportCost += $ie['total_import_cost'];
+                        $sumRevenue += $ie['total_revenue'];
+                        $diff = $ie['total_revenue'] - $ie['total_import_cost'];
+                    ?>
+                    <tr>
+                        <td class="fw-bold"><?= htmlspecialchars($ie['name']) ?></td>
+                        <td class="text-center"><span class="badge bg-success-subtle text-success">+<?= $ie['total_imported'] ?></span></td>
+                        <td class="text-center"><span class="badge bg-danger-subtle text-danger">-<?= $ie['total_sold'] ?></span></td>
+                        <td class="text-end text-info"><?= number_format($ie['total_import_cost'], 0, ',', '.') ?>đ</td>
+                        <td class="text-end text-primary fw-bold"><?= number_format($ie['total_revenue'], 0, ',', '.') ?>đ</td>
+                        <td class="text-end fw-bold <?= $diff >= 0 ? 'text-success' : 'text-danger' ?>">
+                            <?= $diff >= 0 ? '+' : '' ?><?= number_format($diff, 0, ',', '.') ?>đ
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+                <tfoot class="table-warning fw-bold">
+                    <tr>
+                        <td>TỔNG CỘNG</td>
+                        <td class="text-center"><?= $sumImported ?></td>
+                        <td class="text-center"><?= $sumSold ?></td>
+                        <td class="text-end"><?= number_format($sumImportCost, 0, ',', '.') ?>đ</td>
+                        <td class="text-end"><?= number_format($sumRevenue, 0, ',', '.') ?>đ</td>
+                        <?php $totalDiff = $sumRevenue - $sumImportCost; ?>
+                        <td class="text-end <?= $totalDiff >= 0 ? 'text-success' : 'text-danger' ?>">
+                            <?= $totalDiff >= 0 ? '+' : '' ?><?= number_format($totalDiff, 0, ',', '.') ?>đ
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+<?php endif; ?>

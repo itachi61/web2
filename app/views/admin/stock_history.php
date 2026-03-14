@@ -118,5 +118,47 @@
             </div>
         </div>
         <?php endif; ?>
+
+        <?php if (!empty($data['import_batches'])): ?>
+        <div class="card shadow-sm border-0 rounded-3 mt-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold"><i class="fa-solid fa-money-bill-trend-up me-2 text-success"></i>Giá vốn & Giá bán theo lô nhập</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Lần nhập</th>
+                                <th>Ngày nhập</th>
+                                <th>SL</th>
+                                <th>Giá vốn (nhập)</th>
+                                <th>% Lợi nhuận</th>
+                                <th>Giá bán</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($data['import_batches'] as $idx => $batch): ?>
+                            <tr>
+                                <td><span class="badge bg-primary-subtle text-primary">#<?= count($data['import_batches']) - $idx ?></span></td>
+                                <td class="small"><?= date('d/m/Y H:i', strtotime($batch['import_date'])) ?></td>
+                                <td class="fw-bold"><?= $batch['quantity'] ?></td>
+                                <td class="text-info fw-bold"><?= number_format($batch['import_price'], 0, ',', '.') ?>đ</td>
+                                <td><span class="badge bg-success-subtle text-success"><?= $batch['profit_margin'] ?? 0 ?>%</span></td>
+                                <td class="text-primary fw-bold">
+                                    <?php
+                                    $margin = floatval($batch['profit_margin'] ?? 0);
+                                    $sellPrice = $batch['import_price'] * (1 + $margin / 100);
+                                    echo number_format($sellPrice, 0, ',', '.') . 'đ';
+                                    ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
 </div>

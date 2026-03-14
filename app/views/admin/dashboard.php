@@ -30,6 +30,10 @@
                     <i class="fa-solid fa-box"></i> Quản lý Sản phẩm
                 </a>
 
+                <a href="<?= BASE_URL ?>admin/categories" class="<?= (isset($data['active']) && $data['active'] == 'categories') ? 'active' : '' ?>">
+                    <i class="fa-solid fa-tags"></i> Danh mục SP
+                </a>
+
                 <a href="<?= BASE_URL ?>admin/orders" class="<?= (isset($data['active']) && $data['active'] == 'orders') ? 'active' : '' ?>">
                     <i class="fa-solid fa-cart-flatbed"></i> Quản lý Đơn hàng
                 </a>
@@ -72,6 +76,7 @@
                         elseif ($data['active'] == 'users') echo 'Quản lý khách hàng';
                         elseif ($data['active'] == 'statistics') echo 'Thống kê & Báo cáo';
                         elseif ($data['active'] == 'import') echo 'Nhập hàng';
+                        elseif ($data['active'] == 'categories') echo 'Quản lý danh mục';
                         else echo 'Quản trị viên';
                     }
                     ?>

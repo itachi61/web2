@@ -1,5 +1,48 @@
+<?php $f = $data['filters'] ?? []; ?>
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold text-primary"><i class="fa-solid fa-cart-flatbed me-2"></i>Quản lý Đơn hàng</h2>
+</div>
+
+<!-- Bộ lọc -->
+<div class="card shadow-sm border-0 rounded-3 mb-3">
+    <div class="card-body py-3">
+        <form method="GET" action="<?= BASE_URL ?>admin/orders" class="row g-2 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label small fw-bold mb-1">Từ ngày</label>
+                <input type="date" name="from" class="form-control form-control-sm" value="<?= htmlspecialchars($f['from'] ?? '') ?>">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold mb-1">Đến ngày</label>
+                <input type="date" name="to" class="form-control form-control-sm" value="<?= htmlspecialchars($f['to'] ?? '') ?>">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold mb-1">Trạng thái</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">Tất cả</option>
+                    <option value="pending" <?= ($f['status'] ?? '') == 'pending' ? 'selected' : '' ?>>🕐 Chờ xử lý</option>
+                    <option value="processing" <?= ($f['status'] ?? '') == 'processing' ? 'selected' : '' ?>>🚚 Đang giao</option>
+                    <option value="completed" <?= ($f['status'] ?? '') == 'completed' ? 'selected' : '' ?>>✅ Hoàn thành</option>
+                    <option value="cancelled" <?= ($f['status'] ?? '') == 'cancelled' ? 'selected' : '' ?>>❌ Đã hủy</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold mb-1">Sắp xếp</label>
+                <select name="sort" class="form-select form-select-sm">
+                    <option value="newest" <?= ($f['sort'] ?? '') == 'newest' ? 'selected' : '' ?>>Mới nhất</option>
+                    <option value="oldest" <?= ($f['sort'] ?? '') == 'oldest' ? 'selected' : '' ?>>Cũ nhất</option>
+                    <option value="address" <?= ($f['sort'] ?? '') == 'address' ? 'selected' : '' ?>>Theo địa chỉ (phường)</option>
+                    <option value="total_desc" <?= ($f['sort'] ?? '') == 'total_desc' ? 'selected' : '' ?>>Tổng tiền giảm</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm flex-grow-1"><i class="fa-solid fa-filter me-1"></i>Lọc</button>
+                <a href="<?= BASE_URL ?>admin/orders" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-rotate-left"></i></a>
+            </div>
+            <div class="col-md-2 text-end">
+                <span class="badge bg-primary-subtle text-primary fs-6"><?= count($data['orders'] ?? []) ?> đơn</span>
+            </div>
+        </form>
+    </div>
 </div>
 
 <div class="card shadow-sm border-0 rounded-3">
