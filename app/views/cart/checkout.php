@@ -33,7 +33,7 @@
                                     <i class="fa-solid fa-location-dot text-primary me-1"></i>
                                     <span class="small"><?= htmlspecialchars($savedAddr) ?></span>
                                 </div>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('savedAddrBox').style.display='none'; document.getElementById('newAddrForm').style.display='block'; document.getElementById('addressField').value='';">
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="btnChangeAddr">
                                     <i class="fa-solid fa-pen me-1"></i>Đổi
                                 </button>
                             </div>
@@ -42,7 +42,7 @@
                             <div id="newAddrForm" style="<?= $savedAddr ? 'display:none' : '' ?>">
                                 <div class="row g-2 mb-2">
                                     <div class="col-md-4">
-                                        <select id="province" class="form-select" required>
+                                        <select id="province" class="form-select">
                                             <option value="">Tỉnh/Thành phố</option>
                                         </select>
                                     </div>
@@ -65,48 +65,75 @@
                         </div>
 
                         <script>
-                        const API = 'https://provinces.open-api.vn/api/';
-                        const pSel = document.getElementById('province');
-                        const dSel = document.getElementById('district');
-                        const wSel = document.getElementById('ward');
-                        const street = document.getElementById('streetAddr');
-                        const addrField = document.getElementById('addressField');
+                        (function() {
+                            const API = 'https://provinces.open-api.vn/api/';
+                            const pSel = document.getElementById('province');
+                            const dSel = document.getElementById('district');
+                            const wSel = document.getElementById('ward');
+                            const street = document.getElementById('streetAddr');
+                            const addrField = document.getElementById('addressField');
+                            const savedBox = document.getElementById('savedAddrBox');
+                            const btnChange = document.getElementById('btnChangeAddr');
+                            const newForm = document.getElementById('newAddrForm');
 
-                        function buildAddr() {
-                            const parts = [street.value, wSel.selectedOptions[0]?.text, dSel.selectedOptions[0]?.text, pSel.selectedOptions[0]?.text].filter(p => p && !p.includes('Tỉnh') && !p.includes('Quận') && !p.includes('Phường') && !p.includes('Chọn'));
-                            addrField.value = parts.join(', ');
-                        }
+                            function buildAddr() {
+                                const parts = [];
+                                if (street && street.value) parts.push(street.value);
+                                if (wSel && wSel.value && wSel.selectedOptions[0]) parts.push(wSel.selectedOptions[0].text);
+                                if (dSel && dSel.value && dSel.selectedOptions[0]) parts.push(dSel.selectedOptions[0].text);
+                                if (pSel && pSel.value && pSel.selectedOptions[0]) parts.push(pSel.selectedOptions[0].text);
+                                if (parts.length > 0) addrField.value = parts.join(', ');
+                            }
 
-                        fetch(API + '?depth=1').then(r=>r.json()).then(data => {
-                            data.sort((a,b) => a.name.localeCompare(b.name));
-                            data.forEach(p => { const o = new Option(p.name, p.code); pSel.add(o); });
-                        });
+                            // Nút Đổi địa chỉ
+                            if (btnChange) {
+                                btnChange.addEventListener('click', function() {
+                                    savedBox.style.display = 'none';
+                                    newForm.style.display = 'block';
+                                    addrField.value = '';
+                                });
+                            }
 
-                        pSel.onchange = function() {
-                            dSel.innerHTML = '<option value="">Quận/Huyện</option>';
-                            wSel.innerHTML = '<option value="">Phường/Xã</option>';
-                            dSel.disabled = true; wSel.disabled = true;
-                            if (!this.value) return;
-                            fetch(API + 'p/' + this.value + '?depth=2').then(r=>r.json()).then(data => {
-                                data.districts.forEach(d => dSel.add(new Option(d.name, d.code)));
-                                dSel.disabled = false;
+                            // Load tỉnh thành
+                            fetch(API + '?depth=1').then(r => r.json()).then(data => {
+                                data.sort((a, b) => a.name.localeCompare(b.name));
+                                data.forEach(p => pSel.add(new Option(p.name, p.code)));
+                            }).catch(() => {});
+
+                            pSel.onchange = function() {
+                                dSel.innerHTML = '<option value="">Quận/Huyện</option>';
+                                wSel.innerHTML = '<option value="">Phường/Xã</option>';
+                                dSel.disabled = true; wSel.disabled = true;
+                                if (!this.value) return;
+                                fetch(API + 'p/' + this.value + '?depth=2').then(r => r.json()).then(data => {
+                                    data.districts.forEach(d => dSel.add(new Option(d.name, d.code)));
+                                    dSel.disabled = false;
+                                }).catch(() => {});
+                                buildAddr();
+                            };
+
+                            dSel.onchange = function() {
+                                wSel.innerHTML = '<option value="">Phường/Xã</option>';
+                                wSel.disabled = true;
+                                if (!this.value) return;
+                                fetch(API + 'd/' + this.value + '?depth=2').then(r => r.json()).then(data => {
+                                    data.wards.forEach(w => wSel.add(new Option(w.name, w.code)));
+                                    wSel.disabled = false;
+                                }).catch(() => {});
+                                buildAddr();
+                            };
+
+                            wSel.onchange = buildAddr;
+                            if (street) street.addEventListener('input', buildAddr);
+
+                            // Validate: phải có địa chỉ trước khi submit
+                            document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+                                if (!addrField.value.trim()) {
+                                    e.preventDefault();
+                                    alert('Vui lòng nhập địa chỉ giao hàng!');
+                                }
                             });
-                            buildAddr();
-                        };
-
-                        dSel.onchange = function() {
-                            wSel.innerHTML = '<option value="">Phường/Xã</option>';
-                            wSel.disabled = true;
-                            if (!this.value) return;
-                            fetch(API + 'd/' + this.value + '?depth=2').then(r=>r.json()).then(data => {
-                                data.wards.forEach(w => wSel.add(new Option(w.name, w.code)));
-                                wSel.disabled = false;
-                            });
-                            buildAddr();
-                        };
-
-                        wSel.onchange = buildAddr;
-                        street.addEventListener('input', buildAddr);
+                        })();
                         </script>
                         
                         <div class="mb-3">
