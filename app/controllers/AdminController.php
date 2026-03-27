@@ -159,40 +159,34 @@ class AdminController extends Controller
             $stmt->execute([$id]);
             $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
-            // Nếu chuyển sang "completed" (và trước đó chưa completed) → cập nhật sold_count, stock
+            // Nếu chuyển sang "completed" (và trước đó chưa completed) → chỉ tăng sold_count
+            // (stock đã trừ khi đặt hàng trong CheckoutController)
             if ($status === 'completed' && $oldStatus !== 'completed') {
                 foreach ($items as $item) {
-                    // Lấy stock hiện tại
-                    $stmtP = $db->prepare("SELECT stock FROM products WHERE id = ?");
-                    $stmtP->execute([$item['product_id']]);
-                    $currentStock = (int)$stmtP->fetchColumn();
-                    
-                    // Tăng sold_count, giảm stock
-                    $db->prepare("UPDATE products SET sold_count = sold_count + ?, stock = stock - ? WHERE id = ?")
-                       ->execute([$item['quantity'], $item['quantity'], $item['product_id']]);
-                    
-                    // Ghi lịch sử kho
-                    try {
-                        $db->prepare("INSERT INTO stock_history (product_id, change_type, change_qty, stock_before, stock_after, note) VALUES (?, 'sale', ?, ?, ?, ?)")
-                           ->execute([$item['product_id'], $item['quantity'], $currentStock, $currentStock - $item['quantity'], 'Đơn hàng #' . $id]);
-                    } catch (Exception $e) { /* bỏ qua nếu bảng chưa có */ }
+                    $db->prepare("UPDATE products SET sold_count = sold_count + ? WHERE id = ?")
+                       ->execute([$item['quantity'], $item['product_id']]);
                 }
             }
             
-            // Nếu hủy từ "completed" → hoàn lại sold_count, stock
-            if ($oldStatus === 'completed' && $status !== 'completed') {
+            // Nếu hủy đơn → hoàn lại stock (vì stock đã bị trừ khi đặt hàng)
+            if ($status === 'cancelled' && $oldStatus !== 'cancelled') {
                 foreach ($items as $item) {
-                    $stmtP = $db->prepare("SELECT stock FROM products WHERE id = ?");
-                    $stmtP->execute([$item['product_id']]);
-                    $currentStock = (int)$stmtP->fetchColumn();
+                    $db->prepare("UPDATE products SET stock = stock + ? WHERE id = ?")
+                       ->execute([$item['quantity'], $item['product_id']]);
                     
-                    $db->prepare("UPDATE products SET sold_count = GREATEST(0, sold_count - ?), stock = stock + ? WHERE id = ?")
-                       ->execute([$item['quantity'], $item['quantity'], $item['product_id']]);
-                    
-                    try {
-                        $db->prepare("INSERT INTO stock_history (product_id, change_type, change_qty, stock_before, stock_after, note) VALUES (?, 'import', ?, ?, ?, ?)")
-                           ->execute([$item['product_id'], $item['quantity'], $currentStock, $currentStock + $item['quantity'], 'Hoàn đơn #' . $id]);
-                    } catch (Exception $e) { /* bỏ qua */ }
+                    // Nếu trước đó là completed → cũng hoàn sold_count
+                    if ($oldStatus === 'completed') {
+                        $db->prepare("UPDATE products SET sold_count = GREATEST(0, sold_count - ?) WHERE id = ?")
+                           ->execute([$item['quantity'], $item['product_id']]);
+                    }
+                }
+            }
+            
+            // Nếu mở lại đơn đã hủy → trừ lại stock
+            if ($oldStatus === 'cancelled' && $status !== 'cancelled') {
+                foreach ($items as $item) {
+                    $db->prepare("UPDATE products SET stock = GREATEST(0, stock - ?) WHERE id = ?")
+                       ->execute([$item['quantity'], $item['product_id']]);
                 }
             }
             

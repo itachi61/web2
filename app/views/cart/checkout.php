@@ -145,6 +145,36 @@
                                 <i class="fa-solid fa-building-columns text-primary me-1"></i> Chuyển khoản ngân hàng
                             </label>
                         </div>
+                        <!-- Thông tin chuyển khoản -->
+                        <div id="bankInfo" class="alert alert-info small mt-2" style="display:none">
+                            <strong><i class="fa-solid fa-building-columns me-1"></i>Thông tin chuyển khoản:</strong><br>
+                            🏦 Ngân hàng: <strong>Vietcombank</strong><br>
+                            🔢 Số TK: <strong>1234 5678 9012</strong><br>
+                            👤 Chủ TK: <strong>CONG TY TECHSMART</strong><br>
+                            📝 Nội dung CK: <strong>DH + Mã đơn hàng + SĐT</strong>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="payment" value="online" id="online">
+                            <label class="form-check-label fw-medium" for="online">
+                                <i class="fa-solid fa-credit-card text-warning me-1"></i> Thanh toán trực tuyến
+                            </label>
+                        </div>
+                        <!-- Thông báo chưa hỗ trợ -->
+                        <div id="onlineInfo" class="alert alert-warning small mt-2" style="display:none">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                            Tính năng thanh toán trực tuyến hiện <strong>chưa được hỗ trợ</strong>. Vui lòng chọn phương thức khác.
+                        </div>
+                        <script>
+                        (function() {
+                            const radios = document.querySelectorAll('input[name="payment"]');
+                            const bankInfo = document.getElementById('bankInfo');
+                            const onlineInfo = document.getElementById('onlineInfo');
+                            radios.forEach(r => r.addEventListener('change', function() {
+                                bankInfo.style.display = this.value === 'bank' ? 'block' : 'none';
+                                onlineInfo.style.display = this.value === 'online' ? 'block' : 'none';
+                            }));
+                        })();
+                        </script>
                     </form>
                 </div>
             </div>
