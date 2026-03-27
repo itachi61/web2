@@ -351,8 +351,8 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // 3. Validate form Số lượng (Không cho nhập số âm)
-    const quantityInputs = document.querySelectorAll('input[type="number"]');
+    // 3. Validate form Số lượng giỏ hàng (Không cho nhập số âm)
+    const quantityInputs = document.querySelectorAll('.cart-qty, input[name="quantity"]');
     quantityInputs.forEach(input => {
         input.addEventListener('change', function () {
             if (this.value < 1) {

@@ -216,12 +216,25 @@ class AdminController extends Controller
     public function products()
     {
         $model = $this->model('ProductModel');
-        $products = $model->getAllProducts();
+        $catFilter = $_GET['cat'] ?? '';
+        if ($catFilter) {
+            $products = $model->getProductsByCategory($catFilter);
+        } else {
+            $products = $model->getAllProducts();
+        }
+
+        // Load danh mục cho filter
+        try {
+            $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+            $cats = $db->query("SELECT * FROM categories ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) { $cats = []; }
 
         $this->view('admin/dashboard', [
             'view' => 'admin/products/index',
             'active' => 'products',
-            'products' => $products
+            'products' => $products,
+            'categories' => $cats,
+            'catFilter' => $catFilter
         ]);
     }
 

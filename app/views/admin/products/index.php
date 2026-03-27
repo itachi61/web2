@@ -25,11 +25,27 @@
     </div>
 <?php endif; ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="fw-bold text-primary"><i class="fa-solid fa-box-open me-2"></i>Quản lý Sản phẩm</h2>
     <a href="<?= BASE_URL ?>admin/addProduct" class="btn btn-primary shadow-sm">
         <i class="fa-solid fa-plus"></i> Thêm sản phẩm mới
     </a>
+</div>
+
+<!-- Lọc theo danh mục -->
+<div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
+    <span class="text-muted small fw-bold me-1"><i class="fa-solid fa-filter me-1"></i>Danh mục:</span>
+    <a href="<?= BASE_URL ?>admin/products" class="btn btn-sm <?= empty($data['catFilter']) ? 'btn-primary' : 'btn-outline-secondary' ?>">
+        Tất cả
+    </a>
+    <?php if (!empty($data['categories'])): ?>
+        <?php foreach ($data['categories'] as $cat): ?>
+            <a href="<?= BASE_URL ?>admin/products?cat=<?= $cat['id'] ?>" 
+               class="btn btn-sm <?= ($data['catFilter'] ?? '') == $cat['id'] ? 'btn-primary' : 'btn-outline-secondary' ?>">
+                <?= htmlspecialchars($cat['name']) ?>
+            </a>
+        <?php endforeach; ?>
+    <?php endif; ?>
 </div>
 
 <div class="card shadow-sm border-0 rounded-3">

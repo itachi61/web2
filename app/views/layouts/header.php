@@ -52,7 +52,7 @@ $IMG = BASE_URL . 'img/';
 
             <form action="<?= BASE_URL ?>product/search" method="GET" class="d-flex flex-grow-1 me-lg-4 mb-3 mb-lg-0">
                 <div class="input-group w-100">
-                    <input class="form-control rounded-start-pill border-0 ps-3" type="search" name="keyword" placeholder="Bạn tìm gì..." aria-label="Search" style="font-size: 0.95rem;">
+                    <input class="form-control rounded-start-pill border-0 ps-3" type="search" name="keyword" placeholder="Bạn tìm gì..." aria-label="Search" style="font-size: 0.95rem;" value="<?= htmlspecialchars($_GET['keyword'] ?? '') ?>">
                     <button class="btn border-0 rounded-end-pill bg-white text-primary btn-search-anim pe-3" type="submit">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </button>
