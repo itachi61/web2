@@ -8,7 +8,7 @@ $dateTo = $_GET['to'] ?? '';
 $viewMode = $_GET['mode'] ?? 'receipt'; // receipt | timeline
 
 try {
-    $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+    $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     // ===== TỔNG QUAN =====
@@ -36,7 +36,7 @@ try {
     // ===== DANH SÁCH PHIẾU NHẬP =====
     $stmt = $db->prepare("SELECT ir.*, 
                           (SELECT COUNT(*) FROM import_receipt_items WHERE receipt_id = ir.id) as item_count,
-                          u.name as created_by_name
+                          u.fullname as created_by_name
                           FROM import_receipts ir 
                           LEFT JOIN users u ON ir.created_by = u.id
                           WHERE ir.status = 'completed'" . $whereDate . " 
