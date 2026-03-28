@@ -252,10 +252,14 @@ class AdminController extends Controller
             // 1. Lấy dữ liệu từ Form
             $name = $_POST['name'];
             $category_id = $_POST['category_id'];
-            $price = $_POST['price'];
-            $desc = $_POST['description'];
-            $discount = isset($_POST['discount']) ? intval($_POST['discount']) : 0;
-            $cost_price = isset($_POST['cost_price']) ? floatval($_POST['cost_price']) : 0;
+            $desc = $_POST['description'] ?? '';
+            $unit = trim($_POST['unit'] ?? 'Cái');
+            
+            // Mặc định: giá=0, tồn=0, ẩn (chưa mở bán)
+            $price = 0;
+            $discount = 0;
+            $cost_price = 0;
+            $is_hidden = 1;
 
             // 2. TẠO FOLDER RIÊNG CHO SẢN PHẨM
             $folderName = $this->createSlug($name);
@@ -274,9 +278,9 @@ class AdminController extends Controller
                 $dbImageName = $folderName . '/' . $fileName;
             }
 
-            // 4. LƯU SẢN PHẨM VÀO DATABASE
+            // 4. LƯU SẢN PHẨM VÀO DATABASE (mặc định ẩn, giá=0, tồn=0)
             $model = $this->model('ProductModel');
-            $model->insertProduct($name, $category_id, $price, $desc, $dbImageName, $discount, $cost_price);
+            $model->insertProduct($name, $category_id, $price, $desc, $dbImageName, $discount, $cost_price, $is_hidden, $unit);
 
             $newProductId = $model->getLastId();
 
@@ -294,6 +298,7 @@ class AdminController extends Controller
                 }
             }
 
+            $_SESSION['success_msg'] = 'Đã thêm sản phẩm "' . $name . '" (chưa mở bán). Hãy chỉnh giá và nhập hàng để mở bán.';
             header('Location: ' . BASE_URL . 'admin/products');
             exit;
         }

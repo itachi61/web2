@@ -66,10 +66,10 @@ class ProductModel extends Database
     }
 
     // Thêm sản phẩm
-    public function insertProduct($name, $cat_id, $price, $desc, $image, $discount = 0, $cost_price = 0)
+    public function insertProduct($name, $cat_id, $price, $desc, $image, $discount = 0, $cost_price = 0, $is_hidden = 1, $unit = 'Cái')
     {
-        $stmt = $this->conn->prepare("INSERT INTO products (name, category_id, price, discount, cost_price, description, image) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        return $stmt->execute([$name, $cat_id, $price, $discount, $cost_price, $desc, $image]);
+        $stmt = $this->conn->prepare("INSERT INTO products (name, category_id, price, discount, cost_price, description, image, is_hidden, unit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        return $stmt->execute([$name, $cat_id, $price, $discount, $cost_price, $desc, $image, $is_hidden, $unit]);
     }
 
     // Cập nhật sản phẩm

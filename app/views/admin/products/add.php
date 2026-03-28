@@ -5,6 +5,12 @@
     </a>
 </div>
 
+<div class="alert alert-info py-2">
+    <i class="fa-solid fa-info-circle me-2"></i>
+    Sản phẩm mới sẽ ở trạng thái <strong>chưa mở bán</strong> (giá = 0, tồn kho = 0). 
+    Vui lòng <strong>chỉnh giá và nhập hàng</strong> sau khi tạo để mở bán.
+</div>
+
 <div class="card shadow border-0">
     <div class="card-body p-4">
         <form action="<?= BASE_URL ?>admin/store" method="POST" enctype="multipart/form-data">
@@ -18,40 +24,19 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Danh mục</label>
-                            <select name="category_id" class="form-select">
+                            <label class="form-label fw-bold">Danh mục <span class="text-danger">*</span></label>
+                            <select name="category_id" class="form-select" required>
+                                <option value="">-- Chọn danh mục --</option>
                                 <?php if (!empty($data['categories'])): ?>
                                     <?php foreach ($data['categories'] as $cat): ?>
                                         <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>
                                     <?php endforeach; ?>
-                                <?php else: ?>
-                                    <option value="1">Laptop</option>
-                                    <option value="2">Điện thoại</option>
-                                    <option value="3">Linh kiện</option>
                                 <?php endif; ?>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Giá bán (VNĐ) <span class="text-danger">*</span></label>
-                            <input type="number" name="price" id="priceInput" class="form-control" placeholder="Ví dụ: 25000000" min="0" required>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">Giảm giá (%)</label>
-                            <input type="number" name="discount" id="discountInput" class="form-control" placeholder="0" min="0" max="100" value="10">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">Giá nhập (VNĐ)</label>
-                            <input type="number" name="cost_price" id="costPriceInput" class="form-control" placeholder="Ví dụ: 18000000" min="0">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">Lợi nhuận</label>
-                            <div class="form-control bg-light" id="profitDisplay" style="cursor: default;">
-                                <span class="text-success fw-bold" id="profitValue">0đ</span>
-                                <small class="text-muted" id="profitPercent">(0%)</small>
-                            </div>
+                            <label class="form-label fw-bold">Đơn vị tính</label>
+                            <input type="text" name="unit" class="form-control" placeholder="Ví dụ: Cái, Chiếc, Bộ..." value="Cái">
                         </div>
                     </div>
 
@@ -84,6 +69,17 @@
                                 <input type="file" name="extra_images[]" class="form-control" multiple>
                                 <small class="text-muted fst-italic">* Giữ phím Ctrl để chọn nhiều ảnh</small>
                             </div>
+
+                            <hr>
+
+                            <!-- Thông tin mặc định -->
+                            <div class="alert alert-secondary py-2 mb-0 small">
+                                <i class="fa-solid fa-circle-info me-1"></i>
+                                <strong>Mặc định khi tạo:</strong><br>
+                                • Giá bán: <strong>0đ</strong><br>
+                                • Tồn kho: <strong>0</strong><br>
+                                • Trạng thái: <strong class="text-danger">Chưa mở bán</strong>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -102,30 +98,10 @@
 </div>
 
 <script>
-// Auto-calculate profit
-function calcProfit() {
-    const price = parseFloat(document.getElementById('priceInput')?.value) || 0;
-    const cost = parseFloat(document.getElementById('costPriceInput')?.value) || 0;
-    const profit = price - cost;
-    const pct = cost > 0 ? ((profit / cost) * 100).toFixed(1) : 0;
-    const el = document.getElementById('profitValue');
-    const elPct = document.getElementById('profitPercent');
-    if (el) {
-        el.textContent = profit.toLocaleString('vi-VN') + 'đ';
-        el.className = profit >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold';
-    }
-    if (elPct) elPct.textContent = '(' + pct + '%)';
-}
-document.getElementById('priceInput')?.addEventListener('input', calcProfit);
-document.getElementById('costPriceInput')?.addEventListener('input', calcProfit);
-</script>
-
-<script>
 document.getElementById('imageUpload').onchange = function (evt) {
     var tgt = evt.target || window.event.srcElement,
         files = tgt.files;
 
-    // FileReader support
     if (FileReader && files && files.length) {
         var fr = new FileReader();
         fr.onload = function () {
