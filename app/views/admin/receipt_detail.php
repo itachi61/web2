@@ -84,8 +84,8 @@
                 <form action="<?= BASE_URL ?>admin/addReceiptItem/<?= $receipt['id'] ?>" method="POST">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Sản phẩm <span class="text-danger">*</span></label>
-                        <input type="text" id="searchProduct" class="form-control form-control-sm mb-2" placeholder="🔍 Tìm sản phẩm...">
-                        <select name="product_id" id="productSelect" class="form-select" required size="6" style="height: auto;">
+                        <input type="text" id="searchProduct" class="form-control mb-2" placeholder="🔍 Tìm sản phẩm...">
+                        <select name="product_id" id="productSelect" class="form-select" required size="12" style="height: auto;">
                             <?php foreach ($data['products'] as $p): ?>
                                 <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['name']) ?> (Tồn: <?= $p['stock'] ?>)</option>
                             <?php endforeach; ?>
