@@ -190,12 +190,33 @@ try {
                 <input type="date" name="to" class="form-control" value="<?= htmlspecialchars($dateTo) ?>">
             </div>
             <div class="col-md-3">
-                <label class="form-label small fw-bold text-muted">Sản phẩm <small class="text-info">(Ctrl+click chọn nhiều)</small></label>
-                <select name="product_id[]" class="form-select" multiple size="4" style="font-size: 0.85rem;">
-                    <?php foreach ($allProducts as $ap): ?>
-                        <option value="<?= $ap['id'] ?>" <?= in_array($ap['id'], $filterProducts) ? 'selected' : '' ?>><?= htmlspecialchars($ap['name']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+                <label class="form-label small fw-bold text-muted">Sản phẩm</label>
+                <div class="dropdown" id="productDropdown">
+                    <button type="button" class="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center" 
+                            data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                        <span id="productDropdownLabel">
+                            <?php if (!empty($filterProducts)): ?>
+                                Đã chọn <?= count($filterProducts) ?> SP
+                            <?php else: ?>
+                                -- Tất cả --
+                            <?php endif; ?>
+                        </span>
+                        <i class="fa-solid fa-chevron-down ms-2 small"></i>
+                    </button>
+                    <div class="dropdown-menu w-100 p-2 shadow" style="max-height: 280px; overflow-y: auto;">
+                        <input type="text" class="form-control form-control-sm mb-2" id="searchStatProduct" placeholder="🔍 Tìm SP...">
+                        <div id="productCheckboxList">
+                            <?php foreach ($allProducts as $ap): ?>
+                                <label class="dropdown-item d-flex align-items-center gap-2 py-1 rounded product-check-label" style="cursor:pointer; font-size: 0.9rem;">
+                                    <input type="checkbox" name="product_id[]" value="<?= $ap['id'] ?>" 
+                                           <?= in_array($ap['id'], $filterProducts) ? 'checked' : '' ?>
+                                           class="form-check-input m-0" style="min-width:16px;">
+                                    <?= htmlspecialchars($ap['name']) ?>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="col-md-3 d-flex gap-2">
                 <button type="submit" class="btn btn-primary flex-grow-1">
@@ -583,3 +604,35 @@ try {
     </div>
 </div>
 <?php endif; ?>
+
+<script>
+(function() {
+    // Search filter
+    const searchInput = document.getElementById('searchStatProduct');
+    const labels = document.querySelectorAll('.product-check-label');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const kw = this.value.toLowerCase().trim();
+            labels.forEach(label => {
+                label.style.display = label.textContent.toLowerCase().includes(kw) ? '' : 'none';
+            });
+        });
+    }
+
+    // Update label on checkbox change
+    const checkboxes = document.querySelectorAll('#productCheckboxList input[type="checkbox"]');
+    const labelEl = document.getElementById('productDropdownLabel');
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            const checked = document.querySelectorAll('#productCheckboxList input[type="checkbox"]:checked');
+            if (checked.length === 0) {
+                labelEl.textContent = '-- Tất cả --';
+            } else if (checked.length === 1) {
+                labelEl.textContent = checked[0].parentElement.textContent.trim();
+            } else {
+                labelEl.textContent = 'Đã chọn ' + checked.length + ' SP';
+            }
+        });
+    });
+})();
+</script>
