@@ -17,6 +17,37 @@
 // tiện dùng cho asset trong public/
 $CSS = BASE_URL . 'css/';
 $IMG = BASE_URL . 'img/';
+
+// --- LẤY DANH MỤC TỪ MODEL ---
+// Lùi 2 cấp thư mục (từ layouts -> views -> app) để vào đúng thư mục models
+require_once dirname(dirname(__DIR__)) . '/models/ProductModel.php';
+$productModel = new ProductModel();
+$categories = [];
+
+try {
+    $categories = $productModel->getAllCategories();
+} catch (Exception $e) {
+    // Bỏ qua lỗi nếu có vấn đề về kết nối
+}
+
+// --- HÀM TỰ ĐỘNG MAP ICON THEO TÊN DANH MỤC ---
+function getCategoryIcon($categoryName) {
+    // Chuyển tên thành chữ thường để dễ so sánh (hỗ trợ tiếng Việt có dấu)
+    $name = mb_strtolower(trim($categoryName), 'UTF-8');
+    
+    if (strpos($name, 'laptop') !== false || strpos($name, 'máy tính') !== false || strpos($name, 'pc') !== false) return 'fa-laptop';
+    if (strpos($name, 'điện thoại') !== false || strpos($name, 'phone') !== false || strpos($name, 'smartphone') !== false) return 'fa-mobile-screen-button';
+    if (strpos($name, 'linh kiện') !== false || strpos($name, 'chip') !== false || strpos($name, 'ram') !== false) return 'fa-microchip';
+    if (strpos($name, 'tai nghe') !== false || strpos($name, 'audio') !== false || strpos($name, 'loa') !== false) return 'fa-headphones';
+    if (strpos($name, 'đồng hồ') !== false || strpos($name, 'watch') !== false) return 'fa-stopwatch';
+    if (strpos($name, 'màn hình') !== false || strpos($name, 'monitor') !== false) return 'fa-desktop';
+    if (strpos($name, 'bàn phím') !== false || strpos($name, 'keyboard') !== false) return 'fa-keyboard';
+    if (strpos($name, 'chuột') !== false || strpos($name, 'mouse') !== false) return 'fa-computer-mouse';
+    if (strpos($name, 'phụ kiện') !== false || strpos($name, 'sạc') !== false || strpos($name, 'cáp') !== false) return 'fa-plug';
+    
+    // Icon mặc định
+    return 'fa-tag';
+}
 ?>
 
 <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
@@ -42,11 +73,26 @@ $IMG = BASE_URL . 'img/';
                 </button>
                 
                 <ul class="dropdown-menu border-0 shadow-lg animate__animated animate__fadeIn">
-                    <li><a class="dropdown-item py-2 rounded-2" href="<?= BASE_URL ?>product/category/1"><i class="fa-solid fa-laptop text-muted me-2" style="width: 20px;"></i> Laptop</a></li>
-                    <li><a class="dropdown-item py-2 rounded-2" href="<?= BASE_URL ?>product/category/2"><i class="fa-solid fa-mobile-screen-button text-muted me-2" style="width: 20px;"></i> Điện thoại</a></li>
-                    <li><a class="dropdown-item py-2 rounded-2" href="<?= BASE_URL ?>product/category/3"><i class="fa-solid fa-microchip text-muted me-2" style="width: 20px;"></i> Linh kiện</a></li>
+                    <!-- ĐỔ DỮ LIỆU DANH MỤC Ở ĐÂY -->
+                    <?php if (!empty($categories)): ?>
+                        <?php foreach ($categories as $cat): ?>
+                            <?php 
+                                // Nếu có icon trong Database thì ưu tiên dùng, nếu không thì dùng hàm tự động
+                                $iconClass = !empty($cat['icon']) ? htmlspecialchars($cat['icon']) : getCategoryIcon($cat['name']); 
+                            ?>
+                            <li>
+                                <a class="dropdown-item py-2 rounded-2" href="<?= BASE_URL ?>product/category/<?= $cat['id'] ?>">
+                                    <i class="fa-solid <?= $iconClass ?> text-muted me-2" style="width: 20px; text-align: center;"></i> 
+                                    <?= htmlspecialchars($cat['name']) ?>
+                                </a>
+                            </li>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <li><span class="dropdown-item text-muted py-2">Đang cập nhật...</span></li>
+                    <?php endif; ?>
+                    
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item py-2 rounded-2 fw-bold text-primary" href="<?= BASE_URL ?>product"><i class="fa-solid fa-boxes-stacked me-2" style="width: 20px;"></i> Xem tất cả</a></li>
+                    <li><a class="dropdown-item py-2 rounded-2 fw-bold text-primary" href="<?= BASE_URL ?>product"><i class="fa-solid fa-boxes-stacked me-2" style="width: 20px; text-align: center;"></i> Xem tất cả</a></li>
                 </ul>
             </div>
 

@@ -582,34 +582,86 @@ class AdminController extends Controller
 
     public function addCategory()
     {
-        if ($_SERVER['REQUEST_METHOD'] != 'POST') { header('Location: ' . BASE_URL . 'admin/categories'); exit; }
+        if ($_SERVER['REQUEST_METHOD'] != 'POST') { 
+            header('Location: ' . BASE_URL . 'admin/categories'); 
+            exit; 
+        }
+        
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
-        if (!$name) { $_SESSION['error_msg'] = 'Tên danh mục không được trống!'; header('Location: ' . BASE_URL . 'admin/categories'); exit; }
+        
+        if (!$name) { 
+            $_SESSION['error_msg'] = 'Tên danh mục không được trống!'; 
+            header('Location: ' . BASE_URL . 'admin/categories'); 
+            exit; 
+        }
+
+        // Tự động dò icon dựa trên tên danh mục (không cần lấy từ form)
+        $icon = $this->detectCategoryIcon($name);
 
         $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
         $slug = $this->createSlug($name);
-        $db->prepare("INSERT INTO categories (name, slug, description) VALUES (?, ?, ?)")->execute([$name, $slug, $description]);
+        
+        // Lưu name, slug, description và icon tự động vào DB
+        $db->prepare("INSERT INTO categories (name, slug, description, icon) VALUES (?, ?, ?, ?)")->execute([$name, $slug, $description, $icon]);
+        
         $_SESSION['success_msg'] = 'Đã thêm danh mục "' . $name . '"!';
         header('Location: ' . BASE_URL . 'admin/categories');
         exit;
     }
 
+    /**
+     * Hàm tự động nhận diện icon dựa vào Tên danh mục
+     */
+    private function detectCategoryIcon($categoryName) 
+    {
+        $name = mb_strtolower(trim($categoryName), 'UTF-8');
+        
+        if (strpos($name, 'laptop') !== false || strpos($name, 'máy tính') !== false || strpos($name, 'pc') !== false) return 'fa-laptop';
+        if (strpos($name, 'điện thoại') !== false || strpos($name, 'phone') !== false || strpos($name, 'smartphone') !== false) return 'fa-mobile-screen-button';
+        if (strpos($name, 'linh kiện') !== false || strpos($name, 'chip') !== false || strpos($name, 'ram') !== false) return 'fa-microchip';
+        if (strpos($name, 'tai nghe') !== false || strpos($name, 'audio') !== false || strpos($name, 'loa') !== false) return 'fa-headphones';
+        if (strpos($name, 'đồng hồ') !== false || strpos($name, 'watch') !== false) return 'fa-stopwatch';
+        if (strpos($name, 'màn hình') !== false || strpos($name, 'monitor') !== false) return 'fa-desktop';
+        if (strpos($name, 'bàn phím') !== false || strpos($name, 'keyboard') !== false) return 'fa-keyboard';
+        if (strpos($name, 'chuột') !== false || strpos($name, 'mouse') !== false) return 'fa-computer-mouse';
+        if (strpos($name, 'phụ kiện') !== false || strpos($name, 'sạc') !== false || strpos($name, 'cáp') !== false) return 'fa-plug';
+        if (strpos($name, 'kỹ thuật số') !== false || strpos($name, 'phần mềm') !== false || strpos($name, 'tài khoản') !== false || strpos($name, 'key') !== false) return 'fa-cloud-arrow-down';
+        
+        // Trả về icon thư mục mặc định nếu không có từ khoá nào khớp
+        return 'fa-folder';
+    }
+
     public function updateCategory($id = null)
     {
-        if (!$id || $_SERVER['REQUEST_METHOD'] != 'POST') { header('Location: ' . BASE_URL . 'admin/categories'); exit; }
+        if (!$id || $_SERVER['REQUEST_METHOD'] != 'POST') { 
+            header('Location: ' . BASE_URL . 'admin/categories'); 
+            exit; 
+        }
+        
         $name = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
-        if (!$name) { $_SESSION['error_msg'] = 'Tên danh mục không được trống!'; header('Location: ' . BASE_URL . 'admin/categories'); exit; }
+        
+        if (!$name) { 
+            $_SESSION['error_msg'] = 'Tên danh mục không được trống!'; 
+            header('Location: ' . BASE_URL . 'admin/categories'); 
+            exit; 
+        }
+
+        // Tự động dò lại icon trong trường hợp admin đổi tên danh mục
+        $icon = $this->detectCategoryIcon($name);
 
         $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
         $slug = $this->createSlug($name);
-        $db->prepare("UPDATE categories SET name = ?, slug = ?, description = ? WHERE id = ?")->execute([$name, $slug, $description, $id]);
+        
+        // Cập nhật thêm cột icon vào database
+        $db->prepare("UPDATE categories SET name = ?, slug = ?, description = ?, icon = ? WHERE id = ?")
+           ->execute([$name, $slug, $description, $icon, $id]);
+           
         $_SESSION['success_msg'] = 'Đã cập nhật danh mục!';
         header('Location: ' . BASE_URL . 'admin/categories');
         exit;
     }
-
     public function deleteCategory($id = null)
     {
         if (!$id) { header('Location: ' . BASE_URL . 'admin/categories'); exit; }
