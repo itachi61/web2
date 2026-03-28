@@ -6,24 +6,30 @@
 // Lọc theo thời gian
 $dateFrom = $_GET['from'] ?? '';
 $dateTo = $_GET['to'] ?? '';
-$filterProduct = $_GET['product_id'] ?? '';
+$filterProducts = $_GET['product_id'] ?? [];
+if (!is_array($filterProducts)) $filterProducts = $filterProducts ? [$filterProducts] : [];
+$filterProducts = array_filter($filterProducts);
 
 $whereDate = '';
 $params = [];
 if ($dateFrom) { $whereDate .= " AND o.created_at >= ?"; $params[] = $dateFrom . ' 00:00:00'; }
 if ($dateTo) { $whereDate .= " AND o.created_at <= ?"; $params[] = $dateTo . ' 23:59:59'; }
 
-// Filter sản phẩm cụ thể
+// Filter nhiều sản phẩm
 $whereProduct = '';
 $productParams = [];
-if ($filterProduct) { $whereProduct = " AND oi.product_id = ?"; $productParams[] = $filterProduct; }
+if (!empty($filterProducts)) {
+    $ph = implode(',', array_fill(0, count($filterProducts), '?'));
+    $whereProduct = " AND oi.product_id IN ($ph)";
+    $productParams = $filterProducts;
+}
 
 try {
     $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     // Tổng doanh thu (lọc theo SP nếu có)
-    if ($filterProduct) {
+    if (!empty($filterProducts)) {
         $sql = "SELECT COALESCE(SUM(oi.price * oi.quantity), 0) as total_revenue, COUNT(DISTINCT o.id) as total_orders 
                 FROM order_items oi JOIN orders o ON oi.order_id = o.id 
                 WHERE o.status != 'cancelled'" . $whereDate . $whereProduct;
@@ -56,9 +62,14 @@ try {
     $stmt->execute(array_merge($params, $productParams));
     $totalProfit = $stmt->fetch(PDO::FETCH_ASSOC)['total_profit'];
     
-    // Doanh thu theo từng SP (lọc nếu chọn 1 SP)
-    $whereProductDirect = $filterProduct ? " WHERE p.id = ?" : "";
-    $sql4Params = $filterProduct ? [$filterProduct] : [];
+    // Doanh thu theo từng SP (lọc nếu chọn SP)
+    $whereProductDirect = '';
+    $sql4Params = [];
+    if (!empty($filterProducts)) {
+        $ph = implode(',', array_fill(0, count($filterProducts), '?'));
+        $whereProductDirect = " WHERE p.id IN ($ph)";
+        $sql4Params = $filterProducts;
+    }
     $sql4 = "SELECT p.id, p.name, p.price, p.cost_price, p.stock, p.discount, p.image,
              COALESCE(SUM(oi.quantity), 0) as qty_sold,
              COALESCE(SUM(oi.price * oi.quantity), 0) as revenue, 
@@ -68,7 +79,7 @@ try {
              LEFT JOIN categories c ON p.category_id = c.id
              LEFT JOIN order_items oi ON p.id = oi.product_id
              LEFT JOIN orders o ON oi.order_id = o.id AND o.status != 'cancelled'" . $whereDate . "
-             " . ($filterProduct ? " WHERE p.id = ?" : "") . "
+             " . $whereProductDirect . "
              GROUP BY p.id
              ORDER BY revenue DESC";
     $stmt = $db->prepare($sql4);
@@ -90,12 +101,13 @@ try {
     $stmt->execute($params);
     $categoryStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Chi tiết 1 SP (nếu chọn) — bao gồm giá nhập lúc bán
+    // Chi tiết SP (được chọn) — bao gồm giá nhập lúc bán
     $productDetail = null;
     $productOrders = [];
-    if ($filterProduct) {
+    if (count($filterProducts) === 1) {
+        $fpId = $filterProducts[0];
         $stmt = $db->prepare("SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?");
-        $stmt->execute([$filterProduct]);
+        $stmt->execute([$fpId]);
         $productDetail = $stmt->fetch(PDO::FETCH_ASSOC);
 
         $sqlDetail = "SELECT o.id as order_id, o.created_at, o.status, o.fullname, 
@@ -107,7 +119,7 @@ try {
                       WHERE oi.product_id = ? AND o.status != 'cancelled'" . $whereDate . "
                       ORDER BY o.created_at DESC";
         $stmt = $db->prepare($sqlDetail);
-        $stmt->execute(array_merge([$filterProduct], $params));
+        $stmt->execute(array_merge([$fpId], $params));
         $productOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -117,8 +129,13 @@ try {
     $importParams = [];
     if ($dateFrom) { $importWhereDate .= " AND ih.import_date >= ?"; $importParams[] = $dateFrom . ' 00:00:00'; }
     if ($dateTo) { $importWhereDate .= " AND ih.import_date <= ?"; $importParams[] = $dateTo . ' 23:59:59'; }
-    $importWhereProduct = $filterProduct ? " AND p.id = ?" : '';
-    $importProductParams = $filterProduct ? [$filterProduct] : [];
+    $importWhereProduct = '';
+    $importProductParams = [];
+    if (!empty($filterProducts)) {
+        $ph = implode(',', array_fill(0, count($filterProducts), '?'));
+        $importWhereProduct = " AND p.id IN ($ph)";
+        $importProductParams = $filterProducts;
+    }
 
     $sqlIE = "SELECT p.id, p.name, p.image,
               COALESCE(SUM(ih.quantity), 0) as total_imported,
@@ -173,11 +190,10 @@ try {
                 <input type="date" name="to" class="form-control" value="<?= htmlspecialchars($dateTo) ?>">
             </div>
             <div class="col-md-3">
-                <label class="form-label small fw-bold text-muted">Sản phẩm cụ thể</label>
-                <select name="product_id" class="form-select">
-                    <option value="">-- Tất cả --</option>
+                <label class="form-label small fw-bold text-muted">Sản phẩm <small class="text-info">(Ctrl+click chọn nhiều)</small></label>
+                <select name="product_id[]" class="form-select" multiple size="4" style="font-size: 0.85rem;">
                     <?php foreach ($allProducts as $ap): ?>
-                        <option value="<?= $ap['id'] ?>" <?= $filterProduct == $ap['id'] ? 'selected' : '' ?>><?= htmlspecialchars($ap['name']) ?></option>
+                        <option value="<?= $ap['id'] ?>" <?= in_array($ap['id'], $filterProducts) ? 'selected' : '' ?>><?= htmlspecialchars($ap['name']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
