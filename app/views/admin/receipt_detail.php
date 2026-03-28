@@ -75,48 +75,67 @@
 <div class="row g-4">
     <!-- Form thêm SP (chỉ khi draft) -->
     <?php if ($isDraft): ?>
-    <div class="col-lg-4">
+    <div class="col-lg-5">
         <div class="card shadow-sm border-0 rounded-3">
             <div class="card-header bg-primary text-white py-3">
-                <h5 class="mb-0"><i class="fa-solid fa-plus me-2"></i>Thêm sản phẩm</h5>
+                <h5 class="mb-0"><i class="fa-solid fa-plus me-2"></i>Thêm sản phẩm vào phiếu</h5>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <form action="<?= BASE_URL ?>admin/addReceiptItem/<?= $receipt['id'] ?>" method="POST">
+                    <!-- Tìm kiếm sản phẩm -->
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Sản phẩm <span class="text-danger">*</span></label>
-                        <input type="text" id="searchProduct" class="form-control mb-2" placeholder="🔍 Tìm sản phẩm...">
-                        <select name="product_id" id="productSelect" class="form-select" required size="12" style="height: auto;">
+                        <label class="form-label fw-bold"><i class="fa-solid fa-box me-1 text-primary"></i>Chọn sản phẩm <span class="text-danger">*</span></label>
+                        <div class="input-group mb-2">
+                            <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                            <input type="text" id="searchProduct" class="form-control border-start-0" placeholder="Nhập tên sản phẩm để tìm...">
+                        </div>
+                        <select name="product_id" id="productSelect" class="form-select border-2" required size="10" style="height: auto; font-size: 0.92rem;">
                             <?php foreach ($data['products'] as $p): ?>
-                                <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['name']) ?> (Tồn: <?= $p['stock'] ?>)</option>
+                                <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['name']) ?> — Tồn: <?= $p['stock'] ?></option>
                             <?php endforeach; ?>
                         </select>
-                        <small class="text-muted"><i class="fa-solid fa-info-circle me-1"></i>Nhập tên để lọc, nhấn chọn sản phẩm</small>
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-muted"><i class="fa-solid fa-info-circle me-1"></i>Nhấn chọn sản phẩm từ danh sách</small>
+                            <small class="text-primary fw-bold" id="productCount"><?= count($data['products']) ?> SP</small>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Số lượng <span class="text-danger">*</span></label>
-                        <input type="number" name="quantity" class="form-control" min="1" required>
+
+                    <hr class="my-3">
+
+                    <!-- SL và Giá nhập nằm cùng dòng -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold"><i class="fa-solid fa-cubes me-1 text-info"></i>Số lượng <span class="text-danger">*</span></label>
+                            <input type="number" name="quantity" class="form-control form-control-lg text-center fw-bold" min="1" placeholder="0" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold"><i class="fa-solid fa-tag me-1 text-success"></i>Giá nhập (đ) <span class="text-danger">*</span></label>
+                            <input type="number" name="import_price" class="form-control form-control-lg text-center fw-bold" min="0" placeholder="0" required>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Giá nhập (đ/sp) <span class="text-danger">*</span></label>
-                        <input type="number" name="import_price" class="form-control" min="0" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fa-solid fa-plus me-2"></i>Thêm vào phiếu
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm">
+                        <i class="fa-solid fa-plus me-2"></i>Thêm vào phiếu nhập
                     </button>
                 </form>
+
                 <script>
                 (function() {
                     const search = document.getElementById('searchProduct');
                     const select = document.getElementById('productSelect');
+                    const countEl = document.getElementById('productCount');
                     const options = Array.from(select.options);
                     search.addEventListener('input', function() {
                         const keyword = this.value.toLowerCase().trim();
                         select.innerHTML = '';
+                        let count = 0;
                         options.forEach(opt => {
                             if (opt.text.toLowerCase().includes(keyword)) {
                                 select.appendChild(opt.cloneNode(true));
+                                count++;
                             }
                         });
+                        countEl.textContent = count + ' SP';
                     });
                 })();
                 </script>
@@ -126,7 +145,7 @@
     <?php endif; ?>
 
     <!-- Danh sách SP trong phiếu -->
-    <div class="<?= $isDraft ? 'col-lg-8' : 'col-12' ?>">
+    <div class="<?= $isDraft ? 'col-lg-7' : 'col-12' ?>">
         <div class="card shadow-sm border-0 rounded-3">
             <div class="card-header bg-white py-3">
                 <h5 class="mb-0 fw-bold"><i class="fa-solid fa-list me-2"></i>Sản phẩm trong phiếu</h5>
