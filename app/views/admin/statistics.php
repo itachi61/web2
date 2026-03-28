@@ -578,19 +578,21 @@ try {
                     <?php 
                     $sumImported = 0; $sumSold = 0; $sumImportCost = 0; $sumRevenue = 0;
                     foreach ($importExportReport as $ie): 
+                        $ieSold = intval($ie['total_sold'] ?? 0);
+                        $ieRevenue = floatval($ie['total_revenue'] ?? 0);
                         $sumImported += $ie['total_imported'];
-                        $sumSold += $ie['total_sold'];
+                        $sumSold += $ieSold;
                         $sumImportCost += $ie['total_import_cost'];
-                        $sumRevenue += $ie['total_revenue'];
-                        $diff = $ie['total_revenue'] - $ie['total_import_cost'];
+                        $sumRevenue += $ieRevenue;
+                        $diff = $ieRevenue - $ie['total_import_cost'];
                         $dtl = $importExportDetails[$ie['id']] ?? ['imports'=>[],'exports'=>[]];
                     ?>
                     <tr>
                         <td class="fw-bold"><?= htmlspecialchars($ie['name']) ?></td>
                         <td class="text-center"><span class="badge bg-success-subtle text-success">+<?= $ie['total_imported'] ?></span></td>
-                        <td class="text-center"><span class="badge bg-danger-subtle text-danger">-<?= $ie['total_sold'] ?></span></td>
+                        <td class="text-center"><span class="badge bg-danger-subtle text-danger">-<?= $ieSold ?></span></td>
                         <td class="text-end text-info"><?= number_format($ie['total_import_cost'], 0, ',', '.') ?>đ</td>
-                        <td class="text-end text-primary fw-bold"><?= number_format($ie['total_revenue'], 0, ',', '.') ?>đ</td>
+                        <td class="text-end text-primary fw-bold"><?= number_format($ieRevenue, 0, ',', '.') ?>đ</td>
                         <td class="text-end fw-bold <?= $diff >= 0 ? 'text-success' : 'text-danger' ?>">
                             <?= $diff >= 0 ? '+' : '' ?><?= number_format($diff, 0, ',', '.') ?>đ
                         </td>
