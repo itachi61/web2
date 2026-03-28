@@ -13,37 +13,52 @@ $params = [];
 if ($dateFrom) { $whereDate .= " AND o.created_at >= ?"; $params[] = $dateFrom . ' 00:00:00'; }
 if ($dateTo) { $whereDate .= " AND o.created_at <= ?"; $params[] = $dateTo . ' 23:59:59'; }
 
+// Filter sản phẩm cụ thể
+$whereProduct = '';
+$productParams = [];
+if ($filterProduct) { $whereProduct = " AND oi.product_id = ?"; $productParams[] = $filterProduct; }
+
 try {
     $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
-    // Tổng doanh thu
-    $sql = "SELECT COALESCE(SUM(o.total_money), 0) as total_revenue, COUNT(*) as total_orders 
-            FROM orders o WHERE o.status != 'cancelled'" . $whereDate;
-    $stmt = $db->prepare($sql);
-    $stmt->execute($params);
+    // Tổng doanh thu (lọc theo SP nếu có)
+    if ($filterProduct) {
+        $sql = "SELECT COALESCE(SUM(oi.price * oi.quantity), 0) as total_revenue, COUNT(DISTINCT o.id) as total_orders 
+                FROM order_items oi JOIN orders o ON oi.order_id = o.id 
+                WHERE o.status != 'cancelled'" . $whereDate . $whereProduct;
+        $stmt = $db->prepare($sql);
+        $stmt->execute(array_merge($params, $productParams));
+    } else {
+        $sql = "SELECT COALESCE(SUM(o.total_money), 0) as total_revenue, COUNT(*) as total_orders 
+                FROM orders o WHERE o.status != 'cancelled'" . $whereDate;
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+    }
     $revenue = $stmt->fetch(PDO::FETCH_ASSOC);
     
     // Tổng SP đã bán
     $sql2 = "SELECT COALESCE(SUM(oi.quantity), 0) as total_sold 
              FROM order_items oi 
              JOIN orders o ON oi.order_id = o.id 
-             WHERE o.status != 'cancelled'" . $whereDate;
+             WHERE o.status != 'cancelled'" . $whereDate . $whereProduct;
     $stmt = $db->prepare($sql2);
-    $stmt->execute($params);
+    $stmt->execute(array_merge($params, $productParams));
     $totalSold = $stmt->fetch(PDO::FETCH_ASSOC)['total_sold'];
     
-    // Tổng lợi nhuận (dùng cost_price snapshot từ order_items)
+    // Tổng lợi nhuận
     $sql3 = "SELECT COALESCE(SUM((oi.price - COALESCE(oi.cost_price, p.cost_price)) * oi.quantity), 0) as total_profit 
              FROM order_items oi 
              JOIN orders o ON oi.order_id = o.id 
              JOIN products p ON oi.product_id = p.id 
-             WHERE o.status != 'cancelled'" . $whereDate;
+             WHERE o.status != 'cancelled'" . $whereDate . $whereProduct;
     $stmt = $db->prepare($sql3);
-    $stmt->execute($params);
+    $stmt->execute(array_merge($params, $productParams));
     $totalProfit = $stmt->fetch(PDO::FETCH_ASSOC)['total_profit'];
     
-    // Doanh thu theo từng SP
+    // Doanh thu theo từng SP (lọc nếu chọn 1 SP)
+    $whereProductDirect = $filterProduct ? " WHERE p.id = ?" : "";
+    $sql4Params = $filterProduct ? [$filterProduct] : [];
     $sql4 = "SELECT p.id, p.name, p.price, p.cost_price, p.stock, p.discount, p.image,
              COALESCE(SUM(oi.quantity), 0) as qty_sold,
              COALESCE(SUM(oi.price * oi.quantity), 0) as revenue, 
@@ -53,10 +68,11 @@ try {
              LEFT JOIN categories c ON p.category_id = c.id
              LEFT JOIN order_items oi ON p.id = oi.product_id
              LEFT JOIN orders o ON oi.order_id = o.id AND o.status != 'cancelled'" . $whereDate . "
+             " . ($filterProduct ? " WHERE p.id = ?" : "") . "
              GROUP BY p.id
              ORDER BY revenue DESC";
     $stmt = $db->prepare($sql4);
-    $stmt->execute($params);
+    $stmt->execute(array_merge($params, $sql4Params));
     $productStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     // Doanh thu theo danh mục
@@ -101,16 +117,19 @@ try {
     $importParams = [];
     if ($dateFrom) { $importWhereDate .= " AND ih.import_date >= ?"; $importParams[] = $dateFrom . ' 00:00:00'; }
     if ($dateTo) { $importWhereDate .= " AND ih.import_date <= ?"; $importParams[] = $dateTo . ' 23:59:59'; }
+    $importWhereProduct = $filterProduct ? " AND p.id = ?" : '';
+    $importProductParams = $filterProduct ? [$filterProduct] : [];
 
     $sqlIE = "SELECT p.id, p.name, p.image,
               COALESCE(SUM(ih.quantity), 0) as total_imported,
               COALESCE(SUM(ih.quantity * ih.import_price), 0) as total_import_cost
               FROM products p 
               LEFT JOIN import_history ih ON p.id = ih.product_id" . ($importWhereDate ? " AND 1=1" . $importWhereDate : "") . "
+              WHERE 1=1" . $importWhereProduct . "
               GROUP BY p.id HAVING total_imported > 0
               ORDER BY total_imported DESC";
     $stmt = $db->prepare($sqlIE);
-    $stmt->execute($importParams);
+    $stmt->execute(array_merge($importParams, $importProductParams));
     $importExportReport = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Merge with sold data
@@ -126,6 +145,9 @@ try {
     }
     unset($row);
     
+    // Load danh sách tất cả SP cho dropdown (không bị filter)
+    $allProducts = $db->query("SELECT id, name FROM products ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
+    
 } catch (Exception $e) {
     $revenue = ['total_revenue' => 0, 'total_orders' => 0];
     $totalSold = 0;
@@ -134,6 +156,7 @@ try {
     $categoryStats = [];
     $productDetail = null;
     $productOrders = [];
+    $allProducts = [];
 }
 ?>
 
@@ -153,8 +176,8 @@ try {
                 <label class="form-label small fw-bold text-muted">Sản phẩm cụ thể</label>
                 <select name="product_id" class="form-select">
                     <option value="">-- Tất cả --</option>
-                    <?php foreach ($productStats as $ps): ?>
-                        <option value="<?= $ps['id'] ?>" <?= $filterProduct == $ps['id'] ? 'selected' : '' ?>><?= htmlspecialchars($ps['name']) ?></option>
+                    <?php foreach ($allProducts as $ap): ?>
+                        <option value="<?= $ap['id'] ?>" <?= $filterProduct == $ap['id'] ? 'selected' : '' ?>><?= htmlspecialchars($ap['name']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
