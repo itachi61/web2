@@ -160,13 +160,28 @@ try {
             }
         }
         if (!isset($row['total_sold'])) { $row['total_sold'] = 0; $row['total_revenue'] = 0; }
-        // Chi tiết nhập
-        $stmtD = $db->prepare("SELECT ih.quantity, ih.import_price, ih.import_date, ir.receipt_code, ir.id as receipt_id FROM import_history ih LEFT JOIN import_receipt_items iri ON ih.product_id = iri.product_id LEFT JOIN import_receipts ir ON iri.receipt_id = ir.id WHERE ih.product_id = ?" . $importWhereDate . " GROUP BY ih.id ORDER BY ih.import_date DESC");
-        $stmtD->execute(array_merge([$row['id']], $importParams));
+        // Chi tiết nhập (từ import_receipt_items + import_receipts)
+        $dtlImportWhere = '';
+        $dtlImportParams = [$row['id']];
+        if ($dateFrom) { $dtlImportWhere .= " AND ir.created_at >= ?"; $dtlImportParams[] = $dateFrom . ' 00:00:00'; }
+        if ($dateTo) { $dtlImportWhere .= " AND ir.created_at <= ?"; $dtlImportParams[] = $dateTo . ' 23:59:59'; }
+        $stmtD = $db->prepare("SELECT iri.quantity, iri.import_price, ir.created_at as import_date, ir.receipt_code, ir.id as receipt_id 
+                                FROM import_receipt_items iri 
+                                JOIN import_receipts ir ON iri.receipt_id = ir.id 
+                                WHERE iri.product_id = ? AND ir.status = 'completed'" . $dtlImportWhere . " 
+                                ORDER BY ir.created_at DESC");
+        $stmtD->execute($dtlImportParams);
         $importExportDetails[$row['id']]['imports'] = $stmtD->fetchAll(PDO::FETCH_ASSOC);
-        // Chi tiết xuất
-        $stmtD = $db->prepare("SELECT oi.quantity, oi.price, o.created_at, o.id as order_id, o.fullname FROM order_items oi JOIN orders o ON oi.order_id = o.id WHERE oi.product_id = ? AND o.status != 'cancelled'" . $whereDate . " ORDER BY o.created_at DESC");
-        $stmtD->execute(array_merge([$row['id']], $params));
+        // Chi tiết xuất (bán hàng)
+        $dtlExportWhere = '';
+        $dtlExportParams = [$row['id']];
+        if ($dateFrom) { $dtlExportWhere .= " AND o.created_at >= ?"; $dtlExportParams[] = $dateFrom . ' 00:00:00'; }
+        if ($dateTo) { $dtlExportWhere .= " AND o.created_at <= ?"; $dtlExportParams[] = $dateTo . ' 23:59:59'; }
+        $stmtD = $db->prepare("SELECT oi.quantity, oi.price, o.created_at, o.id as order_id, o.fullname 
+                                FROM order_items oi JOIN orders o ON oi.order_id = o.id 
+                                WHERE oi.product_id = ? AND o.status != 'cancelled'" . $dtlExportWhere . " 
+                                ORDER BY o.created_at DESC");
+        $stmtD->execute($dtlExportParams);
         $importExportDetails[$row['id']]['exports'] = $stmtD->fetchAll(PDO::FETCH_ASSOC);
     }
     unset($row);
