@@ -12,25 +12,28 @@
     <?php else: ?>
         <?php foreach ($data['orders'] as $order): ?>
         <div class="card shadow-sm border-0 rounded-3 mb-3">
-            <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
-                <div>
-                    <span class="fw-bold">Đơn hàng #<?= $order['id'] ?></span>
-                    <small class="text-muted ms-2"><?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></small>
-                </div>
-                <div>
-                    <?php
-                    $statusMap = [
-                        'pending' => ['Chờ xử lý', 'warning'],
-                        'processing' => ['Đang giao', 'info'],
-                        'completed' => ['Hoàn thành', 'success'],
-                        'cancelled' => ['Đã hủy', 'danger']
-                    ];
-                    $s = $statusMap[$order['status']] ?? ['N/A', 'secondary'];
-                    ?>
-                    <span class="badge bg-<?= $s[1] ?> px-3 py-2"><?= $s[0] ?></span>
-                </div>
+            <div class="card-header bg-light py-3">
+                <span class="fw-bold">Đơn hàng #<?= $order['id'] ?></span>
+                <small class="text-muted ms-2"><?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></small>
             </div>
             <div class="card-body p-4">
+                <?php
+                $statusMap = [
+                    'pending' => ['Chờ xử lý', 'warning', 'fa-clock'],
+                    'processing' => ['Đang giao', 'info', 'fa-truck'],
+                    'completed' => ['Hoàn thành', 'success', 'fa-circle-check'],
+                    'cancelled' => ['Đã hủy', 'danger', 'fa-circle-xmark']
+                ];
+                $s = $statusMap[$order['status']] ?? ['N/A', 'secondary', 'fa-question'];
+                ?>
+                <div class="d-flex align-items-center mb-3 p-2 rounded-3 bg-<?= $s[1] ?> bg-opacity-10 border border-<?= $s[1] ?>">
+                    <i class="fa-solid <?= $s[2] ?> text-<?= $s[1] ?> fs-4 me-3"></i>
+                    <div>
+                        <span class="fw-bold text-<?= $s[1] ?>"><?= $s[0] ?></span>
+                        <small class="text-muted d-block">Trạng thái đơn hàng</small>
+                    </div>
+                </div>
+
                 <div class="row">
                     <div class="col-md-6">
                         <small class="text-muted"><i class="fa-solid fa-user me-1"></i> <?= htmlspecialchars($order['fullname']) ?></small><br>
