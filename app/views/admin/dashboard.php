@@ -58,6 +58,10 @@
                     <a href="<?= BASE_URL ?>admin/stockHistory" class="<?= (isset($data['active']) && $data['active'] == 'stock') ? 'active' : '' ?>">
                         <i class="fa-solid fa-warehouse"></i> Tra cứu tồn kho
                     </a>
+
+                    <a href="<?= BASE_URL ?>admin/importReport" class="<?= (isset($data['active']) && $data['active'] == 'importReport') ? 'active' : '' ?>">
+                        <i class="fa-solid fa-file-invoice-dollar"></i> Sổ nhập xuất
+                    </a>
                 </div>
 
                 <div class="p-3 border-top border-secondary">
@@ -81,6 +85,7 @@
                         elseif ($data['active'] == 'users') echo 'Quản lý khách hàng';
                         elseif ($data['active'] == 'statistics') echo 'Thống kê & Báo cáo';
                         elseif ($data['active'] == 'import') echo 'Nhập hàng';
+                        elseif ($data['active'] == 'importReport') echo 'Sổ Nhập Xuất';
                         elseif ($data['active'] == 'categories') echo 'Quản lý danh mục';
                         else echo 'Quản trị viên';
                     }

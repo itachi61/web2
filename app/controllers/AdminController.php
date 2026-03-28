@@ -206,6 +206,14 @@ class AdminController extends Controller
         ]);
     }
 
+    public function importReport()
+    {
+        $this->view('admin/dashboard', [
+            'view' => 'admin/import_report',
+            'active' => 'importReport'
+        ]);
+    }
+
     // Trang danh sách sản phẩm
     public function products()
     {
