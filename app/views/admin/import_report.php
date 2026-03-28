@@ -255,7 +255,7 @@ $netProfit = $sales['total_sales'] - $summary['total_cost'];
                 <tr>
                     <td class="ps-3">
                         <?php if (!empty($item['image'])): ?>
-                            <img src="<?= BASE_URL ?>public/uploads/<?= $item['image'] ?>" width="30" height="30" class="rounded me-2" style="object-fit:cover;">
+                            <img src="<?= BASE_URL ?>images/<?= $item['image'] ?>" width="30" height="30" class="rounded me-2" style="object-fit:cover;">
                         <?php endif; ?>
                         <?= htmlspecialchars($item['product_name']) ?>
                     </td>
