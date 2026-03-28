@@ -16,7 +16,7 @@
                             <option value="">-- Chọn sản phẩm --</option>
                             <?php foreach ($data['products'] as $p): ?>
                                 <option value="<?= $p['id'] ?>" <?= ($data['selectedProductId'] == $p['id']) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($p['name']) ?> (Tồn hiện tại: <?= $p['stock'] ?>)
+                                    <?= htmlspecialchars($p['name']) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

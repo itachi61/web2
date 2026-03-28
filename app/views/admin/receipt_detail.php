@@ -50,8 +50,16 @@
     </div>
     <div class="col-md-3">
         <div class="card border-0 shadow-sm text-center py-3">
-            <small class="text-muted">Ngày tạo</small>
-            <strong><?= date('d/m/Y H:i', strtotime($receipt['created_at'])) ?></strong>
+            <small class="text-muted">Ngày nhập</small>
+            <?php if ($isDraft): ?>
+                <form action="<?= BASE_URL ?>admin/updateReceiptDate/<?= $receipt['id'] ?>" method="POST" class="px-2 mt-1">
+                    <input type="datetime-local" name="import_date" class="form-control form-control-sm text-center fw-bold"
+                           value="<?= date('Y-m-d\TH:i', strtotime($receipt['created_at'])) ?>">
+                    <button type="submit" class="btn btn-sm btn-outline-primary w-100 mt-1"><i class="fa-solid fa-save me-1"></i>Lưu ngày</button>
+                </form>
+            <?php else: ?>
+                <strong><?= date('d/m/Y H:i', strtotime($receipt['created_at'])) ?></strong>
+            <?php endif; ?>
         </div>
     </div>
     <div class="col-md-3">
@@ -109,8 +117,12 @@
                             <input type="number" name="quantity" class="form-control form-control-lg text-center fw-bold" min="1" placeholder="0" required>
                         </div>
                         <div class="col-6">
-                            <label class="form-label fw-bold"><i class="fa-solid fa-tag me-1 text-success"></i>Giá nhập (đ) <span class="text-danger">*</span></label>
-                            <input type="number" name="import_price" class="form-control form-control-lg text-center fw-bold" min="0" placeholder="0" required>
+                            <label class="form-label fw-bold"><i class="fa-solid fa-tag me-1 text-success"></i>Giá nhập <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="text" id="importPriceDisplay" class="form-control form-control-lg text-center fw-bold" placeholder="0" required>
+                                <span class="input-group-text fw-bold">VNĐ</span>
+                            </div>
+                            <input type="hidden" name="import_price" id="importPriceHidden">
                         </div>
                     </div>
 
@@ -137,6 +149,21 @@
                         });
                         countEl.textContent = count + ' SP';
                     });
+
+                    // Format giá nhập: 100000 → 100.000
+                    const priceDisplay = document.getElementById('importPriceDisplay');
+                    const priceHidden = document.getElementById('importPriceHidden');
+                    if (priceDisplay && priceHidden) {
+                        priceDisplay.addEventListener('input', function() {
+                            let raw = this.value.replace(/\D/g, '');
+                            priceHidden.value = raw;
+                            this.value = raw ? parseInt(raw).toLocaleString('vi-VN') : '';
+                        });
+                        // Sync khi submit
+                        priceDisplay.closest('form').addEventListener('submit', function() {
+                            priceHidden.value = priceDisplay.value.replace(/\D/g, '');
+                        });
+                    }
                 })();
                 </script>
             </div>

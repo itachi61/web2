@@ -826,6 +826,26 @@ class AdminController extends Controller
         exit;
     }
 
+    // Cập nhật ngày nhập hàng
+    public function updateReceiptDate($id = null) {
+        if (!$id || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . BASE_URL . 'admin/import'); exit;
+        }
+        $importDate = $_POST['import_date'] ?? '';
+        if ($importDate) {
+            try {
+                $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+                $stmt = $db->prepare("UPDATE import_receipts SET created_at = ? WHERE id = ? AND status = 'draft'");
+                $stmt->execute([$importDate, $id]);
+                $_SESSION['import_success'] = 'Đã cập nhật ngày nhập hàng.';
+            } catch (Exception $e) {
+                $_SESSION['import_error'] = 'Lỗi: ' . $e->getMessage();
+            }
+        }
+        header('Location: ' . BASE_URL . 'admin/viewReceipt/' . $id);
+        exit;
+    }
+
     // Hoàn thành phiếu nhập → áp dụng WAC cho từng SP
     public function completeReceipt($id = null) {
         if (!$id) { header('Location: ' . BASE_URL . 'admin/import'); exit; }
