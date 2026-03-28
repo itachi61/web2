@@ -244,10 +244,10 @@ $netProfit = $sales['total_sales'] - $summary['total_cost'];
         <table class="table table-sm table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
-                    <th class="ps-3">Sản phẩm</th>
-                    <th class="text-center">Số lượng</th>
-                    <th class="text-end">Giá nhập/SP</th>
-                    <th class="text-end pe-3">Thành tiền</th>
+                    <th class="ps-3" style="width:40%;">Sản phẩm</th>
+                    <th class="text-center" style="width:15%;">Số lượng</th>
+                    <th class="text-end" style="width:20%;">Giá nhập/SP</th>
+                    <th class="text-end pe-3" style="width:25%;">Thành tiền</th>
                 </tr>
             </thead>
             <tbody>
