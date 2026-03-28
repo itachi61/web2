@@ -84,12 +84,13 @@
                 <form action="<?= BASE_URL ?>admin/addReceiptItem/<?= $receipt['id'] ?>" method="POST">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Sản phẩm <span class="text-danger">*</span></label>
-                        <select name="product_id" class="form-select" required>
-                            <option value="">-- Chọn sản phẩm --</option>
+                        <input type="text" id="searchProduct" class="form-control form-control-sm mb-2" placeholder="🔍 Tìm sản phẩm...">
+                        <select name="product_id" id="productSelect" class="form-select" required size="6" style="height: auto;">
                             <?php foreach ($data['products'] as $p): ?>
                                 <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['name']) ?> (Tồn: <?= $p['stock'] ?>)</option>
                             <?php endforeach; ?>
                         </select>
+                        <small class="text-muted"><i class="fa-solid fa-info-circle me-1"></i>Nhập tên để lọc, nhấn chọn sản phẩm</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Số lượng <span class="text-danger">*</span></label>
@@ -103,6 +104,22 @@
                         <i class="fa-solid fa-plus me-2"></i>Thêm vào phiếu
                     </button>
                 </form>
+                <script>
+                (function() {
+                    const search = document.getElementById('searchProduct');
+                    const select = document.getElementById('productSelect');
+                    const options = Array.from(select.options);
+                    search.addEventListener('input', function() {
+                        const keyword = this.value.toLowerCase().trim();
+                        select.innerHTML = '';
+                        options.forEach(opt => {
+                            if (opt.text.toLowerCase().includes(keyword)) {
+                                select.appendChild(opt.cloneNode(true));
+                            }
+                        });
+                    });
+                })();
+                </script>
             </div>
         </div>
     </div>
