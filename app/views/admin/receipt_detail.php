@@ -89,9 +89,9 @@
                             <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
                             <input type="text" id="searchProduct" class="form-control border-start-0" placeholder="Nhập tên sản phẩm để tìm...">
                         </div>
-                        <select name="product_id" id="productSelect" class="form-select border-2" required size="10" style="height: auto; font-size: 0.92rem;">
+                        <select name="product_id" id="productSelect" class="form-select border-2" required size="8" style="height: auto; font-size: 1.05rem; line-height: 2.2;">
                             <?php foreach ($data['products'] as $p): ?>
-                                <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['name']) ?> — Tồn: <?= $p['stock'] ?></option>
+                                <option value="<?= $p['id'] ?>" style="padding: 8px 6px;"><?= htmlspecialchars($p['name']) ?> — Tồn: <?= $p['stock'] ?></option>
                             <?php endforeach; ?>
                         </select>
                         <div class="d-flex justify-content-between mt-1">
