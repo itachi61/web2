@@ -149,7 +149,8 @@ try {
     $stmt->execute(array_merge($importParams, $importProductParams));
     $importExportReport = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Merge with sold data
+    // Merge with sold data + load chi tiết
+    $importExportDetails = [];
     foreach ($importExportReport as &$row) {
         foreach ($productStats as $ps) {
             if ($ps['id'] == $row['id']) {
@@ -159,6 +160,14 @@ try {
             }
         }
         if (!isset($row['total_sold'])) { $row['total_sold'] = 0; $row['total_revenue'] = 0; }
+        // Chi tiết nhập
+        $stmtD = $db->prepare("SELECT ih.quantity, ih.import_price, ih.import_date, ir.receipt_code, ir.id as receipt_id FROM import_history ih LEFT JOIN import_receipt_items iri ON ih.product_id = iri.product_id LEFT JOIN import_receipts ir ON iri.receipt_id = ir.id WHERE ih.product_id = ?" . $importWhereDate . " GROUP BY ih.id ORDER BY ih.import_date DESC");
+        $stmtD->execute(array_merge([$row['id']], $importParams));
+        $importExportDetails[$row['id']]['imports'] = $stmtD->fetchAll(PDO::FETCH_ASSOC);
+        // Chi tiết xuất
+        $stmtD = $db->prepare("SELECT oi.quantity, oi.price, o.created_at, o.id as order_id, o.fullname FROM order_items oi JOIN orders o ON oi.order_id = o.id WHERE oi.product_id = ? AND o.status != 'cancelled'" . $whereDate . " ORDER BY o.created_at DESC");
+        $stmtD->execute(array_merge([$row['id']], $params));
+        $importExportDetails[$row['id']]['exports'] = $stmtD->fetchAll(PDO::FETCH_ASSOC);
     }
     unset($row);
     
@@ -562,6 +571,7 @@ try {
                         <th class="text-end">Tổng tiền nhập</th>
                         <th class="text-end">Tổng doanh thu</th>
                         <th class="text-end">Chênh lệch</th>
+                        <th class="text-center">Chi tiết</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -573,6 +583,7 @@ try {
                         $sumImportCost += $ie['total_import_cost'];
                         $sumRevenue += $ie['total_revenue'];
                         $diff = $ie['total_revenue'] - $ie['total_import_cost'];
+                        $dtl = $importExportDetails[$ie['id']] ?? ['imports'=>[],'exports'=>[]];
                     ?>
                     <tr>
                         <td class="fw-bold"><?= htmlspecialchars($ie['name']) ?></td>
@@ -583,7 +594,27 @@ try {
                         <td class="text-end fw-bold <?= $diff >= 0 ? 'text-success' : 'text-danger' ?>">
                             <?= $diff >= 0 ? '+' : '' ?><?= number_format($diff, 0, ',', '.') ?>đ
                         </td>
+                        <td class="text-center"><button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#ieModal<?= $ie['id'] ?>"><i class="fa-solid fa-eye me-1"></i>Xem</button></td>
                     </tr>
+                    <!-- Modal -->
+                    <div class="modal fade" id="ieModal<?= $ie['id'] ?>" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+                        <div class="modal-header bg-primary text-white py-2"><h6 class="modal-title"><i class="fa-solid fa-chart-bar me-2"></i><?= htmlspecialchars($ie['name']) ?></h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                        <div class="modal-body">
+                            <h6 class="fw-bold text-success mb-2"><i class="fa-solid fa-arrow-down me-1"></i>Nhập hàng (<?= count($dtl['imports']) ?> lần)</h6>
+                            <?php if (!empty($dtl['imports'])): ?>
+                            <table class="table table-sm table-bordered mb-4"><thead class="table-success"><tr><th>#</th><th>Ngày</th><th>Phiếu</th><th class="text-center">SL</th><th class="text-end">Giá nhập</th><th class="text-end">Thành tiền</th></tr></thead><tbody>
+                            <?php foreach ($dtl['imports'] as $i=>$imp): ?><tr><td><?=$i+1?></td><td><?=$imp['import_date']?date('d/m/Y H:i',strtotime($imp['import_date'])):'-'?></td><td><?=!empty($imp['receipt_code'])?'<a href="'.BASE_URL.'admin/viewReceipt/'.$imp['receipt_id'].'">'.$imp['receipt_code'].'</a>':'-'?></td><td class="text-center fw-bold"><?=$imp['quantity']?></td><td class="text-end"><?=number_format($imp['import_price'],0,',','.')?>đ</td><td class="text-end fw-bold"><?=number_format($imp['quantity']*$imp['import_price'],0,',','.')?>đ</td></tr><?php endforeach; ?>
+                            </tbody></table>
+                            <?php else: ?><p class="text-muted small mb-3">Không có.</p><?php endif; ?>
+                            <h6 class="fw-bold text-danger mb-2"><i class="fa-solid fa-arrow-up me-1"></i>Bán hàng (<?= count($dtl['exports']) ?> đơn)</h6>
+                            <?php if (!empty($dtl['exports'])): ?>
+                            <table class="table table-sm table-bordered mb-0"><thead class="table-danger"><tr><th>#</th><th>Ngày</th><th>Đơn</th><th>Khách</th><th class="text-center">SL</th><th class="text-end">Giá bán</th><th class="text-end">Thành tiền</th></tr></thead><tbody>
+                            <?php foreach ($dtl['exports'] as $i=>$exp): ?><tr><td><?=$i+1?></td><td><?=date('d/m/Y H:i',strtotime($exp['created_at']))?></td><td><span class="badge bg-primary">#<?=$exp['order_id']?></span></td><td><?=htmlspecialchars($exp['fullname'])?></td><td class="text-center fw-bold"><?=$exp['quantity']?></td><td class="text-end"><?=number_format($exp['price'],0,',','.')?>đ</td><td class="text-end fw-bold"><?=number_format($exp['quantity']*$exp['price'],0,',','.')?>đ</td></tr><?php endforeach; ?>
+                            </tbody></table>
+                            <?php else: ?><p class="text-muted small">Chưa có.</p><?php endif; ?>
+                        </div>
+                        <div class="modal-footer py-2"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button></div>
+                    </div></div></div>
                     <?php endforeach; ?>
                 </tbody>
                 <tfoot class="table-warning fw-bold">
@@ -597,6 +628,7 @@ try {
                         <td class="text-end <?= $totalDiff >= 0 ? 'text-success' : 'text-danger' ?>">
                             <?= $totalDiff >= 0 ? '+' : '' ?><?= number_format($totalDiff, 0, ',', '.') ?>đ
                         </td>
+                        <td></td>
                     </tr>
                 </tfoot>
             </table>
