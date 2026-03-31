@@ -343,7 +343,7 @@
 
 <!-- Auto-switch to stock tab if queried -->
 <script>
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('tab') === 'stock' || params.get('stock_product')) {
         const stockTab = document.getElementById('tab-stock');
@@ -352,5 +352,5 @@
             tab.show();
         }
     }
-})();
+});
 </script>
