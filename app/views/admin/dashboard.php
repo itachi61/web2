@@ -52,11 +52,7 @@
                     </a>
 
                     <a href="<?= BASE_URL ?>admin/import" class="<?= (isset($data['active']) && $data['active'] == 'import') ? 'active' : '' ?>">
-                        <i class="fa-solid fa-truck-ramp-box"></i> Nhập hàng
-                    </a>
-
-                    <a href="<?= BASE_URL ?>admin/stockHistory" class="<?= (isset($data['active']) && $data['active'] == 'stock') ? 'active' : '' ?>">
-                        <i class="fa-solid fa-warehouse"></i> Tra cứu tồn kho
+                        <i class="fa-solid fa-truck-ramp-box"></i> Nhập hàng & Tồn kho
                     </a>
 
                     <a href="<?= BASE_URL ?>admin/importReport" class="<?= (isset($data['active']) && $data['active'] == 'importReport') ? 'active' : '' ?>">
