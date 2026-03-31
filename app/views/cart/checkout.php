@@ -19,13 +19,13 @@
                         <div class="mb-3">
                             <label class="form-label fw-bold">Số điện thoại <span class="text-danger">*</span></label>
                             <input type="tel" name="phone" class="form-control form-control-lg" 
-                                   value="<?= htmlspecialchars($_SESSION['phone'] ?? '') ?>"
+                                   value="<?= htmlspecialchars($data['user']['phone'] ?? '') ?>"
                                    placeholder="Ví dụ: 0901234567" required>
                         </div>
                         
                         <div class="mb-3">
                             <label class="form-label fw-bold">Địa chỉ giao hàng <span class="text-danger">*</span></label>
-                            <?php $savedAddr = $_SESSION['address'] ?? ''; ?>
+                            <?php $savedAddr = $data['user']['address'] ?? ''; ?>
                             
                             <!-- Ô nhập địa chỉ - luôn hiển thị, chỉnh sửa trực tiếp -->
                             <input type="text" name="address" id="addressField" class="form-control form-control-lg mb-2" 

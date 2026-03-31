@@ -123,6 +123,8 @@ class AuthController extends Controller {
             $stmt = $db->prepare("UPDATE users SET fullname = ?, email = ?, phone = ?, address = ? WHERE id = ?");
             $stmt->execute([$fullname, $email, $phone, $address, $_SESSION['user_id']]);
             $_SESSION['name'] = $fullname;
+            $_SESSION['phone'] = $phone;
+            $_SESSION['address'] = $address;
 
             // Change password if provided
             if (!empty($currentPw) && !empty($newPw)) {
