@@ -156,7 +156,7 @@
                                     <option value="">-- Chọn sản phẩm --</option>
                                     <?php foreach ($stockProducts as $p): ?>
                                         <option value="<?= $p['id'] ?>" <?= ($selectedProductId == $p['id']) ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($p['name']) ?> (Tồn: <?= $p['stock'] ?>)
+                                            <?= htmlspecialchars($p['name']) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
