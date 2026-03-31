@@ -3,9 +3,8 @@ require_once dirname(__DIR__) . '/core/Controller.php';
 
 class AuthController extends Controller {
     
-    // --- ĐĂNG NHẬP ---
+    // --- ĐĂNG NHẬP (User) ---
     public function login() {
-        // Nếu đã đăng nhập rồi thì đá về trang chủ
         if (isset($_SESSION['user_id'])) {
             header('Location: ' . BASE_URL);
             exit;
@@ -19,19 +18,20 @@ class AuthController extends Controller {
             $user = $userModel->login($email, $password);
 
             if ($user) {
-                // Lưu session
+                // Chặn admin đăng nhập từ trang user
+                if ($user['role'] == 'admin') {
+                    $this->view('layouts/header', ['title' => 'Đăng nhập']);
+                    $this->view('auth/login', ['error' => 'Tài khoản quản trị không thể đăng nhập tại đây.']);
+                    $this->view('layouts/footer');
+                    return;
+                }
+
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['name'] = $user['fullname'];
                 $_SESSION['role'] = $user['role'];
                 $_SESSION['phone'] = $user['phone'] ?? '';
                 $_SESSION['address'] = $user['address'] ?? '';
-
-                // Chuyển hướng dựa trên quyền
-                if ($user['role'] == 'admin') {
-                    header('Location: ' . BASE_URL . 'admin');
-                } else {
-                    header('Location: ' . BASE_URL);
-                }
+                header('Location: ' . BASE_URL);
             } else {
                 $this->view('layouts/header', ['title' => 'Đăng nhập']);
                 $this->view('auth/login', ['error' => 'Email hoặc mật khẩu không đúng!']);
@@ -41,6 +41,35 @@ class AuthController extends Controller {
             $this->view('layouts/header', ['title' => 'Đăng nhập']);
             $this->view('auth/login');
             $this->view('layouts/footer');
+        }
+    }
+
+    // --- ĐĂNG NHẬP ADMIN (link riêng) ---
+    public function adminLogin() {
+        if (isset($_SESSION['user_id']) && ($_SESSION['role'] ?? '') == 'admin') {
+            header('Location: ' . BASE_URL . 'admin');
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $email = $_POST['email'];
+            $password = $_POST['password'];
+
+            $userModel = $this->model('UserModel');
+            $user = $userModel->login($email, $password);
+
+            if ($user && $user['role'] == 'admin') {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['name'] = $user['fullname'];
+                $_SESSION['role'] = $user['role'];
+                $_SESSION['phone'] = $user['phone'] ?? '';
+                $_SESSION['address'] = $user['address'] ?? '';
+                header('Location: ' . BASE_URL . 'admin');
+            } else {
+                $this->view('auth/admin_login', ['error' => 'Thông tin đăng nhập không hợp lệ!']);
+            }
+        } else {
+            $this->view('auth/admin_login');
         }
     }
 
