@@ -5,7 +5,7 @@
 <?php
 $dateFrom = $_GET['from'] ?? '';
 $dateTo = $_GET['to'] ?? '';
-$viewMode = $_GET['mode'] ?? 'receipt'; // receipt | timeline
+$viewMode = $_GET['mode'] ?? 'receipt'; // receipt | timeline | product
 
 try {
     $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);
@@ -77,6 +77,67 @@ try {
         $m['month_sales'] = $stmt->fetch(PDO::FETCH_ASSOC)['sales'];
     }
     unset($m);
+
+    // ===== BÁO CÁO THEO SẢN PHẨM =====
+    $importWhereDate = '';
+    $importParams2 = [];
+    if ($dateFrom) { $importWhereDate .= " AND ih.import_date >= ?"; $importParams2[] = $dateFrom . ' 00:00:00'; }
+    if ($dateTo) { $importWhereDate .= " AND ih.import_date <= ?"; $importParams2[] = $dateTo . ' 23:59:59'; }
+
+    $sqlIE = "SELECT p.id, p.name, p.image,
+              COALESCE(SUM(ih.quantity), 0) as total_imported,
+              COALESCE(SUM(ih.quantity * ih.import_price), 0) as total_import_cost
+              FROM products p 
+              LEFT JOIN import_history ih ON p.id = ih.product_id" . ($importWhereDate ? " AND 1=1" . $importWhereDate : "") . "
+              WHERE 1=1
+              GROUP BY p.id HAVING total_imported > 0
+              ORDER BY total_imported DESC";
+    $stmt = $db->prepare($sqlIE);
+    $stmt->execute($importParams2);
+    $importExportReport = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Merge sold data + load detail
+    $importExportDetails = [];
+    foreach ($importExportReport as &$row) {
+        // Sold data
+        $soldWhere = '';
+        $soldP = [$row['id']];
+        if ($dateFrom) { $soldWhere .= " AND o.created_at >= ?"; $soldP[] = $dateFrom . ' 00:00:00'; }
+        if ($dateTo) { $soldWhere .= " AND o.created_at <= ?"; $soldP[] = $dateTo . ' 23:59:59'; }
+        $stmtS = $db->prepare("SELECT COALESCE(SUM(oi.quantity),0) as qty_sold, COALESCE(SUM(oi.quantity*oi.price),0) as revenue 
+                               FROM order_items oi JOIN orders o ON oi.order_id = o.id 
+                               WHERE oi.product_id = ? AND o.status != 'cancelled'" . $soldWhere);
+        $stmtS->execute($soldP);
+        $soldInfo = $stmtS->fetch(PDO::FETCH_ASSOC);
+        $row['total_sold'] = intval($soldInfo['qty_sold']);
+        $row['total_revenue'] = floatval($soldInfo['revenue']);
+
+        // Detail imports
+        $dtlImportWhere = '';
+        $dtlImportP = [$row['id']];
+        if ($dateFrom) { $dtlImportWhere .= " AND ir.created_at >= ?"; $dtlImportP[] = $dateFrom . ' 00:00:00'; }
+        if ($dateTo) { $dtlImportWhere .= " AND ir.created_at <= ?"; $dtlImportP[] = $dateTo . ' 23:59:59'; }
+        $stmtD = $db->prepare("SELECT iri.quantity, iri.import_price, ir.created_at as import_date, ir.receipt_code, ir.id as receipt_id 
+                                FROM import_receipt_items iri 
+                                JOIN import_receipts ir ON iri.receipt_id = ir.id 
+                                WHERE iri.product_id = ? AND ir.status = 'completed'" . $dtlImportWhere . " 
+                                ORDER BY ir.created_at DESC");
+        $stmtD->execute($dtlImportP);
+        $importExportDetails[$row['id']]['imports'] = $stmtD->fetchAll(PDO::FETCH_ASSOC);
+
+        // Detail exports
+        $dtlExportWhere = '';
+        $dtlExportP = [$row['id']];
+        if ($dateFrom) { $dtlExportWhere .= " AND o.created_at >= ?"; $dtlExportP[] = $dateFrom . ' 00:00:00'; }
+        if ($dateTo) { $dtlExportWhere .= " AND o.created_at <= ?"; $dtlExportP[] = $dateTo . ' 23:59:59'; }
+        $stmtD = $db->prepare("SELECT oi.quantity, oi.price, o.created_at, o.id as order_id, o.fullname 
+                                FROM order_items oi JOIN orders o ON oi.order_id = o.id 
+                                WHERE oi.product_id = ? AND o.status != 'cancelled'" . $dtlExportWhere . " 
+                                ORDER BY o.created_at DESC");
+        $stmtD->execute($dtlExportP);
+        $importExportDetails[$row['id']]['exports'] = $stmtD->fetchAll(PDO::FETCH_ASSOC);
+    }
+    unset($row);
     
 } catch (Exception $e) {
     $summary = ['total_receipts' => 0, 'total_cost' => 0];
@@ -84,6 +145,8 @@ try {
     $receipts = [];
     $receiptDetails = [];
     $monthlyData = [];
+    $importExportReport = [];
+    $importExportDetails = [];
 }
 
 $netProfit = $sales['total_sales'] - $summary['total_cost'];
@@ -106,6 +169,7 @@ $netProfit = $sales['total_sales'] - $summary['total_cost'];
                 <select name="mode" class="form-select">
                     <option value="receipt" <?= $viewMode == 'receipt' ? 'selected' : '' ?>>Theo phiếu nhập</option>
                     <option value="timeline" <?= $viewMode == 'timeline' ? 'selected' : '' ?>>Theo tháng</option>
+                    <option value="product" <?= $viewMode == 'product' ? 'selected' : '' ?>>Báo cáo theo sản phẩm</option>
                 </select>
             </div>
             <div class="col-md-3 d-flex gap-2">
@@ -212,7 +276,7 @@ $netProfit = $sales['total_sales'] - $summary['total_cost'];
     </div>
 </div>
 
-<?php else: ?>
+<?php elseif ($viewMode == 'receipt'): ?>
 <!-- ===== CHẾ ĐỘ XEM THEO PHIẾU NHẬP ===== -->
 <?php if (empty($receipts)): ?>
 <div class="alert alert-info"><i class="fa-solid fa-info-circle me-2"></i>Không có phiếu nhập nào trong khoảng thời gian này.</div>
@@ -276,4 +340,99 @@ $netProfit = $sales['total_sales'] - $summary['total_cost'];
 <?php endforeach; ?>
 
 <?php endif; ?>
+
+<?php elseif ($viewMode == 'product'): ?>
+<!-- ===== CHẾ ĐỘ XEM THEO SẢN PHẨM ===== -->
+<?php if (empty($importExportReport)): ?>
+<div class="alert alert-info"><i class="fa-solid fa-info-circle me-2"></i>Không có dữ liệu nhập xuất.</div>
+<?php else: ?>
+<div class="card shadow-sm border-0 rounded-3">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-bold"><i class="fa-solid fa-arrow-right-arrow-left me-2 text-info"></i>Báo cáo Nhập – Xuất theo sản phẩm
+            <?php if ($dateFrom || $dateTo): ?>
+                <small class="text-muted fw-normal">
+                    (<?= $dateFrom ? date('d/m/Y', strtotime($dateFrom)) : '...' ?> → <?= $dateTo ? date('d/m/Y', strtotime($dateTo)) : '...' ?>)
+                </small>
+            <?php endif; ?>
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th class="text-center">SL Nhập</th>
+                        <th class="text-center">SL Bán</th>
+                        <th class="text-end">Tổng tiền nhập</th>
+                        <th class="text-end">Tổng doanh thu</th>
+                        <th class="text-end">Chênh lệch</th>
+                        <th class="text-center">Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php 
+                    $sumImported = 0; $sumSold = 0; $sumImportCost = 0; $sumRevenue = 0;
+                    foreach ($importExportReport as $ie): 
+                        $ieSold = intval($ie['total_sold'] ?? 0);
+                        $ieRevenue = floatval($ie['total_revenue'] ?? 0);
+                        $sumImported += $ie['total_imported'];
+                        $sumSold += $ieSold;
+                        $sumImportCost += $ie['total_import_cost'];
+                        $sumRevenue += $ieRevenue;
+                        $diff = $ieRevenue - $ie['total_import_cost'];
+                        $dtl = $importExportDetails[$ie['id']] ?? ['imports'=>[],'exports'=>[]];
+                    ?>
+                    <tr>
+                        <td class="fw-bold"><?= htmlspecialchars($ie['name']) ?></td>
+                        <td class="text-center"><span class="badge bg-success-subtle text-success">+<?= $ie['total_imported'] ?></span></td>
+                        <td class="text-center"><span class="badge bg-danger-subtle text-danger">-<?= $ieSold ?></span></td>
+                        <td class="text-end text-info"><?= number_format($ie['total_import_cost'], 0, ',', '.') ?>đ</td>
+                        <td class="text-end text-primary fw-bold"><?= number_format($ieRevenue, 0, ',', '.') ?>đ</td>
+                        <td class="text-end fw-bold <?= $diff >= 0 ? 'text-success' : 'text-danger' ?>">
+                            <?= $diff >= 0 ? '+' : '' ?><?= number_format($diff, 0, ',', '.') ?>đ
+                        </td>
+                        <td class="text-center"><button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#ieModal<?= $ie['id'] ?>"><i class="fa-solid fa-eye me-1"></i>Xem</button></td>
+                    </tr>
+                    <!-- Modal -->
+                    <div class="modal fade" id="ieModal<?= $ie['id'] ?>" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+                        <div class="modal-header bg-primary text-white py-2"><h6 class="modal-title"><i class="fa-solid fa-chart-bar me-2"></i><?= htmlspecialchars($ie['name']) ?></h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                        <div class="modal-body">
+                            <h6 class="fw-bold text-success mb-2"><i class="fa-solid fa-arrow-down me-1"></i>Nhập hàng (<?= count($dtl['imports']) ?> lần)</h6>
+                            <?php if (!empty($dtl['imports'])): ?>
+                            <table class="table table-sm table-bordered mb-4"><thead class="table-success"><tr><th>#</th><th>Ngày</th><th>Phiếu</th><th class="text-center">SL</th><th class="text-end">Giá nhập</th><th class="text-end">Thành tiền</th></tr></thead><tbody>
+                            <?php foreach ($dtl['imports'] as $i=>$imp): ?><tr><td><?=$i+1?></td><td><?=$imp['import_date']?date('d/m/Y H:i',strtotime($imp['import_date'])):'-'?></td><td><?=!empty($imp['receipt_code'])?'<a href="'.BASE_URL.'admin/viewReceipt/'.$imp['receipt_id'].'">'.$imp['receipt_code'].'</a>':'-'?></td><td class="text-center fw-bold"><?=$imp['quantity']?></td><td class="text-end"><?=number_format($imp['import_price'],0,',','.')?></td><td class="text-end fw-bold"><?=number_format($imp['quantity']*$imp['import_price'],0,',','.')?></td></tr><?php endforeach; ?>
+                            </tbody></table>
+                            <?php else: ?><p class="text-muted small mb-3">Không có.</p><?php endif; ?>
+                            <h6 class="fw-bold text-danger mb-2"><i class="fa-solid fa-arrow-up me-1"></i>Bán hàng (<?= count($dtl['exports']) ?> đơn)</h6>
+                            <?php if (!empty($dtl['exports'])): ?>
+                            <table class="table table-sm table-bordered mb-0"><thead class="table-danger"><tr><th>#</th><th>Ngày</th><th>Đơn</th><th>Khách</th><th class="text-center">SL</th><th class="text-end">Giá bán</th><th class="text-end">Thành tiền</th></tr></thead><tbody>
+                            <?php foreach ($dtl['exports'] as $i=>$exp): ?><tr><td><?=$i+1?></td><td><?=date('d/m/Y H:i',strtotime($exp['created_at']))?></td><td><span class="badge bg-primary">#<?=$exp['order_id']?></span></td><td><?=htmlspecialchars($exp['fullname'])?></td><td class="text-center fw-bold"><?=$exp['quantity']?></td><td class="text-end"><?=number_format($exp['price'],0,',','.')?></td><td class="text-end fw-bold"><?=number_format($exp['quantity']*$exp['price'],0,',','.')?></td></tr><?php endforeach; ?>
+                            </tbody></table>
+                            <?php else: ?><p class="text-muted small">Chưa có.</p><?php endif; ?>
+                        </div>
+                        <div class="modal-footer py-2"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button></div>
+                    </div></div></div>
+                    <?php endforeach; ?>
+                </tbody>
+                <tfoot class="table-warning fw-bold">
+                    <tr>
+                        <td>TỔNG CỘNG</td>
+                        <td class="text-center"><?= $sumImported ?></td>
+                        <td class="text-center"><?= $sumSold ?></td>
+                        <td class="text-end"><?= number_format($sumImportCost, 0, ',', '.') ?>đ</td>
+                        <td class="text-end"><?= number_format($sumRevenue, 0, ',', '.') ?>đ</td>
+                        <?php $totalDiff = $sumRevenue - $sumImportCost; ?>
+                        <td class="text-end <?= $totalDiff >= 0 ? 'text-success' : 'text-danger' ?>">
+                            <?= $totalDiff >= 0 ? '+' : '' ?><?= number_format($totalDiff, 0, ',', '.') ?>đ
+                        </td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <?php endif; ?>
