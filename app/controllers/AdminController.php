@@ -330,12 +330,27 @@ class AdminController extends Controller
             exit;
         }
 
+        // Load import price history
+        $importHistory = [];
+        try {
+            $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $stmt = $db->prepare("SELECT iri.quantity, iri.import_price, ir.created_at, ir.receipt_code 
+                                  FROM import_receipt_items iri 
+                                  JOIN import_receipts ir ON iri.receipt_id = ir.id 
+                                  WHERE iri.product_id = ? AND ir.status = 'completed' 
+                                  ORDER BY ir.created_at DESC LIMIT 10");
+            $stmt->execute([$id]);
+            $importHistory = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {}
+
         $this->view('admin/dashboard', [
             'view' => 'admin/products/edit',
             'active' => 'products',
             'product' => $product,
             'categories' => $categories,
-            'images' => $images
+            'images' => $images,
+            'importHistory' => $importHistory
         ]);
     }
 

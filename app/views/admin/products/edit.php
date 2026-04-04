@@ -41,8 +41,12 @@
                             <input type="number" name="discount" id="discountInput" class="form-control" min="0" max="100" value="<?= $data['product']['discount'] ?? 0 ?>">
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label class="form-label fw-bold">Giá nhập (VNĐ)</label>
-                            <input type="number" name="cost_price" id="costPriceInput" class="form-control" min="0" value="<?= $data['product']['cost_price'] ?? 0 ?>">
+                            <label class="form-label fw-bold">Giá nhập BQ <i class="fa-solid fa-lock text-muted small" title="Tự động từ lịch sử nhập"></i></label>
+                            <div class="form-control bg-light fw-bold text-primary" style="cursor:default;">
+                                <?= number_format($data['product']['cost_price'] ?? 0, 0, ',', '.') ?>đ
+                            </div>
+                            <input type="hidden" name="cost_price" id="costPriceInput" value="<?= $data['product']['cost_price'] ?? 0 ?>">
+                            <small class="text-muted fst-italic"><i class="fa-solid fa-info-circle me-1"></i>Giá nhập tự động cập nhật khi nhập hàng</small>
                         </div>
                         <div class="col-md-3 mb-3">
                             <label class="form-label fw-bold text-warning">% Lợi nhuận <span class="text-danger">*</span></label>
@@ -55,6 +59,41 @@
                             </div>
                         </div>
                     </div>
+
+                    <?php if (!empty($data['importHistory'])): ?>
+                    <div class="card border-0 bg-light mb-3">
+                        <div class="card-body py-2 px-3">
+                            <h6 class="fw-bold mb-2 small">
+                                <i class="fa-solid fa-clock-rotate-left me-1 text-success"></i>
+                                Lịch sử giá nhập (<?= count($data['importHistory']) ?> lần gần nhất)
+                            </h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered mb-0" style="font-size: 0.85rem;">
+                                    <thead class="table-success">
+                                        <tr>
+                                            <th>Ngày nhập</th>
+                                            <th>Phiếu</th>
+                                            <th class="text-center">SL</th>
+                                            <th class="text-end">Giá nhập/SP</th>
+                                            <th class="text-end">Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($data['importHistory'] as $ih): ?>
+                                        <tr>
+                                            <td><i class="fa-regular fa-clock me-1 text-muted"></i><?= date('d/m/Y H:i', strtotime($ih['created_at'])) ?></td>
+                                            <td class="fw-semibold"><?= $ih['receipt_code'] ?? '-' ?></td>
+                                            <td class="text-center fw-bold"><?= $ih['quantity'] ?></td>
+                                            <td class="text-end"><?= number_format($ih['import_price'], 0, ',', '.') ?>đ</td>
+                                            <td class="text-end fw-bold"><?= number_format($ih['quantity'] * $ih['import_price'], 0, ',', '.') ?>đ</td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
 
                     <!-- Giá bán chính thức -->
                     <div class="row mb-3">
@@ -114,7 +153,7 @@
                         _realProfit.textContent = fmt(realP) + 'đ';
                         _realProfit.className = 'fs-4 fw-bold ' + (realP >= 0 ? 'text-success' : 'text-danger');
                     }
-                    _cost.addEventListener('input', calcFromMargin);
+                    // cost_price is read-only (from import history)
                     _margin.addEventListener('input', calcFromMargin);
                     _price.addEventListener('input', calcFromPrice);
                     _discount.addEventListener('input', () => updateAll(
