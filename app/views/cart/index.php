@@ -1,6 +1,15 @@
 <div class="container py-5">
     <h2 class="fw-bold mb-4 text-uppercase">Giỏ hàng của bạn</h2>
 
+    <?php if (isset($_SESSION['cart_error'])): ?>
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+            <?= $_SESSION['cart_error'] ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php unset($_SESSION['cart_error']); ?>
+    <?php endif; ?>
+
     <?php if (empty($cart)): ?>
         <div class="text-center py-5 bg-white rounded shadow-sm">
             <img src="https://cdn-icons-png.flaticon.com/512/11329/11329060.png" width="120" alt="Empty Cart" class="mb-3 opacity-50">
@@ -49,10 +58,13 @@
                                             </td>
                                             <td><?= number_format($item['price'], 0, ',', '.') ?>đ</td>
                                             <td class="text-center">
+                                                <?php $maxStock = isset($stockMap[$id]) ? $stockMap[$id] : 99; ?>
                                                 <input type="number" name="qty[<?= $id ?>]" 
                                                        value="<?= $item['quantity'] ?>" 
                                                        class="form-control form-control-sm text-center mx-auto" 
-                                                       style="width: 60px;" min="1">
+                                                       style="width: 70px;" min="1" max="<?= $maxStock ?>"
+                                                       title="Tồn kho: <?= $maxStock ?>">
+                                                <small class="text-muted" style="font-size:0.7rem;">Kho: <?= $maxStock ?></small>
                                             </td>
                                             <td class="fw-bold text-primary">
                                                 <?= number_format($line_total, 0, ',', '.') ?>đ

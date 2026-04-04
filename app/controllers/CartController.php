@@ -14,8 +14,26 @@ class CartController extends Controller
         }
         $cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
 
+        // Load stock data for each cart item
+        $productModel = $this->model('ProductModel');
+        $stockMap = [];
+        foreach ($cart as $id => $item) {
+            $p = $productModel->getProductById($id);
+            $stockMap[$id] = $p ? intval($p['stock']) : 0;
+            // Auto-cap quantity to stock
+            if ($cart[$id]['quantity'] > $stockMap[$id]) {
+                $_SESSION['cart'][$id]['quantity'] = max($stockMap[$id], 0);
+                $cart[$id]['quantity'] = $stockMap[$id];
+            }
+            // Remove out-of-stock items
+            if ($stockMap[$id] <= 0) {
+                unset($_SESSION['cart'][$id]);
+                unset($cart[$id]);
+            }
+        }
+
         $this->view('layouts/header', ['title' => 'Giỏ hàng']);
-        $this->view('cart/index', ['cart' => $cart]);
+        $this->view('cart/index', ['cart' => $cart, 'stockMap' => $stockMap]);
         $this->view('layouts/footer');
     }
 
@@ -48,13 +66,18 @@ class CartController extends Controller
         }
 
         if (isset($_SESSION['cart'][$id])) {
+            $currentQty = $_SESSION['cart'][$id]['quantity'];
+            if ($currentQty >= $product['stock']) {
+                $_SESSION['cart_error'] = 'Số lượng "' . $product['name'] . '" đã đạt tối đa tồn kho (' . $product['stock'] . ')';
+                header('Location: ' . BASE_URL . 'cart');
+                exit;
+            }
             $_SESSION['cart'][$id]['quantity']++;
         } else {
-            // QUAN TRỌNG: Đảm bảo có key 'price' ở dòng dưới đây
             $_SESSION['cart'][$id] = [
                 'id' => $product['id'],
                 'name' => $product['name'],
-                'price' => $product['price'], // <--- Kiểm tra kỹ dòng này
+                'price' => $product['price'],
                 'image' => $product['image'],
                 'quantity' => 1
             ];
@@ -92,6 +115,11 @@ class CartController extends Controller
         }
 
         if (isset($_SESSION['cart'][$id])) {
+            $currentQty = $_SESSION['cart'][$id]['quantity'];
+            if ($currentQty >= $product['stock']) {
+                echo json_encode(['success' => false, 'message' => 'Đã đạt tối đa tồn kho (' . $product['stock'] . ')']);
+                exit;
+            }
             $_SESSION['cart'][$id]['quantity']++;
         } else {
             $_SESSION['cart'][$id] = [
@@ -121,11 +149,22 @@ class CartController extends Controller
     public function update()
     {
         if (isset($_POST['qty'])) {
+            $productModel = $this->model('ProductModel');
             foreach ($_POST['qty'] as $id => $qty) {
                 if ($qty <= 0) {
                     unset($_SESSION['cart'][$id]);
                 } else {
-                    $_SESSION['cart'][$id]['quantity'] = $qty;
+                    $p = $productModel->getProductById($id);
+                    $maxStock = $p ? intval($p['stock']) : 0;
+                    if ($qty > $maxStock) {
+                        $qty = $maxStock;
+                        $_SESSION['cart_error'] = 'Số lượng đã được điều chỉnh về tối đa tồn kho.';
+                    }
+                    if ($qty <= 0) {
+                        unset($_SESSION['cart'][$id]);
+                    } else {
+                        $_SESSION['cart'][$id]['quantity'] = $qty;
+                    }
                 }
             }
         }
