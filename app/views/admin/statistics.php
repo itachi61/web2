@@ -71,9 +71,9 @@ try {
         $sql4Params = $filterProducts;
     }
     $sql4 = "SELECT p.id, p.name, p.price, p.cost_price, p.stock, p.discount, p.image,
-             COALESCE(SUM(oi.quantity), 0) as qty_sold,
-             COALESCE(SUM(oi.price * oi.quantity), 0) as revenue, 
-             COALESCE(SUM((oi.price - COALESCE(oi.cost_price, p.cost_price)) * oi.quantity), 0) as profit,
+             COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN oi.quantity ELSE 0 END), 0) as qty_sold,
+             COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN oi.price * oi.quantity ELSE 0 END), 0) as revenue, 
+             COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN (oi.price - COALESCE(oi.cost_price, p.cost_price)) * oi.quantity ELSE 0 END), 0) as profit,
              c.name as category_name
              FROM products p 
              LEFT JOIN categories c ON p.category_id = c.id
