@@ -234,6 +234,7 @@
                                 <small class="text-muted d-block mb-2"><i class="fa-solid fa-fire-flame-curved text-warning me-1"></i>Đã bán <?= $product['sold_count'] ?></small>
                             <?php endif; ?>
                             <div class="d-flex gap-2 w-100">
+                                <?php if (($product['stock'] ?? 0) > 0): ?>
                                 <!-- Nút Thêm vào giỏ -->
                                 <a href="<?= BASE_URL ?>cart/add/<?= $product['id'] ?>"
                                     class="btn btn-outline-primary btn-sm rounded-pill flex-fill btn-add-cart"
@@ -247,6 +248,11 @@
                                     class="btn btn-danger btn-sm rounded-pill flex-fill">
                                     <i class="fa-solid fa-bolt"></i> Mua ngay
                                 </a>
+                                <?php else: ?>
+                                <span class="btn btn-secondary btn-sm rounded-pill flex-fill disabled">
+                                    <i class="fa-solid fa-ban me-1"></i> Hết hàng
+                                </span>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>

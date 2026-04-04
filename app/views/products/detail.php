@@ -144,6 +144,7 @@
 
                     <div class="mb-2">
                         <div class="row g-2 mb-2">
+                            <?php if (($product['stock'] ?? 0) > 0): ?>
                             <div class="col-6">
                                 <a href="<?= BASE_URL ?>cart/add/<?= $product['id'] ?>" class="btn btn-add-cart w-100 h-100 py-3 rounded-3 d-flex flex-column align-items-center justify-content-center text-decoration-none shadow-sm" data-product-id="<?= $product['id'] ?>" data-base-url="<?= BASE_URL ?>">
                                     <i class="fa-solid fa-cart-plus mb-1 fs-5"></i>
@@ -156,6 +157,14 @@
                                     <small style="font-size: 11px; font-weight: normal;">(Giao tận nơi nhanh chóng)</small>
                                 </a>
                             </div>
+                            <?php else: ?>
+                            <div class="col-12">
+                                <div class="btn btn-secondary w-100 py-3 rounded-3 disabled d-flex flex-column align-items-center">
+                                    <i class="fa-solid fa-ban mb-1 fs-5"></i>
+                                    <span class="fw-bold small">SẢN PHẨM TẠM HẾT HÀNG</span>
+                                </div>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>

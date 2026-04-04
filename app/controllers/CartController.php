@@ -36,6 +36,13 @@ class CartController extends Controller
             exit;
         }
 
+        // Chặn mua SP hết hàng
+        if (($product['stock'] ?? 0) <= 0) {
+            $_SESSION['cart_error'] = 'Sản phẩm "' . $product['name'] . '" hiện đã hết hàng!';
+            header('Location: ' . BASE_URL);
+            exit;
+        }
+
         if (!isset($_SESSION['cart'])) {
             $_SESSION['cart'] = [];
         }
@@ -71,6 +78,12 @@ class CartController extends Controller
 
         if (!$product) {
             echo json_encode(['success' => false, 'message' => 'Sản phẩm không tồn tại']);
+            exit;
+        }
+
+        // Chặn mua SP hết hàng
+        if (($product['stock'] ?? 0) <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Sản phẩm "' . $product['name'] . '" hiện đã hết hàng!']);
             exit;
         }
 

@@ -94,12 +94,18 @@
                                     <small class="text-muted d-block mb-2"><i class="fa-solid fa-fire-flame-curved text-warning me-1"></i>Đã bán <?= $product['sold_count'] ?></small>
                                 <?php endif; ?>
                                 <div class="d-flex gap-2">
+                                    <?php if (($product['stock'] ?? 0) > 0): ?>
                                     <a href="<?= BASE_URL ?>cart/add/<?= $product['id'] ?>" class="btn btn-primary btn-sm rounded-pill flex-grow-1 btn-add-cart" data-product-id="<?= $product['id'] ?>" data-base-url="<?= BASE_URL ?>">
                                         <i class="fa-solid fa-cart-plus me-1"></i> Thêm vào giỏ
                                     </a>
                                     <a href="<?= BASE_URL ?>cart/add/<?= $product['id'] ?>?redirect=checkout" class="btn btn-danger btn-sm rounded-pill" title="Mua ngay">
                                         <i class="fa-solid fa-bolt"></i> Mua ngay
                                     </a>
+                                    <?php else: ?>
+                                    <span class="btn btn-secondary btn-sm rounded-pill flex-grow-1 disabled">
+                                        <i class="fa-solid fa-ban me-1"></i> Hết hàng
+                                    </span>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
