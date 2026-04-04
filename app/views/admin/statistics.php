@@ -320,16 +320,6 @@ try {
             </div>
         </div>
 
-        <!-- BIỂU ĐỒ CỘT -->
-        <?php if (!empty($productOrders)): ?>
-        <div class="card bg-light border-0 mb-3">
-            <div class="card-body">
-                <h6 class="fw-bold"><i class="fa-solid fa-chart-column me-2 text-primary"></i>Biểu đồ doanh thu & lợi nhuận theo đơn hàng</h6>
-                <canvas id="productChart" height="250"></canvas>
-            </div>
-        </div>
-        <?php endif; ?>
-
         <h6 class="fw-bold mt-3 mb-2"><i class="fa-solid fa-list me-1"></i> Đơn hàng chứa sản phẩm này (<?= count($productOrders) ?> đơn)</h6>
         <?php if (!empty($productOrders)): ?>
         <table class="table table-sm table-hover">
@@ -385,63 +375,6 @@ try {
                 </tr>
             </tfoot>
         </table>
-
-        <!-- Chart.js Script -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-        <script>
-        const ctx = document.getElementById('productChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: [<?php foreach($productOrders as $po) echo "'#" . $po['order_id'] . " (" . date('d/m', strtotime($po['created_at'])) . ")',"; ?>],
-                datasets: [{
-                    label: 'Doanh thu (đ)',
-                    data: [<?php foreach($productOrders as $po) echo $po['subtotal'] . ','; ?>],
-                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1,
-                    borderRadius: 4
-                }, {
-                    label: 'Lợi nhuận (đ)',
-                    data: [<?php foreach($productOrders as $po) echo $po['profit'] . ','; ?>],
-                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1,
-                    borderRadius: 4
-                }, {
-                    label: 'Giá nhập × SL (đ)',
-                    data: [<?php foreach($productOrders as $po) echo ($po['snapshot_cost'] * $po['quantity']) . ','; ?>],
-                    backgroundColor: 'rgba(255, 159, 64, 0.5)',
-                    borderColor: 'rgba(255, 159, 64, 1)',
-                    borderWidth: 1,
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'top' },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': ' + new Intl.NumberFormat('vi-VN').format(context.raw) + 'đ';
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return new Intl.NumberFormat('vi-VN').format(value) + 'đ';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        </script>
         <?php else: ?>
             <p class="text-muted">Chưa có đơn hàng nào cho sản phẩm này trong khoảng thời gian đã chọn.</p>
         <?php endif; ?>
