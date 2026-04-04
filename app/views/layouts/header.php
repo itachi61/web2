@@ -14,6 +14,22 @@
 <body>
 
 <?php
+// Auto-logout locked users
+if (isset($_SESSION['user_id']) && ($_SESSION['role'] ?? '') !== 'admin') {
+    try {
+        $__db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+        $__st = $__db->prepare("SELECT status FROM users WHERE id = ?");
+        $__st->execute([$_SESSION['user_id']]);
+        $__u = $__st->fetch(PDO::FETCH_ASSOC);
+        if ($__u && ($__u['status'] ?? 'active') === 'locked') {
+            session_destroy();
+            header('Location: ' . BASE_URL . 'auth/login?locked=1');
+            exit;
+        }
+    } catch (\Throwable $e) {}
+}
+?>
+<?php
 // tiện dùng cho asset trong public/
 $CSS = BASE_URL . 'css/';
 $IMG = BASE_URL . 'img/';

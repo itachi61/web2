@@ -14,6 +14,13 @@
                     <?php unset($_SESSION['login_message']); ?>
                 <?php endif; ?>
 
+                <?php if(isset($_GET['locked'])): ?>
+                    <div class="alert alert-danger d-flex align-items-center" role="alert">
+                        <i class="fa-solid fa-lock me-2"></i>
+                        Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.
+                    </div>
+                <?php endif; ?>
+
                 <?php if(isset($data['error'])): ?>
                     <div class="alert alert-danger"><?= $data['error'] ?></div>
                 <?php endif; ?>

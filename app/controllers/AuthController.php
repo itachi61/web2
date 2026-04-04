@@ -26,6 +26,14 @@ class AuthController extends Controller {
                     return;
                 }
 
+                // Chặn tài khoản bị khóa
+                if (isset($user['status']) && $user['status'] == 'locked') {
+                    $this->view('layouts/header', ['title' => 'Đăng nhập']);
+                    $this->view('auth/login', ['error' => 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.']);
+                    $this->view('layouts/footer');
+                    return;
+                }
+
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['name'] = $user['fullname'];
                 $_SESSION['role'] = $user['role'];
