@@ -1,0 +1,3 @@
+﻿quantity	import_price	import_date	receipt_code	receipt_id
+10	50000.00	2026-03-31 20:01:00	PN-20260331205913	9
+20	100000.00	2026-03-14 09:19:37	PN-20260314031937	1

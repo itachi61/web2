@@ -116,23 +116,19 @@ try {
                       ((oi.price - COALESCE(oi.cost_price, 0)) * oi.quantity) as profit
                       FROM order_items oi 
                       JOIN orders o ON oi.order_id = o.id 
-                      WHERE oi.product_id = ? AND o.status != 'cancelled'" . $whereDate . "
+                      WHERE oi.product_id = ? AND o.status != 'cancelled'
                       ORDER BY o.created_at DESC";
         $stmt = $db->prepare($sqlDetail);
-        $stmt->execute(array_merge([$fpId], $params));
+        $stmt->execute([$fpId]);
         $productOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Lịch sử nhập hàng
-        $dtlImportWhere = '';
-        $dtlImportP = [$fpId];
-        if ($dateFrom) { $dtlImportWhere .= " AND ir.created_at >= ?"; $dtlImportP[] = $dateFrom . ' 00:00:00'; }
-        if ($dateTo) { $dtlImportWhere .= " AND ir.created_at <= ?"; $dtlImportP[] = $dateTo . ' 23:59:59'; }
+        // Lịch sử nhập hàng (toàn bộ)
         $stmtD = $db->prepare("SELECT iri.quantity, iri.import_price, ir.created_at as import_date, ir.receipt_code, ir.id as receipt_id 
                                 FROM import_receipt_items iri 
                                 JOIN import_receipts ir ON iri.receipt_id = ir.id 
-                                WHERE iri.product_id = ? AND ir.status = 'completed'" . $dtlImportWhere . " 
+                                WHERE iri.product_id = ? AND ir.status = 'completed' 
                                 ORDER BY ir.created_at DESC");
-        $stmtD->execute($dtlImportP);
+        $stmtD->execute([$fpId]);
         $productImports = $stmtD->fetchAll(PDO::FETCH_ASSOC);
 
         // Tổng nhập
@@ -145,7 +141,7 @@ try {
     // Load danh sách tất cả SP cho dropdown (không bị filter)
     $allProducts = $db->query("SELECT id, name FROM products ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
     
-} catch (Exception $e) {
+} catch (\Throwable $e) {
     $revenue = ['total_revenue' => 0, 'total_orders' => 0];
     $totalSold = 0;
     $totalProfit = 0;
