@@ -121,6 +121,24 @@ try {
         $stmt = $db->prepare($sqlDetail);
         $stmt->execute(array_merge([$fpId], $params));
         $productOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Lịch sử nhập hàng
+        $dtlImportWhere = '';
+        $dtlImportP = [$fpId];
+        if ($dateFrom) { $dtlImportWhere .= " AND ir.created_at >= ?"; $dtlImportP[] = $dateFrom . ' 00:00:00'; }
+        if ($dateTo) { $dtlImportWhere .= " AND ir.created_at <= ?"; $dtlImportP[] = $dateTo . ' 23:59:59'; }
+        $stmtD = $db->prepare("SELECT iri.quantity, iri.import_price, ir.created_at as import_date, ir.receipt_code, ir.id as receipt_id 
+                                FROM import_receipt_items iri 
+                                JOIN import_receipts ir ON iri.receipt_id = ir.id 
+                                WHERE iri.product_id = ? AND ir.status = 'completed'" . $dtlImportWhere . " 
+                                ORDER BY ir.created_at DESC");
+        $stmtD->execute($dtlImportP);
+        $productImports = $stmtD->fetchAll(PDO::FETCH_ASSOC);
+
+        // Tổng nhập
+        $totalImportQty = array_sum(array_column($productImports, 'quantity'));
+        $totalImportCost = 0;
+        foreach ($productImports as $pi) { $totalImportCost += $pi['quantity'] * $pi['import_price']; }
     }
 
 
@@ -135,6 +153,9 @@ try {
     $categoryStats = [];
     $productDetail = null;
     $productOrders = [];
+    $productImports = [];
+    $totalImportQty = 0;
+    $totalImportCost = 0;
     $allProducts = [];
 }
 ?>
@@ -423,6 +444,48 @@ try {
         </script>
         <?php else: ?>
             <p class="text-muted">Chưa có đơn hàng nào cho sản phẩm này trong khoảng thời gian đã chọn.</p>
+        <?php endif; ?>
+
+        <!-- Lịch sử nhập hàng -->
+        <?php if (!empty($productImports)): ?>
+        <div class="mt-4 pt-3 border-top">
+            <h6 class="fw-bold mb-3">
+                <span class="badge bg-success me-2"><i class="fa-solid fa-arrow-down"></i></span>
+                Lịch sử nhập hàng <span class="text-muted fw-normal">(<?= count($productImports) ?> lần · <?= $totalImportQty ?> SP · <?= number_format($totalImportCost, 0, ',', '.') ?>đ)</span>
+            </h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered align-middle mb-0">
+                    <thead class="table-success">
+                        <tr>
+                            <th class="text-center" style="width:40px;">#</th>
+                            <th>Ngày nhập</th>
+                            <th>Phiếu nhập</th>
+                            <th class="text-center">SL</th>
+                            <th class="text-end">Giá nhập</th>
+                            <th class="text-end">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($productImports as $i => $imp): ?>
+                        <tr>
+                            <td class="text-center text-muted"><?= $i + 1 ?></td>
+                            <td><i class="fa-regular fa-clock me-1 text-muted small"></i><?= date('d/m/Y H:i', strtotime($imp['import_date'])) ?></td>
+                            <td>
+                                <?php if (!empty($imp['receipt_code'])): ?>
+                                    <a href="<?= BASE_URL ?>admin/viewReceipt/<?= $imp['receipt_id'] ?>" class="text-decoration-none fw-semibold">
+                                        <i class="fa-solid fa-file-invoice me-1"></i><?= $imp['receipt_code'] ?>
+                                    </a>
+                                <?php else: ?>-<?php endif; ?>
+                            </td>
+                            <td class="text-center fw-bold"><?= $imp['quantity'] ?></td>
+                            <td class="text-end"><?= number_format($imp['import_price'], 0, ',', '.') ?>đ</td>
+                            <td class="text-end fw-bold"><?= number_format($imp['quantity'] * $imp['import_price'], 0, ',', '.') ?>đ</td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
         <?php endif; ?>
     </div>
 </div>
