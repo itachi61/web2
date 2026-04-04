@@ -81,8 +81,8 @@ try {
     // ===== BÁO CÁO THEO SẢN PHẨM =====
     $importWhereDate = '';
     $importParams2 = [];
-    if ($dateFrom) { $importWhereDate .= " AND ih.import_date >= ?"; $importParams2[] = $dateFrom . ' 00:00:00'; }
-    if ($dateTo) { $importWhereDate .= " AND ih.import_date <= ?"; $importParams2[] = $dateTo . ' 23:59:59'; }
+    if ($dateFrom) { $importWhereDate .= " AND ih.created_at >= ?"; $importParams2[] = $dateFrom . ' 00:00:00'; }
+    if ($dateTo) { $importWhereDate .= " AND ih.created_at <= ?"; $importParams2[] = $dateTo . ' 23:59:59'; }
 
     $sqlIE = "SELECT p.id, p.name, p.image,
               COALESCE(SUM(ih.quantity), 0) as total_imported,
