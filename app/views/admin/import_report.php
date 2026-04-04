@@ -347,10 +347,10 @@ $netProfit = $sales['total_sales'] - $summary['total_cost'];
 <div class="alert alert-info"><i class="fa-solid fa-info-circle me-2"></i>Không có dữ liệu nhập xuất.</div>
 <?php else: ?>
 <div class="card shadow-sm border-0 rounded-3">
-    <div class="card-header bg-white py-3">
+    <div class="card-header bg-white py-3 border-bottom">
         <h5 class="mb-0 fw-bold"><i class="fa-solid fa-arrow-right-arrow-left me-2 text-info"></i>Báo cáo Nhập – Xuất theo sản phẩm
             <?php if ($dateFrom || $dateTo): ?>
-                <small class="text-muted fw-normal">
+                <small class="text-muted fw-normal ms-2">
                     (<?= $dateFrom ? date('d/m/Y', strtotime($dateFrom)) : '...' ?> → <?= $dateTo ? date('d/m/Y', strtotime($dateTo)) : '...' ?>)
                 </small>
             <?php endif; ?>
@@ -358,16 +358,16 @@ $netProfit = $sales['total_sales'] - $summary['total_cost'];
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Sản phẩm</th>
-                        <th class="text-center">SL Nhập</th>
-                        <th class="text-center">SL Bán</th>
-                        <th class="text-end">Tổng tiền nhập</th>
-                        <th class="text-end">Tổng doanh thu</th>
-                        <th class="text-end">Chênh lệch</th>
-                        <th class="text-center">Chi tiết</th>
+            <table class="table table-hover align-middle mb-0" style="min-width: 700px;">
+                <thead>
+                    <tr style="background: linear-gradient(135deg, #f8f9ff 0%, #eef1f8 100%);">
+                        <th class="ps-3 py-3 text-muted text-uppercase small fw-bold" style="width: 30%;">Sản phẩm</th>
+                        <th class="text-center py-3 text-muted text-uppercase small fw-bold" style="width: 10%;">SL Nhập</th>
+                        <th class="text-center py-3 text-muted text-uppercase small fw-bold" style="width: 10%;">SL Bán</th>
+                        <th class="text-end py-3 text-muted text-uppercase small fw-bold" style="width: 17%;">Tổng tiền nhập</th>
+                        <th class="text-end py-3 text-muted text-uppercase small fw-bold" style="width: 17%;">Tổng doanh thu</th>
+                        <th class="text-end py-3 text-muted text-uppercase small fw-bold" style="width: 16%;">Chênh lệch</th>
+                        <th class="text-center py-3" style="width: 80px;"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -383,47 +383,60 @@ $netProfit = $sales['total_sales'] - $summary['total_cost'];
                         $diff = $ieRevenue - $ie['total_import_cost'];
                         $dtl = $importExportDetails[$ie['id']] ?? ['imports'=>[],'exports'=>[]];
                     ?>
-                    <tr>
-                        <td class="fw-bold"><?= htmlspecialchars($ie['name']) ?></td>
-                        <td class="text-center"><span class="badge bg-success-subtle text-success">+<?= $ie['total_imported'] ?></span></td>
-                        <td class="text-center"><span class="badge bg-danger-subtle text-danger">-<?= $ieSold ?></span></td>
-                        <td class="text-end text-info"><?= number_format($ie['total_import_cost'], 0, ',', '.') ?>đ</td>
-                        <td class="text-end text-primary fw-bold"><?= number_format($ieRevenue, 0, ',', '.') ?>đ</td>
-                        <td class="text-end fw-bold <?= $diff >= 0 ? 'text-success' : 'text-danger' ?>">
-                            <?= $diff >= 0 ? '+' : '' ?><?= number_format($diff, 0, ',', '.') ?>đ
+                    <tr class="border-bottom" style="transition: background 0.15s;">
+                        <td class="ps-3 py-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <?php if (!empty($ie['image'])): ?>
+                                    <img src="<?= BASE_URL ?>images/<?= $ie['image'] ?>" width="36" height="36" 
+                                         class="rounded-2 border" style="object-fit: cover;" onerror="this.style.display='none'">
+                                <?php else: ?>
+                                    <div class="rounded-2 bg-light d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
+                                        <i class="fa-solid fa-box text-muted small"></i>
+                                    </div>
+                                <?php endif; ?>
+                                <span class="fw-semibold"><?= htmlspecialchars($ie['name']) ?></span>
+                            </div>
                         </td>
-                        <td class="text-center"><button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#ieModal<?= $ie['id'] ?>"><i class="fa-solid fa-eye me-1"></i>Xem</button></td>
+                        <td class="text-center py-3">
+                            <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-2" style="font-size: 0.85rem;">
+                                <i class="fa-solid fa-arrow-down me-1 small"></i>+<?= $ie['total_imported'] ?>
+                            </span>
+                        </td>
+                        <td class="text-center py-3">
+                            <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger px-3 py-2" style="font-size: 0.85rem;">
+                                <i class="fa-solid fa-arrow-up me-1 small"></i>-<?= $ieSold ?>
+                            </span>
+                        </td>
+                        <td class="text-end py-3">
+                            <span class="text-muted"><?= number_format($ie['total_import_cost'], 0, ',', '.') ?>đ</span>
+                        </td>
+                        <td class="text-end py-3">
+                            <span class="fw-bold text-primary"><?= number_format($ieRevenue, 0, ',', '.') ?>đ</span>
+                        </td>
+                        <td class="text-end py-3">
+                            <span class="fw-bold <?= $diff >= 0 ? 'text-success' : 'text-danger' ?>" style="font-size: 0.95rem;">
+                                <?= $diff >= 0 ? '+' : '' ?><?= number_format($diff, 0, ',', '.') ?>đ
+                            </span>
+                        </td>
+                        <td class="text-center py-3">
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#ieModal<?= $ie['id'] ?>">
+                                <i class="fa-solid fa-eye me-1"></i>Xem
+                            </button>
+                        </td>
                     </tr>
-                    <!-- Modal -->
-                    <div class="modal fade" id="ieModal<?= $ie['id'] ?>" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
-                        <div class="modal-header bg-primary text-white py-2"><h6 class="modal-title"><i class="fa-solid fa-chart-bar me-2"></i><?= htmlspecialchars($ie['name']) ?></h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-                        <div class="modal-body">
-                            <h6 class="fw-bold text-success mb-2"><i class="fa-solid fa-arrow-down me-1"></i>Nhập hàng (<?= count($dtl['imports']) ?> lần)</h6>
-                            <?php if (!empty($dtl['imports'])): ?>
-                            <table class="table table-sm table-bordered mb-4"><thead class="table-success"><tr><th>#</th><th>Ngày</th><th>Phiếu</th><th class="text-center">SL</th><th class="text-end">Giá nhập</th><th class="text-end">Thành tiền</th></tr></thead><tbody>
-                            <?php foreach ($dtl['imports'] as $i=>$imp): ?><tr><td><?=$i+1?></td><td><?=$imp['import_date']?date('d/m/Y H:i',strtotime($imp['import_date'])):'-'?></td><td><?=!empty($imp['receipt_code'])?'<a href="'.BASE_URL.'admin/viewReceipt/'.$imp['receipt_id'].'">'.$imp['receipt_code'].'</a>':'-'?></td><td class="text-center fw-bold"><?=$imp['quantity']?></td><td class="text-end"><?=number_format($imp['import_price'],0,',','.')?></td><td class="text-end fw-bold"><?=number_format($imp['quantity']*$imp['import_price'],0,',','.')?></td></tr><?php endforeach; ?>
-                            </tbody></table>
-                            <?php else: ?><p class="text-muted small mb-3">Không có.</p><?php endif; ?>
-                            <h6 class="fw-bold text-danger mb-2"><i class="fa-solid fa-arrow-up me-1"></i>Bán hàng (<?= count($dtl['exports']) ?> đơn)</h6>
-                            <?php if (!empty($dtl['exports'])): ?>
-                            <table class="table table-sm table-bordered mb-0"><thead class="table-danger"><tr><th>#</th><th>Ngày</th><th>Đơn</th><th>Khách</th><th class="text-center">SL</th><th class="text-end">Giá bán</th><th class="text-end">Thành tiền</th></tr></thead><tbody>
-                            <?php foreach ($dtl['exports'] as $i=>$exp): ?><tr><td><?=$i+1?></td><td><?=date('d/m/Y H:i',strtotime($exp['created_at']))?></td><td><span class="badge bg-primary">#<?=$exp['order_id']?></span></td><td><?=htmlspecialchars($exp['fullname'])?></td><td class="text-center fw-bold"><?=$exp['quantity']?></td><td class="text-end"><?=number_format($exp['price'],0,',','.')?></td><td class="text-end fw-bold"><?=number_format($exp['quantity']*$exp['price'],0,',','.')?></td></tr><?php endforeach; ?>
-                            </tbody></table>
-                            <?php else: ?><p class="text-muted small">Chưa có.</p><?php endif; ?>
-                        </div>
-                        <div class="modal-footer py-2"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button></div>
-                    </div></div></div>
                     <?php endforeach; ?>
                 </tbody>
-                <tfoot class="table-warning fw-bold">
-                    <tr>
-                        <td>TỔNG CỘNG</td>
-                        <td class="text-center"><?= $sumImported ?></td>
-                        <td class="text-center"><?= $sumSold ?></td>
-                        <td class="text-end"><?= number_format($sumImportCost, 0, ',', '.') ?>đ</td>
-                        <td class="text-end"><?= number_format($sumRevenue, 0, ',', '.') ?>đ</td>
+                <tfoot>
+                    <tr style="background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);">
+                        <td class="ps-3 py-3 fw-bold text-dark">
+                            <i class="fa-solid fa-calculator me-2 text-warning"></i>TỔNG CỘNG
+                        </td>
+                        <td class="text-center py-3 fw-bold"><?= $sumImported ?></td>
+                        <td class="text-center py-3 fw-bold"><?= $sumSold ?></td>
+                        <td class="text-end py-3 fw-bold"><?= number_format($sumImportCost, 0, ',', '.') ?>đ</td>
+                        <td class="text-end py-3 fw-bold text-primary"><?= number_format($sumRevenue, 0, ',', '.') ?>đ</td>
                         <?php $totalDiff = $sumRevenue - $sumImportCost; ?>
-                        <td class="text-end <?= $totalDiff >= 0 ? 'text-success' : 'text-danger' ?>">
+                        <td class="text-end py-3 fw-bold <?= $totalDiff >= 0 ? 'text-success' : 'text-danger' ?>" style="font-size: 1.05rem;">
                             <?= $totalDiff >= 0 ? '+' : '' ?><?= number_format($totalDiff, 0, ',', '.') ?>đ
                         </td>
                         <td></td>
@@ -433,6 +446,134 @@ $netProfit = $sales['total_sales'] - $summary['total_cost'];
         </div>
     </div>
 </div>
+
+<!-- Modals (ngoài bảng) -->
+<?php foreach ($importExportReport as $ie): 
+    $dtl = $importExportDetails[$ie['id']] ?? ['imports'=>[],'exports'=>[]];
+?>
+<div class="modal fade" id="ieModal<?= $ie['id'] ?>" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header py-3" style="background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);">
+                <h6 class="modal-title text-white fw-bold">
+                    <i class="fa-solid fa-chart-bar me-2"></i><?= htmlspecialchars($ie['name']) ?>
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Tóm tắt -->
+                <div class="row g-3 mb-4">
+                    <div class="col-4">
+                        <div class="border rounded-3 p-3 text-center bg-success bg-opacity-10">
+                            <small class="text-muted d-block mb-1">Nhập vào</small>
+                            <span class="fw-bold text-success fs-5">+<?= $ie['total_imported'] ?></span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded-3 p-3 text-center bg-danger bg-opacity-10">
+                            <small class="text-muted d-block mb-1">Đã bán</small>
+                            <span class="fw-bold text-danger fs-5">-<?= intval($ie['total_sold'] ?? 0) ?></span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <?php $mdiff = floatval($ie['total_revenue'] ?? 0) - $ie['total_import_cost']; ?>
+                        <div class="border rounded-3 p-3 text-center <?= $mdiff >= 0 ? 'bg-primary bg-opacity-10' : 'bg-warning bg-opacity-10' ?>">
+                            <small class="text-muted d-block mb-1">Chênh lệch</small>
+                            <span class="fw-bold <?= $mdiff >= 0 ? 'text-primary' : 'text-danger' ?> fs-5">
+                                <?= $mdiff >= 0 ? '+' : '' ?><?= number_format($mdiff, 0, ',', '.') ?>đ
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nhập hàng -->
+                <h6 class="fw-bold mb-3">
+                    <span class="badge bg-success me-2"><i class="fa-solid fa-arrow-down"></i></span>
+                    Nhập hàng <span class="text-muted fw-normal">(<?= count($dtl['imports']) ?> lần)</span>
+                </h6>
+                <?php if (!empty($dtl['imports'])): ?>
+                <div class="table-responsive mb-4">
+                    <table class="table table-sm table-bordered align-middle mb-0">
+                        <thead class="table-success">
+                            <tr>
+                                <th class="text-center" style="width:40px;">#</th>
+                                <th>Ngày</th>
+                                <th>Phiếu</th>
+                                <th class="text-center">SL</th>
+                                <th class="text-end">Giá nhập</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($dtl['imports'] as $i => $imp): ?>
+                            <tr>
+                                <td class="text-center text-muted"><?= $i + 1 ?></td>
+                                <td><i class="fa-regular fa-clock me-1 text-muted small"></i><?= $imp['import_date'] ? date('d/m/Y H:i', strtotime($imp['import_date'])) : '-' ?></td>
+                                <td>
+                                    <?php if (!empty($imp['receipt_code'])): ?>
+                                        <a href="<?= BASE_URL ?>admin/viewReceipt/<?= $imp['receipt_id'] ?>" class="text-decoration-none fw-semibold"><?= $imp['receipt_code'] ?></a>
+                                    <?php else: ?>-<?php endif; ?>
+                                </td>
+                                <td class="text-center fw-bold"><?= $imp['quantity'] ?></td>
+                                <td class="text-end"><?= number_format($imp['import_price'], 0, ',', '.') ?>đ</td>
+                                <td class="text-end fw-bold"><?= number_format($imp['quantity'] * $imp['import_price'], 0, ',', '.') ?>đ</td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php else: ?>
+                <p class="text-muted small mb-4 fst-italic"><i class="fa-solid fa-info-circle me-1"></i>Không có lần nhập nào.</p>
+                <?php endif; ?>
+
+                <!-- Bán hàng -->
+                <h6 class="fw-bold mb-3">
+                    <span class="badge bg-danger me-2"><i class="fa-solid fa-arrow-up"></i></span>
+                    Bán hàng <span class="text-muted fw-normal">(<?= count($dtl['exports']) ?> đơn)</span>
+                </h6>
+                <?php if (!empty($dtl['exports'])): ?>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered align-middle mb-0">
+                        <thead class="table-danger">
+                            <tr>
+                                <th class="text-center" style="width:40px;">#</th>
+                                <th>Ngày</th>
+                                <th>Đơn</th>
+                                <th>Khách hàng</th>
+                                <th class="text-center">SL</th>
+                                <th class="text-end">Giá bán</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($dtl['exports'] as $i => $exp): ?>
+                            <tr>
+                                <td class="text-center text-muted"><?= $i + 1 ?></td>
+                                <td><i class="fa-regular fa-clock me-1 text-muted small"></i><?= date('d/m/Y H:i', strtotime($exp['created_at'])) ?></td>
+                                <td><span class="badge bg-primary rounded-pill">#<?= $exp['order_id'] ?></span></td>
+                                <td><?= htmlspecialchars($exp['fullname']) ?></td>
+                                <td class="text-center fw-bold"><?= $exp['quantity'] ?></td>
+                                <td class="text-end"><?= number_format($exp['price'], 0, ',', '.') ?>đ</td>
+                                <td class="text-end fw-bold"><?= number_format($exp['quantity'] * $exp['price'], 0, ',', '.') ?>đ</td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php else: ?>
+                <p class="text-muted small fst-italic"><i class="fa-solid fa-info-circle me-1"></i>Chưa có đơn hàng nào.</p>
+                <?php endif; ?>
+            </div>
+            <div class="modal-footer bg-light py-2">
+                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark me-1"></i>Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endforeach; ?>
+
 <?php endif; ?>
 
 <?php endif; ?>
