@@ -158,11 +158,11 @@ $netProfit = $sales['total_sales'] - $summary['total_cost'];
         <form method="GET" action="<?= BASE_URL ?>admin/importReport" class="row g-2 align-items-end">
             <div class="col-md-3">
                 <label class="form-label small fw-bold text-muted">Từ ngày</label>
-                <input type="date" name="from" class="form-control" value="<?= htmlspecialchars($dateFrom) ?>">
+                <input type="date" name="from" id="irDateFrom" class="form-control" value="<?= htmlspecialchars($dateFrom) ?>">
             </div>
             <div class="col-md-3">
                 <label class="form-label small fw-bold text-muted">Đến ngày</label>
-                <input type="date" name="to" class="form-control" value="<?= htmlspecialchars($dateTo) ?>">
+                <input type="date" name="to" id="irDateTo" class="form-control" value="<?= htmlspecialchars($dateTo) ?>">
             </div>
             <div class="col-md-3">
                 <label class="form-label small fw-bold text-muted">Chế độ xem</label>
@@ -436,3 +436,26 @@ $netProfit = $sales['total_sales'] - $summary['total_cost'];
 <?php endif; ?>
 
 <?php endif; ?>
+
+<script>
+(function() {
+    const fromInput = document.getElementById('irDateFrom');
+    const toInput = document.getElementById('irDateTo');
+    if (fromInput && toInput) {
+        fromInput.addEventListener('change', function() {
+            if (toInput.value && this.value > toInput.value) {
+                toInput.value = this.value;
+            }
+            toInput.min = this.value;
+        });
+        toInput.addEventListener('change', function() {
+            if (fromInput.value && this.value < fromInput.value) {
+                fromInput.value = this.value;
+            }
+            fromInput.max = this.value;
+        });
+        if (fromInput.value) toInput.min = fromInput.value;
+        if (toInput.value) fromInput.max = toInput.value;
+    }
+})();
+</script>

@@ -145,11 +145,11 @@ try {
         <form method="GET" action="<?= BASE_URL ?>admin/statistics" class="row g-2 align-items-end">
             <div class="col-md-3">
                 <label class="form-label small fw-bold text-muted">Từ ngày</label>
-                <input type="date" name="from" class="form-control" value="<?= htmlspecialchars($dateFrom) ?>">
+                <input type="date" name="from" id="statDateFrom" class="form-control" value="<?= htmlspecialchars($dateFrom) ?>">
             </div>
             <div class="col-md-3">
                 <label class="form-label small fw-bold text-muted">Đến ngày</label>
-                <input type="date" name="to" class="form-control" value="<?= htmlspecialchars($dateTo) ?>">
+                <input type="date" name="to" id="statDateTo" class="form-control" value="<?= htmlspecialchars($dateTo) ?>">
             </div>
             <div class="col-md-3">
                 <label class="form-label small fw-bold text-muted">Sản phẩm</label>
@@ -530,5 +530,28 @@ try {
             }
         });
     });
+})();
+
+// Date range validation
+(function() {
+    const fromInput = document.getElementById('statDateFrom');
+    const toInput = document.getElementById('statDateTo');
+    if (fromInput && toInput) {
+        fromInput.addEventListener('change', function() {
+            if (toInput.value && this.value > toInput.value) {
+                toInput.value = this.value;
+            }
+            toInput.min = this.value;
+        });
+        toInput.addEventListener('change', function() {
+            if (fromInput.value && this.value < fromInput.value) {
+                fromInput.value = this.value;
+            }
+            fromInput.max = this.value;
+        });
+        // Set initial min/max
+        if (fromInput.value) toInput.min = fromInput.value;
+        if (toInput.value) fromInput.max = toInput.value;
+    }
 })();
 </script>
