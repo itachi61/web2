@@ -480,10 +480,16 @@ try {
                             <?= number_format($ps['profit'], 0, ',', '.') ?>đ
                         </td>
                         <td>
-                            <a href="<?= BASE_URL ?>admin/statistics?product_id=<?= $ps['id'] ?><?= $dateFrom ? '&from='.$dateFrom : '' ?><?= $dateTo ? '&to='.$dateTo : '' ?>" 
-                               class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
-                                <i class="fa-solid fa-eye"></i>
-                            </a>
+                            <?php if ($productDetail && $productDetail['id'] == $ps['id']): ?>
+                                <span class="btn btn-sm btn-primary disabled" title="Đang xem">
+                                    <i class="fa-solid fa-eye me-1"></i>Đang xem
+                                </span>
+                            <?php else: ?>
+                                <a href="<?= BASE_URL ?>admin/statistics?product_id=<?= $ps['id'] ?><?= $dateFrom ? '&from='.$dateFrom : '' ?><?= $dateTo ? '&to='.$dateTo : '' ?>" 
+                                   class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                            <?php endif; ?>
                         </td>
                     </tr>
                     <?php endforeach; ?>
