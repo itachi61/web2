@@ -92,6 +92,7 @@ class AdminController extends Controller
         $dateTo = $_GET['to'] ?? '';
         $filterStatus = $_GET['status'] ?? '';
         $sortBy = $_GET['sort'] ?? 'newest';
+        $filterId = $_GET['order_id'] ?? '';
 
         try {
             $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);
@@ -100,6 +101,7 @@ class AdminController extends Controller
             $sql = "SELECT o.*, u.fullname, u.email FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE 1=1";
             $params = [];
 
+            if ($filterId) { $sql .= " AND o.id = ?"; $params[] = intval($filterId); }
             if ($dateFrom) { $sql .= " AND o.created_at >= ?"; $params[] = $dateFrom . ' 00:00:00'; }
             if ($dateTo) { $sql .= " AND o.created_at <= ?"; $params[] = $dateTo . ' 23:59:59'; }
             if ($filterStatus) { $sql .= " AND o.status = ?"; $params[] = $filterStatus; }

@@ -452,7 +452,7 @@ $netProfit = $sales['total_sales'] - $summary['total_cost'];
     $dtl = $importExportDetails[$ie['id']] ?? ['imports'=>[],'exports'=>[]];
 ?>
 <div class="modal fade" id="ieModal<?= $ie['id'] ?>" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow">
             <div class="modal-header py-3" style="background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);">
                 <h6 class="modal-title text-white fw-bold">
@@ -550,7 +550,13 @@ $netProfit = $sales['total_sales'] - $summary['total_cost'];
                             <tr>
                                 <td class="text-center text-muted"><?= $i + 1 ?></td>
                                 <td><i class="fa-regular fa-clock me-1 text-muted small"></i><?= date('d/m/Y H:i', strtotime($exp['created_at'])) ?></td>
-                                <td><span class="badge bg-primary rounded-pill">#<?= $exp['order_id'] ?></span></td>
+                                <td>
+                                    <a href="<?= BASE_URL ?>admin/orders?order_id=<?= $exp['order_id'] ?>" 
+                                       class="badge bg-primary rounded-pill text-decoration-none" 
+                                       title="Xem chi tiết đơn #<?= $exp['order_id'] ?>" target="_blank">
+                                        #<?= $exp['order_id'] ?> <i class="fa-solid fa-arrow-up-right-from-square ms-1" style="font-size:0.65rem;"></i>
+                                    </a>
+                                </td>
                                 <td><?= htmlspecialchars($exp['fullname']) ?></td>
                                 <td class="text-center fw-bold"><?= $exp['quantity'] ?></td>
                                 <td class="text-end"><?= number_format($exp['price'], 0, ',', '.') ?>đ</td>
