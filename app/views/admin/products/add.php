@@ -65,9 +65,12 @@
                             <hr>
 
                             <div class="mb-3">
-                                <label class="form-label small text-muted">Ảnh chi tiết (Chọn nhiều)</label>
-                                <input type="file" name="extra_images[]" class="form-control" multiple>
-                                <small class="text-muted fst-italic">* Giữ phím Ctrl để chọn nhiều ảnh</small>
+                                <label class="form-label small fw-bold">
+                                    <i class="fa-regular fa-image text-info me-1"></i>Ảnh phụ
+                                    <span class="badge bg-secondary ms-1">Tùy chọn</span>
+                                </label>
+                                <input type="file" name="image2" class="form-control form-control-sm" accept="image/*">
+                                <small class="text-muted fst-italic">Ảnh mô tả phụ (không bắt buộc)</small>
                             </div>
 
                             <hr>

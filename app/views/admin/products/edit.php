@@ -171,47 +171,68 @@
                 <div class="col-md-4">
                     <div class="card bg-light border-0">
                         <div class="card-body">
-                            <h6 class="fw-bold mb-3">Hình ảnh sản phẩm</h6>
+                            <h6 class="fw-bold mb-3"><i class="fa-solid fa-images me-1 text-primary"></i>Hình ảnh sản phẩm</h6>
                             
+                            <!-- ẢNH CHÍNH (bắt buộc, chỉ thay thế) -->
                             <div class="mb-3">
-                                <label class="form-label small text-muted">Ảnh đại diện hiện tại</label>
-                                <div class="text-center border bg-white p-2 mb-2" style="min-height: 200px; display: flex; align-items: center; justify-content: center;">
+                                <label class="form-label small fw-bold">
+                                    <i class="fa-solid fa-star text-warning me-1"></i>Ảnh chính
+                                    <span class="badge bg-danger ms-1">Bắt buộc</span>
+                                </label>
+                                <div class="text-center border bg-white p-2 mb-2 rounded" style="min-height: 180px; display: flex; align-items: center; justify-content: center;">
                                     <?php if ($data['product']['image']): ?>
                                         <img src="<?= BASE_URL ?>images/<?= $data['product']['image'] ?>" 
-                                             style="max-width: 100%; max-height: 200px;"
+                                             style="max-width: 100%; max-height: 180px;"
                                              onerror="this.src='https://via.placeholder.com/200?text=No+Image'">
                                     <?php else: ?>
                                         <span class="text-muted small">Chưa có ảnh</span>
                                     <?php endif; ?>
                                 </div>
-                                <label class="form-label small text-muted">Chọn ảnh mới (bỏ trống nếu giữ ảnh cũ)</label>
-                                <input type="file" name="image" id="imageUpload" class="form-control mb-2">
-                                
-                                <div class="text-center border bg-white p-2" style="min-height: 100px; display: flex; align-items: center; justify-content: center;">
-                                    <img id="imagePreview" src="" style="max-width: 100%; max-height: 100px; display: none;">
+                                <label class="form-label small text-muted">Thay thế ảnh chính (bỏ trống nếu giữ ảnh cũ)</label>
+                                <input type="file" name="image" id="imageUpload" class="form-control form-control-sm" accept="image/*">
+                                <div class="text-center border bg-white p-1 mt-1 rounded" style="min-height: 60px; display: flex; align-items: center; justify-content: center;">
+                                    <img id="imagePreview" src="" style="max-width: 100%; max-height: 60px; display: none;">
                                     <span id="placeholderText" class="text-muted small">Preview ảnh mới</span>
                                 </div>
                             </div>
 
                             <hr>
 
-                            <?php if (!empty($data['images'])): ?>
-                                <div class="mb-3">
-                                    <label class="form-label small text-muted">Ảnh phụ hiện tại</label>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <?php foreach ($data['images'] as $img): ?>
-                                            <img src="<?= BASE_URL ?>images/<?= $img['image_path'] ?>" 
-                                                 class="rounded border" style="width: 60px; height: 60px; object-fit: cover;"
-                                                 onerror="this.src='https://via.placeholder.com/60?text=X'">
-                                        <?php endforeach; ?>
-                                    </div>
-                                </div>
-                            <?php endif; ?>
-
+                            <!-- ẢNH PHỤ (không bắt buộc, có thể xóa) -->
                             <div class="mb-3">
-                                <label class="form-label small text-muted">Thêm ảnh chi tiết mới</label>
-                                <input type="file" name="extra_images[]" class="form-control" multiple>
-                                <small class="text-muted fst-italic">* Giữ phím Ctrl để chọn nhiều ảnh</small>
+                                <label class="form-label small fw-bold">
+                                    <i class="fa-regular fa-image text-info me-1"></i>Ảnh phụ
+                                    <span class="badge bg-secondary ms-1">Tùy chọn</span>
+                                </label>
+                                <?php if (!empty($data['product']['image2'])): ?>
+                                    <div class="text-center border bg-white p-2 mb-2 rounded position-relative" style="min-height: 140px; display: flex; align-items: center; justify-content: center;">
+                                        <img src="<?= BASE_URL ?>images/<?= $data['product']['image2'] ?>" 
+                                             style="max-width: 100%; max-height: 140px;"
+                                             onerror="this.src='https://via.placeholder.com/200?text=No+Image'">
+                                    </div>
+                                    <div class="d-flex gap-2 mb-2">
+                                        <label class="btn btn-outline-primary btn-sm flex-fill">
+                                            <i class="fa-solid fa-arrows-rotate me-1"></i>Thay thế
+                                            <input type="file" name="image2" class="d-none" accept="image/*" 
+                                                   onchange="previewImage2(this)">
+                                        </label>
+                                        <label class="btn btn-outline-danger btn-sm flex-fill">
+                                            <input type="checkbox" name="delete_image2" value="1" class="d-none"
+                                                   onchange="toggleDeleteImage2(this)">
+                                            <i class="fa-solid fa-trash me-1"></i><span class="delete-label">Xóa ảnh phụ</span>
+                                        </label>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="text-center border bg-white p-3 mb-2 rounded" style="min-height: 100px; display: flex; align-items: center; justify-content: center;">
+                                        <span class="text-muted small"><i class="fa-regular fa-image fa-2x d-block mb-1 opacity-25"></i>Chưa có ảnh phụ</span>
+                                    </div>
+                                    <label class="form-label small text-muted">Tải lên ảnh phụ</label>
+                                    <input type="file" name="image2" class="form-control form-control-sm" accept="image/*"
+                                           onchange="previewImage2(this)">
+                                <?php endif; ?>
+                                <div id="image2PreviewWrap" class="text-center border bg-white p-1 mt-1 rounded" style="min-height: 50px; display: none; align-items: center; justify-content: center;">
+                                    <img id="image2Preview" src="" style="max-width: 100%; max-height: 60px;">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -256,6 +277,33 @@ document.getElementById('imageUpload').onchange = function (evt) {
             if(ph) ph.style.display = 'none';
         }
         fr.readAsDataURL(files[0]);
+    }
+}
+
+// Image2 preview
+function previewImage2(input) {
+    if (input.files && input.files[0]) {
+        var fr = new FileReader();
+        fr.onload = function(e) {
+            document.getElementById('image2Preview').src = e.target.result;
+            document.getElementById('image2PreviewWrap').style.display = 'flex';
+        }
+        fr.readAsDataURL(input.files[0]);
+    }
+}
+
+// Toggle delete image2
+function toggleDeleteImage2(checkbox) {
+    var label = checkbox.closest('label');
+    var span = label.querySelector('.delete-label');
+    if (checkbox.checked) {
+        label.classList.remove('btn-outline-danger');
+        label.classList.add('btn-danger');
+        span.textContent = '✓ Sẽ xóa khi lưu';
+    } else {
+        label.classList.remove('btn-danger');
+        label.classList.add('btn-outline-danger');
+        span.textContent = 'Xóa ảnh phụ';
     }
 }
 </script>

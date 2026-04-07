@@ -292,18 +292,15 @@ class AdminController extends Controller
 
             $newProductId = $model->getLastId();
 
-            // 5. XỬ LÝ ẢNH PHỤ (EXTRA IMAGES)
-            if (isset($_FILES['extra_images'])) {
-                $totalFiles = count($_FILES['extra_images']['name']);
-
-                for ($i = 0; $i < $totalFiles; $i++) {
-                    if ($_FILES['extra_images']['error'][$i] == 0) {
-                        $extraFileName = time() . '_' . $i . '_' . $_FILES['extra_images']['name'][$i];
-                        move_uploaded_file($_FILES['extra_images']['tmp_name'][$i], $targetDir . $extraFileName);
-                        $dbExtraPath = $folderName . '/' . $extraFileName;
-                        $model->addProductImage($newProductId, $dbExtraPath);
-                    }
-                }
+            // 5. XỬ LÝ ẢNH PHỤ (image2)
+            if (isset($_FILES['image2']) && $_FILES['image2']['error'] == 0) {
+                $fileName2 = time() . '_sub_' . $_FILES['image2']['name'];
+                move_uploaded_file($_FILES['image2']['tmp_name'], $targetDir . $fileName2);
+                $dbImage2 = $folderName . '/' . $fileName2;
+                try {
+                    $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+                    $db->prepare("UPDATE products SET image2 = ? WHERE id = ?")->execute([$dbImage2, $newProductId]);
+                } catch (\Throwable $e) {}
             }
 
             $_SESSION['success_msg'] = 'Đã thêm sản phẩm "' . $name . '" (chưa mở bán). Hãy chỉnh giá và nhập hàng để mở bán.';
@@ -405,27 +402,29 @@ class AdminController extends Controller
                ->execute([$profit_margin, $profit_margin, $id]);
         } catch (Exception $e) {}
 
-        // Xử lý ảnh phụ mới (nếu có)
-        if (isset($_FILES['extra_images'])) {
-            $folderName = $this->createSlug($name);
-            $targetDir = dirname(__DIR__, 2) . '/public/images/' . $folderName . '/';
+        // === XỬ LÝ ẢNH PHỤ (image2) ===
+        try {
+            $db2 = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
             
-            if (!file_exists($targetDir)) {
-                mkdir($targetDir, 0777, true);
+            // Xóa ảnh phụ nếu checkbox được check
+            if (isset($_POST['delete_image2']) && $_POST['delete_image2'] == '1') {
+                $db2->prepare("UPDATE products SET image2 = NULL WHERE id = ?")->execute([$id]);
             }
-
-            $totalFiles = count($_FILES['extra_images']['name']);
-            for ($i = 0; $i < $totalFiles; $i++) {
-                if ($_FILES['extra_images']['error'][$i] == 0) {
-                    $extraFileName = time() . '_' . $i . '_' . $_FILES['extra_images']['name'][$i];
-                    move_uploaded_file($_FILES['extra_images']['tmp_name'][$i], $targetDir . $extraFileName);
-                    $dbExtraPath = $folderName . '/' . $extraFileName;
-                    $model->addProductImage($id, $dbExtraPath);
+            // Upload/thay thế ảnh phụ
+            elseif (isset($_FILES['image2']) && $_FILES['image2']['error'] == 0) {
+                $folderName = $this->createSlug($name);
+                $targetDir = dirname(__DIR__, 2) . '/public/images/' . $folderName . '/';
+                if (!file_exists($targetDir)) {
+                    mkdir($targetDir, 0777, true);
                 }
+                $fileName2 = time() . '_sub_' . $_FILES['image2']['name'];
+                move_uploaded_file($_FILES['image2']['tmp_name'], $targetDir . $fileName2);
+                $dbImage2 = $folderName . '/' . $fileName2;
+                $db2->prepare("UPDATE products SET image2 = ? WHERE id = ?")->execute([$dbImage2, $id]);
             }
-        }
+        } catch (\Throwable $e) {}
 
-        header('Location: ' . BASE_URL . 'admin/products');
+        header('Location: ' . BASE_URL . 'admin/editProduct/' . $id);
         exit;
     }
 

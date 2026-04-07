@@ -61,8 +61,14 @@
 
             <div class="d-flex gap-2 overflow-auto mb-4 pb-2 custom-scrollbar">
                 <div class="thumb-box active" onclick="changeMainImage(this, '<?= BASE_URL ?>images/<?= $product['image'] ?>')">
-                    <img src="<?= BASE_URL ?>images/<?= $product['image'] ?>" class="img-fluid" alt="Thumb">
+                    <img src="<?= BASE_URL ?>images/<?= $product['image'] ?>" class="img-fluid" alt="Ảnh chính">
                 </div>
+
+                <?php if (!empty($product['image2'])): ?>
+                    <div class="thumb-box" onclick="changeMainImage(this, '<?= BASE_URL ?>images/<?= $product['image2'] ?>')">
+                        <img src="<?= BASE_URL ?>images/<?= $product['image2'] ?>" class="img-fluid" alt="Ảnh phụ">
+                    </div>
+                <?php endif; ?>
 
                 <?php if (isset($images) && count($images) > 0): ?>
                     <?php foreach ($images as $img): ?>
