@@ -48,6 +48,24 @@
     <?php endif; ?>
 </div>
 
+<!-- Thanh tìm kiếm sản phẩm -->
+<div class="card border-0 shadow-sm rounded-3 mb-3">
+    <div class="card-body py-2 px-3">
+        <div class="input-group">
+            <span class="input-group-text bg-white border-end-0">
+                <i class="fa-solid fa-magnifying-glass text-muted"></i>
+            </span>
+            <input type="text" id="productSearch" class="form-control border-start-0 ps-0"
+                   placeholder="Tìm nhanh theo tên sản phẩm hoặc ID..." 
+                   autocomplete="off">
+            <button type="button" id="clearSearch" class="btn btn-outline-secondary d-none" title="Xóa">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <small id="searchResult" class="text-muted d-none mt-1"></small>
+    </div>
+</div>
+
 <div class="card shadow-sm border-0 rounded-3">
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -137,3 +155,66 @@
         </div>
     </div>
 </div>
+
+<!-- Script tìm kiếm nhanh -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('productSearch');
+    const clearBtn = document.getElementById('clearSearch');
+    const searchResult = document.getElementById('searchResult');
+    const tableBody = document.querySelector('table tbody');
+    
+    if (!searchInput || !tableBody) return;
+    
+    const rows = tableBody.querySelectorAll('tr');
+    
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim().toLowerCase();
+        
+        // Toggle nút xóa
+        clearBtn.classList.toggle('d-none', !query);
+        
+        if (!query) {
+            rows.forEach(r => r.style.display = '');
+            searchResult.classList.add('d-none');
+            return;
+        }
+        
+        let matchCount = 0;
+        rows.forEach(row => {
+            const id = row.querySelector('td:first-child')?.textContent.trim() || '';
+            const name = row.querySelector('td:nth-child(3) .fw-bold')?.textContent.trim().toLowerCase() || '';
+            
+            if (name.includes(query) || id === query) {
+                row.style.display = '';
+                matchCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        searchResult.classList.remove('d-none');
+        searchResult.textContent = matchCount > 0 
+            ? 'Tìm thấy ' + matchCount + ' sản phẩm' 
+            : 'Không tìm thấy sản phẩm nào';
+        searchResult.className = matchCount > 0 
+            ? 'text-success d-block mt-1' 
+            : 'text-danger d-block mt-1';
+    });
+    
+    clearBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input'));
+        searchInput.focus();
+    });
+    
+    // Phím tắt: Ctrl+F focus vào ô tìm kiếm
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+            e.preventDefault();
+            searchInput.focus();
+            searchInput.select();
+        }
+    });
+});
+</script>
