@@ -78,12 +78,18 @@
                                     $status = $order['status'] ?? 'pending';
                                     $colorMap = ['pending' => '#fff3cd', 'processing' => '#cff4fc', 'completed' => '#d1e7dd', 'cancelled' => '#f8d7da'];
                                     ?>
-                                    <select class="form-select form-select-sm fw-bold" style="width:140px; background-color:<?= $colorMap[$status] ?? '#fff' ?>; border-radius:20px; font-size:0.8rem;" onchange="if(this.value) window.location='<?= BASE_URL ?>admin/updateOrderStatus/<?= $order['id'] ?>/'+this.value">
-                                        <option value="pending" <?= $status=='pending'?'selected':'' ?>>🕐 Chờ xử lý</option>
-                                        <option value="processing" <?= $status=='processing'?'selected':'' ?>>🚚 Đang giao</option>
-                                        <option value="completed" <?= $status=='completed'?'selected':'' ?>>✅ Hoàn thành</option>
-                                        <option value="cancelled" <?= $status=='cancelled'?'selected':'' ?>>❌ Đã hủy</option>
-                                    </select>
+                                    <?php if ($status === 'completed'): ?>
+                                        <span class="badge fw-bold" style="background-color:#d1e7dd; color:#0f5132; border-radius:20px; font-size:0.8rem; padding:6px 16px;" title="Đơn hàng đã hoàn thành, không thể thay đổi">
+                                            ✅ Hoàn thành <i class="fa-solid fa-lock ms-1" style="font-size:0.7rem;"></i>
+                                        </span>
+                                    <?php else: ?>
+                                        <select class="form-select form-select-sm fw-bold" style="width:140px; background-color:<?= $colorMap[$status] ?? '#fff' ?>; border-radius:20px; font-size:0.8rem;" onchange="if(this.value) window.location='<?= BASE_URL ?>admin/updateOrderStatus/<?= $order['id'] ?>/'+this.value">
+                                            <option value="pending" <?= $status=='pending'?'selected':'' ?>>🕐 Chờ xử lý</option>
+                                            <option value="processing" <?= $status=='processing'?'selected':'' ?>>🚚 Đang giao</option>
+                                            <option value="completed" <?= $status=='completed'?'selected':'' ?>>✅ Hoàn thành</option>
+                                            <option value="cancelled" <?= $status=='cancelled'?'selected':'' ?>>❌ Đã hủy</option>
+                                        </select>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="text-muted small">
                                     <?= isset($order['created_at']) ? date('d/m/Y H:i', strtotime($order['created_at'])) : 'N/A' ?>

@@ -3,6 +3,22 @@
 <div class="container my-4">
     <h3 class="fw-bold mb-4"><i class="fa-solid fa-box me-2 text-primary"></i>Đơn hàng của tôi</h3>
 
+    <?php if (!empty($_SESSION['order_success'])): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-check-circle me-2"></i><?= $_SESSION['order_success'] ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php unset($_SESSION['order_success']); ?>
+    <?php endif; ?>
+
+    <?php if (!empty($_SESSION['order_error'])): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-exclamation-circle me-2"></i><?= $_SESSION['order_error'] ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php unset($_SESSION['order_error']); ?>
+    <?php endif; ?>
+
     <?php if (empty($data['orders'])): ?>
         <div class="text-center py-5">
             <i class="fa-solid fa-box-open fa-4x text-muted opacity-50 mb-3"></i>
@@ -12,15 +28,25 @@
     <?php else: ?>
         <?php foreach ($data['orders'] as $order): ?>
         <div class="card shadow-sm border-0 rounded-3 mb-3">
-            <div class="card-header bg-light py-3">
-                <span class="fw-bold">Đơn hàng #<?= $order['id'] ?></span>
-                <small class="text-muted ms-2"><?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></small>
+            <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="fw-bold">Đơn hàng #<?= $order['id'] ?></span>
+                    <small class="text-muted ms-2"><?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></small>
+                </div>
+                <?php if ($order['status'] === 'pending'): ?>
+                    <form method="POST" action="<?= BASE_URL ?>auth/cancelOrder/<?= $order['id'] ?>" 
+                          onsubmit="return confirm('Bạn có chắc muốn hủy đơn hàng #<?= $order['id'] ?>?')">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="fa-solid fa-xmark me-1"></i>Hủy đơn
+                        </button>
+                    </form>
+                <?php endif; ?>
             </div>
             <div class="card-body p-4">
                 <?php
                 $statusMap = [
                     'pending' => ['Chờ xử lý', 'warning', 'fa-clock'],
-                    'processing' => ['Đang giao', 'info', 'fa-truck'],
+                    'processing' => ['Đang giao hàng', 'info', 'fa-truck'],
                     'completed' => ['Hoàn thành', 'success', 'fa-circle-check'],
                     'cancelled' => ['Đã hủy', 'danger', 'fa-circle-xmark']
                 ];
@@ -32,6 +58,11 @@
                         <span class="fw-bold text-<?= $s[1] ?>"><?= $s[0] ?></span>
                         <small class="text-muted d-block">Trạng thái đơn hàng</small>
                     </div>
+                    <?php if ($order['status'] === 'processing'): ?>
+                        <small class="ms-auto text-muted fst-italic">
+                            <i class="fa-solid fa-info-circle me-1"></i>Đơn hàng đang được giao, không thể hủy
+                        </small>
+                    <?php endif; ?>
                 </div>
 
                 <div class="row">

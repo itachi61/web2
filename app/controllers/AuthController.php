@@ -217,5 +217,56 @@ class AuthController extends Controller {
 
         $this->view('auth/my_orders', ['orders' => $orders]);
     }
+
+    // --- HỦY ĐƠN HÀNG (NGƯỜI MUA) ---
+    public function cancelOrder($id = null) {
+        if (!isset($_SESSION['user_id']) || !$id || $_SERVER['REQUEST_METHOD'] != 'POST') {
+            header('Location: ' . BASE_URL . 'auth/myOrders');
+            exit;
+        }
+
+        try {
+            $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+            // Kiểm tra đơn hàng thuộc về user hiện tại
+            $stmt = $db->prepare("SELECT * FROM orders WHERE id = ? AND user_id = ?");
+            $stmt->execute([$id, $_SESSION['user_id']]);
+            $order = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$order) {
+                $_SESSION['order_error'] = 'Không tìm thấy đơn hàng!';
+                header('Location: ' . BASE_URL . 'auth/myOrders');
+                exit;
+            }
+
+            // Chỉ cho phép hủy khi đơn hàng đang ở trạng thái "pending" (chờ xử lý)
+            if ($order['status'] !== 'pending') {
+                $_SESSION['order_error'] = 'Không thể hủy đơn hàng! Đơn hàng đang ở trạng thái "' . $order['status'] . '".';
+                header('Location: ' . BASE_URL . 'auth/myOrders');
+                exit;
+            }
+
+            // Cập nhật trạng thái thành cancelled
+            $db->prepare("UPDATE orders SET status = 'cancelled' WHERE id = ?")->execute([$id]);
+
+            // Hoàn lại tồn kho (vì stock đã bị trừ khi đặt hàng)
+            $stmtItems = $db->prepare("SELECT product_id, quantity FROM order_items WHERE order_id = ?");
+            $stmtItems->execute([$id]);
+            $items = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($items as $item) {
+                $db->prepare("UPDATE products SET stock = stock + ? WHERE id = ?")
+                   ->execute([$item['quantity'], $item['product_id']]);
+            }
+
+            $_SESSION['order_success'] = 'Đã hủy đơn hàng #' . $id . ' thành công!';
+        } catch (Exception $e) {
+            $_SESSION['order_error'] = 'Lỗi: ' . $e->getMessage();
+        }
+
+        header('Location: ' . BASE_URL . 'auth/myOrders');
+        exit;
+    }
 }
-?>
+?>

@@ -152,6 +152,13 @@ class AdminController extends Controller
             $stmt->execute([$id]);
             $oldStatus = $stmt->fetchColumn();
             
+            // Không cho phép chỉnh sửa đơn hàng đã hoàn thành
+            if ($oldStatus === 'completed') {
+                $_SESSION['error_msg'] = 'Đơn hàng #' . $id . ' đã hoàn thành, không thể thay đổi trạng thái!';
+                header('Location: ' . BASE_URL . 'admin/orders');
+                exit;
+            }
+            
             // Cập nhật trạng thái
             $stmt = $db->prepare("UPDATE orders SET status = ? WHERE id = ?");
             $stmt->execute([$status, $id]);
