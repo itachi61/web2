@@ -104,9 +104,13 @@ class ProductController extends Controller
         // 3. Trả về View
         $this->view('layouts/header', ['title' => 'Tìm kiếm: ' . $keyword]);
 
+        // Lấy tất cả danh mục để hiển thị bộ lọc động
+        $allCategories = $model->getAllCategories();
+
         $this->view('products/search', [
             'products' => $products,
-            'keyword' => $keyword // Truyền lại để view hiển thị tiêu đề
+            'keyword' => $keyword, // Truyền lại để view hiển thị tiêu đề
+            'categories' => $allCategories // Truyền danh mục để bộ lọc hiển thị đầy đủ
         ]);
 
         $this->view('layouts/footer');

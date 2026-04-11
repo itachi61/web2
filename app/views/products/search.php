@@ -39,18 +39,16 @@
 
                         <div class="mb-4">
                             <h6 class="fw-bold">Danh mục</h6>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="cat[]" value="1" id="cat1" <?= (isset($_GET['cat']) && in_array(1, $_GET['cat'])) ? 'checked' : '' ?>>
-                                <label class="form-check-label" for="cat1">Laptop</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="cat[]" value="2" id="cat2" <?= (isset($_GET['cat']) && in_array(2, $_GET['cat'])) ? 'checked' : '' ?>>
-                                <label class="form-check-label" for="cat2">Điện thoại</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="cat[]" value="3" id="cat3" <?= (isset($_GET['cat']) && in_array(3, $_GET['cat'])) ? 'checked' : '' ?>>
-                                <label class="form-check-label" for="cat3">Linh kiện</label>
-                            </div>
+                            <?php if (!empty($data['categories'])): ?>
+                                <?php foreach ($data['categories'] as $cat): ?>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="cat[]" value="<?= $cat['id'] ?>" id="cat<?= $cat['id'] ?>" <?= (isset($_GET['cat']) && in_array($cat['id'], $_GET['cat'])) ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="cat<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></label>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <p class="text-muted small">Đang cập nhật...</p>
+                            <?php endif; ?>
                         </div>
 
                         <hr class="text-muted opacity-25">
