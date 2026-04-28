@@ -1,19 +1,121 @@
 <!-- HERO BANNER CAROUSEL -->
 <style>
-.hero-carousel .carousel-item { min-height: 280px; border-radius: 16px; overflow: hidden; position: relative; }
-.hero-slide { min-height: 280px; display: flex; align-items: center; justify-content: center; text-align: center; position: relative; overflow: hidden; border-radius: 16px; }
-.hero-slide::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); animation: heroRotate 15s linear infinite; }
-@keyframes heroRotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-@keyframes heroFadeUp { 0% { opacity: 0; transform: translateY(40px); } 100% { opacity: 1; transform: translateY(0); } }
-@keyframes heroFloat { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-12px); } }
-@keyframes heroPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); } 50% { box-shadow: 0 0 20px 10px rgba(255,255,255,0.1); } }
-@keyframes sparkle { 0%, 100% { opacity: 0; transform: scale(0); } 50% { opacity: 1; transform: scale(1); } }
-.carousel-item.active .hero-title { animation: heroFadeUp 0.8s ease-out both; }
-.carousel-item.active .hero-desc { animation: heroFadeUp 0.8s ease-out 0.2s both; }
-.carousel-item.active .hero-btn { animation: heroFadeUp 0.8s ease-out 0.4s both; }
-.carousel-item.active .hero-icon { animation: heroFloat 3s ease-in-out infinite; }
-.hero-btn:hover { transform: scale(1.08) !important; box-shadow: 0 8px 25px rgba(0,0,0,0.3) !important; }
-.hero-particle { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.2); animation: sparkle 4s ease-in-out infinite; }
+    .hero-carousel .carousel-item {
+        min-height: 280px;
+        border-radius: 16px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .hero-slide {
+        min-height: 280px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        border-radius: 16px;
+    }
+
+    .hero-slide::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        animation: heroRotate 15s linear infinite;
+    }
+
+    @keyframes heroRotate {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes heroFadeUp {
+        0% {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes heroFloat {
+
+        0%,
+        100% {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(-12px);
+        }
+    }
+
+    @keyframes heroPulse {
+
+        0%,
+        100% {
+            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+        }
+
+        50% {
+            box-shadow: 0 0 20px 10px rgba(255, 255, 255, 0.1);
+        }
+    }
+
+    @keyframes sparkle {
+
+        0%,
+        100% {
+            opacity: 0;
+            transform: scale(0);
+        }
+
+        50% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .carousel-item.active .hero-title {
+        animation: heroFadeUp 0.8s ease-out both;
+    }
+
+    .carousel-item.active .hero-desc {
+        animation: heroFadeUp 0.8s ease-out 0.2s both;
+    }
+
+    .carousel-item.active .hero-btn {
+        animation: heroFadeUp 0.8s ease-out 0.4s both;
+    }
+
+    .carousel-item.active .hero-icon {
+        animation: heroFloat 3s ease-in-out infinite;
+    }
+
+    .hero-btn:hover {
+        transform: scale(1.08) !important;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .hero-particle {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        animation: sparkle 4s ease-in-out infinite;
+    }
 </style>
 
 <div id="heroBanner" class="carousel slide mb-5 hero-carousel" data-bs-ride="carousel" data-bs-interval="4000">
@@ -92,35 +194,35 @@
 
 <div class="row g-4" id="product-grid">
     <?php if (!empty($products)): ?>
-        <?php foreach($products as $product): ?>
+        <?php foreach ($products as $product): ?>
             <div class="col-6 col-md-4 col-lg-3">
                 <div class="card product-card h-100 shadow-sm border-0">
                     <div class="position-relative p-3 text-center bg-white rounded-top" style="height: 220px;">
                         <?php $disc = intval($product['discount'] ?? 0); ?>
                         <?php if ($disc > 0): ?>
-                            <span class="badge bg-danger position-absolute top-0 start-0 m-2">-<?= $disc ?>%</span>
+                            <span class="badge bg-danger">-<?= $disc ?>%</span>
                         <?php endif; ?>
-                        
+
                         <a href="<?= BASE_URL ?>product/detail/<?= $product['id'] ?>">
-                            <img src="<?= BASE_URL ?>images/<?= $product['image'] ?>" 
-                                 class="img-fluid h-100" 
-                                 style="object-fit: contain; transition: transform 0.3s;" 
-                                 alt="<?= $product['name'] ?>"
-                                 onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
+                            <img src="<?= BASE_URL ?>images/<?= $product['image'] ?>"
+                                class="img-fluid h-100"
+                                style="object-fit: contain; transition: transform 0.3s;"
+                                alt="<?= $product['name'] ?>"
+                                onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
                         </a>
                     </div>
-                    
+
                     <div class="card-body d-flex flex-column border-top bg-light bg-opacity-10">
                         <h6 class="card-title mb-2" style="height: 40px; overflow: hidden; line-height: 1.4;">
                             <a href="<?= BASE_URL ?>product/detail/<?= $product['id'] ?>" class="text-dark text-decoration-none fw-bold">
                                 <?= $product['name'] ?>
                             </a>
                         </h6>
-                        
+
                         <div class="mt-auto">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <?php if ($disc > 0): ?>
-                                    <span class="text-danger fw-bold fs-5"><?= number_format($product['price'] * (1 - $disc/100), 0, ',', '.') ?>đ</span>
+                                    <span class="text-danger fw-bold fs-5"><?= number_format($product['price'] * (1 - $disc / 100), 0, ',', '.') ?>đ</span>
                                     <small class="text-decoration-line-through text-muted small">
                                         <?= number_format($product['price'], 0, ',', '.') ?>đ
                                     </small>
@@ -131,12 +233,19 @@
                             <?php if (isset($product['sold_count']) && $product['sold_count'] > 0): ?>
                                 <small class="text-muted d-block mb-2"><i class="fa-solid fa-fire-flame-curved text-warning me-1"></i>Đã bán <?= $product['sold_count'] ?></small>
                             <?php endif; ?>
-                            <div class="d-flex gap-2">
-                                <a href="<?= BASE_URL ?>cart/add/<?= $product['id'] ?>" class="btn btn-outline-primary btn-sm rounded-pill flex-grow-1 btn-add-cart" data-product-id="<?= $product['id'] ?>" data-base-url="<?= BASE_URL ?>">
+                            <div class="d-flex gap-2 w-100">
+                                <!-- Nút Thêm vào giỏ -->
+                                <a href="<?= BASE_URL ?>cart/add/<?= $product['id'] ?>"
+                                    class="btn btn-outline-primary btn-sm rounded-pill flex-fill btn-add-cart"
+                                    data-product-id="<?= $product['id'] ?>"
+                                    data-base-url="<?= BASE_URL ?>">
                                     <i class="fa-solid fa-cart-plus me-1"></i> Thêm vào giỏ
                                 </a>
-                                <a href="<?= BASE_URL ?>cart/add/<?= $product['id'] ?>?redirect=checkout" class="btn btn-danger btn-sm rounded-pill">
-                                    <i class="fa-solid fa-bolt"></i>
+
+                                <!-- Nút Mua ngay -->
+                                <a href="<?= BASE_URL ?>cart/add/<?= $product['id'] ?>?redirect=checkout"
+                                    class="btn btn-danger btn-sm rounded-pill flex-fill">
+                                    <i class="fa-solid fa-bolt"></i> Mua ngay
                                 </a>
                             </div>
                         </div>
@@ -154,7 +263,7 @@
     <?php endif; ?>
 </div>
 
-<?php 
+<?php
 // Include pagination component if we have pagination data
 if (isset($currentPage) && isset($totalPages)) {
     $baseUrl = BASE_URL;

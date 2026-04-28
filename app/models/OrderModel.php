@@ -24,5 +24,31 @@ class OrderModel extends Database {
             return false;
         }
     }
+
+    /**
+     * Kiểm tra xem user đã mua sản phẩm này chưa
+     */
+    public function checkUserPurchasedProduct($userId, $productId) {
+        try {
+            // Lưu ý: Nếu bảng 'orders' của bạn có cột lưu trạng thái đơn hàng (ví dụ: status = 'completed'), 
+            // bạn nên thêm "AND o.status = 'completed'" vào cuối câu WHERE để đảm bảo khách đã nhận hàng mới được đánh giá.
+            $sql = "SELECT COUNT(*) as count 
+                    FROM orders o 
+                    JOIN order_items oi ON o.id = oi.order_id 
+                    WHERE o.user_id = ? 
+                    AND o.status = 'completed'
+                    AND oi.product_id = ?";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([$userId, $productId]);
+            
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            return $result['count'] > 0;
+        } catch (Exception $e) {
+            // Ghi log lỗi nếu cần thiết
+            return false;
+        }
+    }
 }
 ?>

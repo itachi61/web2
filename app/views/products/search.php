@@ -1,30 +1,30 @@
 <div class="container my-4">
     <nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb mb-3" style="font-size: 0.9rem;">
-        <li class="breadcrumb-item">
-            <a href="<?= BASE_URL ?>" class="text-decoration-none text-muted">
-                <i class="fa-solid fa-house"></i> Trang chủ
-            </a>
-        </li>
-
-        <?php if (isset($product)): ?>
+        <ol class="breadcrumb mb-3" style="font-size: 0.9rem;">
             <li class="breadcrumb-item">
-                <a href="<?= BASE_URL ?>product/category/<?= $product['category_id'] ?? 0 ?>" class="text-decoration-none text-muted">
-                    <?= $product['category_name'] ?? 'Sản phẩm' ?>
+                <a href="<?= BASE_URL ?>" class="text-decoration-none text-muted">
+                    <i class="fa-solid fa-house"></i> Trang chủ
                 </a>
             </li>
-            <li class="breadcrumb-item active" aria-current="page">
-                <?= $product['name'] ?>
-            </li>
 
-        <?php else: ?>
-            <li class="breadcrumb-item active" aria-current="page">
-                <?= $title ?? 'Sản phẩm' ?>
-            </li>
-            
-        <?php endif; ?>
-    </ol>
-</nav>
+            <?php if (isset($product)): ?>
+                <li class="breadcrumb-item">
+                    <a href="<?= BASE_URL ?>product/category/<?= $product['category_id'] ?? 0 ?>" class="text-decoration-none text-muted">
+                        <?= $product['category_name'] ?? 'Sản phẩm' ?>
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <?= $product['name'] ?>
+                </li>
+
+            <?php else: ?>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <?= $title ?? 'Sản phẩm' ?>
+                </li>
+
+            <?php endif; ?>
+        </ol>
+    </nav>
 
     <div class="row">
         <div class="col-lg-3 mb-4">
@@ -34,7 +34,7 @@
                 </div>
                 <div class="card-body">
                     <form action="<?= BASE_URL ?>product/search" method="GET">
-                        
+
                         <input type="hidden" name="keyword" value="<?= htmlspecialchars($data['keyword'] ?? '') ?>">
 
                         <div class="mb-4">
@@ -75,16 +75,17 @@
         <div class="col-lg-9">
             <div class="d-flex justify-content-between align-items-center mb-3 bg-white p-3 rounded-3 shadow-sm border">
                 <span class="text-muted">Tìm thấy <strong class="text-dark"><?= isset($data['products']) ? count($data['products']) : 0 ?></strong> kết quả</span>
-                
+
                 <div class="d-flex align-items-center">
                     <label class="me-2 small text-muted text-nowrap">Sắp xếp:</label>
                     <form id="sortForm" action="<?= BASE_URL ?>product/search" method="GET">
                         <input type="hidden" name="keyword" value="<?= htmlspecialchars($data['keyword'] ?? '') ?>">
-                        <?php if(isset($_GET['cat'])): foreach($_GET['cat'] as $c): ?>
-                            <input type="hidden" name="cat[]" value="<?= $c ?>">
-                        <?php endforeach; endif; ?>
-                        <?php if(isset($_GET['min_price'])): ?><input type="hidden" name="min_price" value="<?= $_GET['min_price'] ?>"><?php endif; ?>
-                        <?php if(isset($_GET['max_price'])): ?><input type="hidden" name="max_price" value="<?= $_GET['max_price'] ?>"><?php endif; ?>
+                        <?php if (isset($_GET['cat'])): foreach ($_GET['cat'] as $c): ?>
+                                <input type="hidden" name="cat[]" value="<?= $c ?>">
+                        <?php endforeach;
+                        endif; ?>
+                        <?php if (isset($_GET['min_price'])): ?><input type="hidden" name="min_price" value="<?= $_GET['min_price'] ?>"><?php endif; ?>
+                        <?php if (isset($_GET['max_price'])): ?><input type="hidden" name="max_price" value="<?= $_GET['max_price'] ?>"><?php endif; ?>
 
                         <select class="form-select form-select-sm border-0 bg-light fw-bold text-primary" name="sort" onchange="document.getElementById('sortForm').submit()">
                             <option value="newest" <?= (isset($_GET['sort']) && $_GET['sort'] == 'newest') ? 'selected' : '' ?>>Mới nhất</option>
@@ -98,23 +99,56 @@
             <?php if (empty($data['products'])): ?>
                 <div class="alert alert-warning text-center">Không tìm thấy sản phẩm nào.</div>
             <?php else: ?>
-                <div class="row g-3">
-                    <?php foreach($data['products'] as $item): ?>
-                        <div class="col-6 col-md-4">
-                            <div class="card product-card h-100 border-0 shadow-sm">
-                                <div class="position-relative text-center p-3 bg-white rounded-top" style="height: 200px;">
+                <div class="row g-4">
+                    <?php foreach ($data['products'] as $item): ?>
+                        <div class="col-6 col-md-4 col-lg-4">
+                            <div class="card product-card h-100 shadow-sm border-0">
+                                <div class="position-relative p-3 text-center bg-white rounded-top" style="height: 220px;">
+                                    <?php $disc = intval($item['discount'] ?? 0); ?>
+                                    <?php if ($disc > 0): ?>
+                                        <span class="badge bg-danger">-<?= $disc ?>%</span>
+                                    <?php endif; ?>
+
                                     <a href="<?= BASE_URL ?>product/detail/<?= $item['id'] ?>">
-                                        <img src="<?= BASE_URL ?>images/<?= $item['image'] ?>" 
-                                             class="img-fluid h-100" 
-                                             style="object-fit: contain;"
-                                             onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'">
+                                        <img src="<?= BASE_URL ?>images/<?= $item['image'] ?>"
+                                            class="img-fluid h-100"
+                                            style="object-fit: contain; transition: transform 0.3s;"
+                                            alt="<?= htmlspecialchars($item['name'] ?? 'Product') ?>"
+                                            onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
                                     </a>
                                 </div>
-                                <div class="card-body border-top">
-                                    <h6 class="card-title text-truncate">
-                                        <a href="<?= BASE_URL ?>product/detail/<?= $item['id'] ?>" class="text-decoration-none text-dark fw-bold"><?= $item['name'] ?></a>
+
+                                <div class="card-body d-flex flex-column border-top bg-light bg-opacity-10">
+                                    <h6 class="card-title mb-2" style="height: 40px; overflow: hidden; line-height: 1.4;">
+                                        <a href="<?= BASE_URL ?>product/detail/<?= $item['id'] ?>" class="text-dark text-decoration-none fw-bold">
+                                            <?= $item['name'] ?>
+                                        </a>
                                     </h6>
-                                    <span class="text-danger fw-bold"><?= number_format($item['price'], 0, ',', '.') ?>đ</span>
+
+                                    <div class="mt-auto">
+                                        <div class="mb-2">
+                                            <?php if ($disc > 0): ?>
+                                                <span class="text-danger fw-bold fs-5"><?= number_format($item['price'] * (1 - $disc / 100), 0, ',', '.') ?>đ</span>
+                                                <br>
+                                                <small class="text-decoration-line-through text-muted small">
+                                                    <?= number_format($item['price'], 0, ',', '.') ?>đ
+                                                </small>
+                                            <?php else: ?>
+                                                <span class="text-danger fw-bold fs-5"><?= number_format($item['price'], 0, ',', '.') ?>đ</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <?php if (isset($item['sold_count']) && $item['sold_count'] > 0): ?>
+                                            <small class="text-muted d-block mb-2"><i class="fa-solid fa-fire-flame-curved text-warning me-1"></i>Đã bán <?= $item['sold_count'] ?></small>
+                                        <?php endif; ?>
+                                        <div class="d-flex gap-2">
+                                            <a href="<?= BASE_URL ?>cart/add/<?= $item['id'] ?>" class="btn btn-primary btn-sm rounded-pill flex-grow-1 btn-add-cart" data-product-id="<?= $item['id'] ?>" data-base-url="<?= BASE_URL ?>">
+                                                <i class="fa-solid fa-cart-plus me-1"></i> Thêm vào giỏ
+                                            </a>
+                                            <a href="<?= BASE_URL ?>cart/add/<?= $item['id'] ?>?redirect=checkout" class="btn btn-danger btn-sm rounded-pill" title="Mua ngay">
+                                                <i class="fa-solid fa-bolt"></i> Mua ngay
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

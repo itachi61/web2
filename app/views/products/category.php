@@ -1,30 +1,30 @@
 <div class="container py-4">
     <nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb mb-3" style="font-size: 0.9rem;">
-        <li class="breadcrumb-item">
-            <a href="<?= BASE_URL ?>" class="text-decoration-none text-muted">
-                <i class="fa-solid fa-house"></i> Trang chủ
-            </a>
-        </li>
-
-        <?php if (isset($product)): ?>
+        <ol class="breadcrumb mb-3" style="font-size: 0.9rem;">
             <li class="breadcrumb-item">
-                <a href="<?= BASE_URL ?>product/category/<?= $product['category_id'] ?? 0 ?>" class="text-decoration-none text-muted">
-                    <?= $product['category_name'] ?? 'Sản phẩm' ?>
+                <a href="<?= BASE_URL ?>" class="text-decoration-none text-muted">
+                    <i class="fa-solid fa-house"></i> Trang chủ
                 </a>
             </li>
-            <li class="breadcrumb-item active" aria-current="page">
-                <?= $product['name'] ?>
-            </li>
 
-        <?php else: ?>
-            <li class="breadcrumb-item active" aria-current="page">
-                <?= $title ?? 'Sản phẩm' ?>
-            </li>
-            
-        <?php endif; ?>
-    </ol>
-</nav>
+            <?php if (isset($product)): ?>
+                <li class="breadcrumb-item">
+                    <a href="<?= BASE_URL ?>product/category/<?= $product['category_id'] ?? 0 ?>" class="text-decoration-none text-muted">
+                        <?= $product['category_name'] ?? 'Sản phẩm' ?>
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <?= $product['name'] ?>
+                </li>
+
+            <?php else: ?>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <?= $title ?? 'Sản phẩm' ?>
+                </li>
+
+            <?php endif; ?>
+        </ol>
+    </nav>
 
     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
         <div>
@@ -33,11 +33,11 @@
             </h2>
             <small class="text-muted">Tìm thấy <?= $totalProducts ?? count($products) ?> sản phẩm</small>
         </div>
-        
+
         <div class="d-flex align-items-center">
             <label class="me-2 small text-muted text-nowrap">Sắp xếp:</label>
             <form id="sortFormCategory" method="GET" action="">
-                <?php 
+                <?php
                 // Giữ nguyên page param nếu có
                 if (isset($_GET['page'])): ?>
                     <input type="hidden" name="page" value="<?= htmlspecialchars($_GET['page']) ?>">
@@ -53,15 +53,15 @@
 
     <div class="row g-4" id="product-grid">
         <?php if (!empty($products)): ?>
-            <?php foreach($products as $product): ?>
+            <?php foreach ($products as $product): ?>
                 <div class="col-6 col-md-4 col-lg-3">
                     <div class="card product-card h-100 shadow-sm border-0">
                         <div class="position-relative p-3 text-center bg-white rounded-top" style="height: 220px;">
                             <?php $disc = intval($product['discount'] ?? 0); ?>
                             <?php if ($disc > 0): ?>
-                                <span class="badge bg-danger position-absolute top-0 start-0 m-2">-<?= $disc ?>%</span>
+                                <span class="badge bg-danger">-<?= $disc ?>%</span>
                             <?php endif; ?>
-                            
+
                             <a href="<?= BASE_URL ?>product/detail/<?= $product['id'] ?>">
                                 <img src="<?= BASE_URL ?>images/<?= $product['image'] ?>"
                                     class="img-fluid h-100"
@@ -70,18 +70,18 @@
                                     onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
                             </a>
                         </div>
-                        
+
                         <div class="card-body d-flex flex-column border-top bg-light bg-opacity-10">
                             <h6 class="card-title mb-2" style="height: 40px; overflow: hidden; line-height: 1.4;">
                                 <a href="<?= BASE_URL ?>product/detail/<?= $product['id'] ?>" class="text-dark text-decoration-none fw-bold">
                                     <?= $product['name'] ?>
                                 </a>
                             </h6>
-                            
+
                             <div class="mt-auto">
                                 <div class="mb-2">
                                     <?php if ($disc > 0): ?>
-                                        <span class="text-danger fw-bold fs-5"><?= number_format($product['price'] * (1 - $disc/100), 0, ',', '.') ?>đ</span>
+                                        <span class="text-danger fw-bold fs-5"><?= number_format($product['price'] * (1 - $disc / 100), 0, ',', '.') ?>đ</span>
                                         <br>
                                         <small class="text-decoration-line-through text-muted small">
                                             <?= number_format($product['price'], 0, ',', '.') ?>đ
@@ -98,7 +98,7 @@
                                         <i class="fa-solid fa-cart-plus me-1"></i> Thêm vào giỏ
                                     </a>
                                     <a href="<?= BASE_URL ?>cart/add/<?= $product['id'] ?>?redirect=checkout" class="btn btn-danger btn-sm rounded-pill" title="Mua ngay">
-                                        <i class="fa-solid fa-bolt"></i>
+                                        <i class="fa-solid fa-bolt"></i> Mua ngay
                                     </a>
                                 </div>
                             </div>
@@ -116,8 +116,8 @@
             </div>
         <?php endif; ?>
     </div>
-    
-    <?php 
+
+    <?php
     // Include pagination component if we have pagination data
     if (isset($currentPage) && isset($totalPages) && isset($baseUrl)) {
         include __DIR__ . '/../layouts/pagination.php';

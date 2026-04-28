@@ -1,31 +1,31 @@
 <div class="container my-4">
-    
-    <nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb mb-3" style="font-size: 0.9rem;">
-        <li class="breadcrumb-item">
-            <a href="<?= BASE_URL ?>" class="text-decoration-none text-muted">
-                <i class="fa-solid fa-house"></i> Trang chủ
-            </a>
-        </li>
 
-        <?php if (isset($product)): ?>
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb mb-3" style="font-size: 0.9rem;">
             <li class="breadcrumb-item">
-                <a href="<?= BASE_URL ?>product/category/<?= $product['category_id'] ?? 0 ?>" class="text-decoration-none text-muted">
-                    <?= $product['category_name'] ?>
+                <a href="<?= BASE_URL ?>" class="text-decoration-none text-muted">
+                    <i class="fa-solid fa-house"></i> Trang chủ
                 </a>
             </li>
-            <li class="breadcrumb-item active" aria-current="page">
-                <?= $product['name'] ?>
-            </li>
 
-        <?php else: ?>
-            <li class="breadcrumb-item active" aria-current="page">
-                <?= $title ?? 'Sản phẩm' ?>
-            </li>
-            
-        <?php endif; ?>
-    </ol>
-</nav>
+            <?php if (isset($product)): ?>
+                <li class="breadcrumb-item">
+                    <a href="<?= BASE_URL ?>product/category/<?= $product['category_id'] ?? 0 ?>" class="text-decoration-none text-muted">
+                        <?= $product['category_name'] ?>
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <?= $product['name'] ?>
+                </li>
+
+            <?php else: ?>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <?= $title ?? 'Sản phẩm' ?>
+                </li>
+
+            <?php endif; ?>
+        </ol>
+    </nav>
 
     <div class="border-bottom pb-2 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
         <h4 class="fw-bold mb-0">
@@ -45,9 +45,9 @@
     </div>
 
     <div class="row">
-        
+
         <div class="col-lg-7 mb-4">
-            
+
             <div class="card border-0 shadow-sm mb-3" style="border-radius: 12px; overflow: hidden;">
                 <div class="card-body p-2 text-center d-flex align-items-center justify-content-center position-relative" style="height: 450px; background: #fff;">
                     <img id="mainImage"
@@ -77,10 +77,18 @@
                 <div class="card-body p-4">
                     <h6 class="fw-bold mb-3 text-danger"><i class="fa-solid fa-gem me-2"></i> Ưu đãi & Chính sách</h6>
                     <div class="row g-3">
-                        <div class="col-md-6"><div class="d-flex gap-2 align-items-start"><i class="fa-solid fa-rotate-left text-danger fs-5 mt-1 w-25px text-center"></i><span class="small fw-medium">1 ĐỔI 1 trong 30 ngày nếu có lỗi NSX.</span></div></div>
-                        <div class="col-md-6"><div class="d-flex gap-2 align-items-start"><i class="fa-solid fa-shield-halved text-danger fs-5 mt-1 w-25px text-center"></i><span class="small fw-medium">Bảo hành chính hãng 12-24 tháng.</span></div></div>
-                        <div class="col-md-6"><div class="d-flex gap-2 align-items-start"><i class="fa-solid fa-truck-fast text-danger fs-5 mt-1 w-25px text-center"></i><span class="small fw-medium">Miễn phí vận chuyển toàn quốc.</span></div></div>
-                        <div class="col-md-6"><div class="d-flex gap-2 align-items-start"><i class="fa-solid fa-headset text-danger fs-5 mt-1 w-25px text-center"></i><span class="small fw-medium">Hỗ trợ kỹ thuật 24/7 trọn đời.</span></div></div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2 align-items-start"><i class="fa-solid fa-rotate-left text-danger fs-5 mt-1 w-25px text-center"></i><span class="small fw-medium">1 ĐỔI 1 trong 30 ngày nếu có lỗi NSX.</span></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2 align-items-start"><i class="fa-solid fa-shield-halved text-danger fs-5 mt-1 w-25px text-center"></i><span class="small fw-medium">Bảo hành chính hãng 12-24 tháng.</span></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2 align-items-start"><i class="fa-solid fa-truck-fast text-danger fs-5 mt-1 w-25px text-center"></i><span class="small fw-medium">Miễn phí vận chuyển toàn quốc.</span></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2 align-items-start"><i class="fa-solid fa-headset text-danger fs-5 mt-1 w-25px text-center"></i><span class="small fw-medium">Hỗ trợ kỹ thuật 24/7 trọn đời.</span></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -91,17 +99,17 @@
                     <?= nl2br($product['description']) ?>
                 </div>
             </div>
-            
+
         </div>
 
         <div class="col-lg-5">
             <div class="card border-0 shadow-sm" style="border-radius: 12px; position: sticky; top: 90px;">
                 <div class="card-body p-4">
-                    
+
                     <div class="d-flex align-items-end gap-3 mb-3 pb-3 border-bottom">
                         <?php $disc = intval($product['discount'] ?? 0); ?>
                         <?php if ($disc > 0): ?>
-                            <h2 class="text-danger fw-bold mb-0"><?= number_format($product['price'] * (1 - $disc/100), 0, ',', '.') ?>đ</h2>
+                            <h2 class="text-danger fw-bold mb-0"><?= number_format($product['price'] * (1 - $disc / 100), 0, ',', '.') ?>đ</h2>
                             <span class="text-decoration-line-through text-muted mb-1"><?= number_format($product['price'], 0, ',', '.') ?>đ</span>
                             <span class="badge bg-danger mb-2">-<?= $disc ?>%</span>
                         <?php else: ?>
@@ -149,13 +157,13 @@
                                 </a>
                             </div>
                         </div>
-                        </div>
                     </div>
-
                 </div>
+
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <div class="container mb-5" id="reviews">
@@ -165,31 +173,63 @@
                 Đánh giá từ khách hàng
             </h4>
 
+            <!-- Hiển thị thông báo lỗi từ Controller (nếu có) -->
+            <?php if (isset($_SESSION['error'])): ?>
+                <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4" role="alert">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i> <?= $_SESSION['error'] ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <?php unset($_SESSION['error']); ?>
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['success'])): ?>
+                <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4" role="alert">
+                    <i class="fa-solid fa-check-circle me-2"></i> <?= $_SESSION['success'] ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <?php unset($_SESSION['success']); ?>
+            <?php endif; ?>
+
             <div class="card mb-5 shadow-sm border-0 rounded-4">
                 <div class="card-body p-4 bg-white rounded-4">
                     <?php if (isset($_SESSION['user_id'])): ?>
-                        <form action="<?= BASE_URL ?>product/postReview" method="POST">
-                            <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
-                            <div class="row align-items-center mb-3">
-                                <div class="col-md-6 d-flex align-items-center">
-                                    <label class="fw-bold me-3 text-nowrap">Bạn cảm thấy thế nào?</label>
-                                    <select name="rating" class="form-select border-warning text-warning fw-bold shadow-none">
-                                        <option value="5">⭐⭐⭐⭐⭐ (Tuyệt vời)</option>
-                                        <option value="4">⭐⭐⭐⭐ (Tốt)</option>
-                                        <option value="3">⭐⭐⭐ (Bình thường)</option>
-                                        <option value="2">⭐⭐ (Tệ)</option>
-                                        <option value="1">⭐ (Rất tệ)</option>
-                                    </select>
+
+                        <?php if (isset($hasPurchased) && $hasPurchased): ?>
+                            <!-- NẾU ĐÃ MUA HÀNG: Hiển thị form đánh giá -->
+                            <form action="<?= BASE_URL ?>product/postReview" method="POST">
+                                <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+                                <div class="row align-items-center mb-3">
+                                    <div class="col-md-6 d-flex align-items-center">
+                                        <label class="fw-bold me-3 text-nowrap">Bạn cảm thấy thế nào?</label>
+                                        <select name="rating" class="form-select border-warning text-warning fw-bold shadow-none">
+                                            <option value="5">⭐⭐⭐⭐⭐ (Tuyệt vời)</option>
+                                            <option value="4">⭐⭐⭐⭐ (Tốt)</option>
+                                            <option value="3">⭐⭐⭐ (Bình thường)</option>
+                                            <option value="2">⭐⭐ (Tệ)</option>
+                                            <option value="1">⭐ (Rất tệ)</option>
+                                        </select>
+                                    </div>
                                 </div>
+                                <div class="mb-3">
+                                    <textarea name="comment" class="form-control shadow-none bg-light" rows="3" placeholder="Xin mời chia sẻ cảm nhận chi tiết của bạn về sản phẩm..." required></textarea>
+                                </div>
+                                <div class="text-end">
+                                    <button type="submit" class="btn btn-primary px-4 rounded-pill fw-bold shadow-sm">Gửi đánh giá</button>
+                                </div>
+                            </form>
+                        <?php else: ?>
+                            <!-- NẾU CHƯA MUA HÀNG: Hiển thị thông báo -->
+                            <div class="text-center py-4">
+                                <div class="d-inline-flex align-items-center justify-content-center bg-light rounded-circle mb-3" style="width: 80px; height: 80px;">
+                                    <i class="fa-solid fa-bag-shopping fs-2 text-primary opacity-75"></i>
+                                </div>
+                                <h6 class="fw-bold mb-2">Bạn chưa mua sản phẩm này</h6>
+                                <p class="text-muted mb-0">Vui lòng mua và trải nghiệm sản phẩm để có thể viết đánh giá giúp cộng đồng nhé!</p>
                             </div>
-                            <div class="mb-3">
-                                <textarea name="comment" class="form-control shadow-none bg-light" rows="3" placeholder="Xin mời chia sẻ cảm nhận chi tiết của bạn về sản phẩm..." required></textarea>
-                            </div>
-                            <div class="text-end">
-                                <button type="submit" class="btn btn-primary px-4 rounded-pill fw-bold shadow-sm">Gửi đánh giá</button>
-                            </div>
-                        </form>
+                        <?php endif; ?>
+
                     <?php else: ?>
+                        <!-- NẾU CHƯA ĐĂNG NHẬP -->
                         <div class="text-center py-4">
                             <i class="fa-regular fa-comment-dots fs-1 text-muted mb-3"></i>
                             <p class="mb-3">Vui lòng đăng nhập để gửi nhận xét của bạn về sản phẩm.</p>
@@ -199,6 +239,7 @@
                 </div>
             </div>
 
+            <!-- PHẦN DANH SÁCH ĐÁNH GIÁ (Giữ nguyên) -->
             <div class="card shadow-sm border-0 rounded-4">
                 <div class="card-body p-4 bg-white rounded-4">
                     <?php if (isset($reviews) && count($reviews) > 0): ?>
@@ -239,7 +280,7 @@
         // Làm mờ ảnh chính 1 chút tạo hiệu ứng mượt
         let mainImg = document.getElementById('mainImage');
         mainImg.style.opacity = '0.5';
-        
+
         setTimeout(() => {
             mainImg.src = src;
             mainImg.style.opacity = '1';
@@ -256,7 +297,10 @@
     document.querySelectorAll('a[href="#reviews"]').forEach(function(link) {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            document.getElementById('reviews').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.getElementById('reviews').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
         });
     });
 </script>

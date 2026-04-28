@@ -65,12 +65,21 @@ class ProductController extends Controller
         $reviews = $model->getReviews($id);
         $images = $model->getProductImages($id);
 
+        // --- BẮT ĐẦU: KIỂM TRA TRẠNG THÁI MUA HÀNG ---
+        $hasPurchased = false;
+        if (isset($_SESSION['user_id'])) {
+            $orderModel = $this->model('OrderModel');
+            $hasPurchased = $orderModel->checkUserPurchasedProduct($_SESSION['user_id'], $id);
+        }
+        // --- KẾT THÚC: KIỂM TRA TRẠNG THÁI MUA HÀNG ---
+
         $this->view('layouts/header', ['title' => $product['name']]);
 
         $this->view('products/detail', [
             'product' => $product,
             'reviews' => $reviews,
-            'images'  => $images
+            'images'  => $images,
+            'hasPurchased' => $hasPurchased // Truyền biến này ra View
         ]);
         
         $this->view('layouts/footer');
@@ -117,8 +126,24 @@ class ProductController extends Controller
             $comment = $_POST['comment'];
             $user_id = $_SESSION['user_id'];
 
+            // --- BẮT ĐẦU: RÀNG BUỘC BẢO MẬT BACKEND ---
+            $orderModel = $this->model('OrderModel');
+            $hasPurchased = $orderModel->checkUserPurchasedProduct($user_id, $product_id);
+
+            if (!$hasPurchased) {
+                // Tùy chọn: Bạn có thể lưu câu thông báo lỗi vào $_SESSION['error'] 
+                // để hiển thị ngoài file views/products/detail.php nếu muốn
+                $_SESSION['error'] = "Bạn cần mua và nhận sản phẩm này để có thể đánh giá.";
+                header('Location: ' . BASE_URL . 'product/detail/' . $product_id);
+                exit;
+            }
+            // --- KẾT THÚC: RÀNG BUỘC BẢO MẬT BACKEND ---
+
             $model = $this->model('ProductModel');
             $model->addReview($user_id, $product_id, $rating, $comment);
+
+            // Lưu thông báo thành công (tùy chọn)
+            $_SESSION['success'] = "Cảm ơn bạn đã đánh giá sản phẩm!";
 
             header('Location: ' . BASE_URL . 'product/detail/' . $product_id);
             exit;

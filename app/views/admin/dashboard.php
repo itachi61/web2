@@ -16,53 +16,58 @@
 
     <div class="d-flex">
         <nav class="sidebar">
-            <div class="sidebar-header">
-
-                Admin Panel
+            <div class="sidebar-header d-flex justify-content-center align-items-center py-4">
+                <a href="<?= BASE_URL ?>admin">
+                    <img src="<?= BASE_URL ?>img/logo_white.png"
+                        alt="TechSmart Logo"
+                        class="img-fluid"
+                        style="max-height: 50px; object-fit: contain;">
+                </a> Admin Panel
             </div>
 
             <div class="sidebar-menu">
-                <a href="<?= BASE_URL ?>admin" class="<?= (isset($data['active']) && $data['active'] == 'dashboard') ? 'active' : '' ?>">
-                    <i class="fa-solid fa-gauge"></i> Tổng quan
-                </a>
+                <div class="sidebar-menu">
+                    <a href="<?= BASE_URL ?>admin" class="<?= (isset($data['active']) && $data['active'] == 'dashboard') ? 'active' : '' ?>">
+                        <i class="fa-solid fa-gauge"></i> Tổng quan
+                    </a>
 
-                <a href="<?= BASE_URL ?>admin/products" class="<?= (isset($data['active']) && $data['active'] == 'products') ? 'active' : '' ?>">
-                    <i class="fa-solid fa-box"></i> Quản lý Sản phẩm
-                </a>
+                    <a href="<?= BASE_URL ?>admin/products" class="<?= (isset($data['active']) && $data['active'] == 'products') ? 'active' : '' ?>">
+                        <i class="fa-solid fa-box"></i> Quản lý Sản phẩm
+                    </a>
 
-                <a href="<?= BASE_URL ?>admin/categories" class="<?= (isset($data['active']) && $data['active'] == 'categories') ? 'active' : '' ?>">
-                    <i class="fa-solid fa-tags"></i> Danh mục SP
-                </a>
+                    <a href="<?= BASE_URL ?>admin/categories" class="<?= (isset($data['active']) && $data['active'] == 'categories') ? 'active' : '' ?>">
+                        <i class="fa-solid fa-tags"></i> Danh mục SP
+                    </a>
 
-                <a href="<?= BASE_URL ?>admin/orders" class="<?= (isset($data['active']) && $data['active'] == 'orders') ? 'active' : '' ?>">
-                    <i class="fa-solid fa-cart-flatbed"></i> Quản lý Đơn hàng
-                </a>
+                    <a href="<?= BASE_URL ?>admin/orders" class="<?= (isset($data['active']) && $data['active'] == 'orders') ? 'active' : '' ?>">
+                        <i class="fa-solid fa-cart-flatbed"></i> Quản lý Đơn hàng
+                    </a>
 
-                <a href="<?= BASE_URL ?>admin/users" class="<?= (isset($data['active']) && $data['active'] == 'users') ? 'active' : '' ?>">
-                    <i class="fa-solid fa-users"></i> Khách hàng
-                </a>
+                    <a href="<?= BASE_URL ?>admin/users" class="<?= (isset($data['active']) && $data['active'] == 'users') ? 'active' : '' ?>">
+                        <i class="fa-solid fa-users"></i> Khách hàng
+                    </a>
 
-                <a href="<?= BASE_URL ?>admin/statistics" class="<?= (isset($data['active']) && $data['active'] == 'statistics') ? 'active' : '' ?>">
-                    <i class="fa-solid fa-chart-line"></i> Thống kê
-                </a>
+                    <a href="<?= BASE_URL ?>admin/statistics" class="<?= (isset($data['active']) && $data['active'] == 'statistics') ? 'active' : '' ?>">
+                        <i class="fa-solid fa-chart-line"></i> Thống kê
+                    </a>
 
-                <a href="<?= BASE_URL ?>admin/import" class="<?= (isset($data['active']) && $data['active'] == 'import') ? 'active' : '' ?>">
-                    <i class="fa-solid fa-truck-ramp-box"></i> Nhập hàng
-                </a>
+                    <a href="<?= BASE_URL ?>admin/import" class="<?= (isset($data['active']) && $data['active'] == 'import') ? 'active' : '' ?>">
+                        <i class="fa-solid fa-truck-ramp-box"></i> Nhập hàng
+                    </a>
 
-                <a href="<?= BASE_URL ?>admin/stockHistory" class="<?= (isset($data['active']) && $data['active'] == 'stock') ? 'active' : '' ?>">
-                    <i class="fa-solid fa-warehouse"></i> Tra cứu tồn kho
-                </a>
-            </div>
+                    <a href="<?= BASE_URL ?>admin/stockHistory" class="<?= (isset($data['active']) && $data['active'] == 'stock') ? 'active' : '' ?>">
+                        <i class="fa-solid fa-warehouse"></i> Tra cứu tồn kho
+                    </a>
+                </div>
 
-            <div class="p-3 border-top border-secondary">
-                <a href="<?= BASE_URL ?>auth/logout" class="btn btn-danger w-100 btn-sm">
-                    <i class="fa-solid fa-power-off me-2"></i> Đăng xuất
-                </a>
-                <a href="<?= BASE_URL ?>" class="btn btn-outline-light w-100 btn-sm mt-2">
-                    <i class="fa-solid fa-globe me-2"></i> Xem Website
-                </a>
-            </div>
+                <div class="p-3 border-top border-secondary">
+                    <a href="<?= BASE_URL ?>auth/logout" class="btn btn-danger w-100 btn-sm">
+                        <i class="fa-solid fa-power-off me-2"></i> Đăng xuất
+                    </a>
+                    <a href="<?= BASE_URL ?>" class="btn btn-outline-light w-100 btn-sm mt-2">
+                        <i class="fa-solid fa-globe me-2"></i> Xem Website
+                    </a>
+                </div>
         </nav>
 
         <div class="main-content">
